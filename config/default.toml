@@ -1,0 +1,31 @@
+[project]
+name = "project"
+exclude = [".git", ".venv", ".venv-ml", "build", "dist", "artifacts", "third_party", "vendor"]
+
+[analysis]
+enabled_rules = ["DG001", "DG002", "DG003", "DG004", "DG005", "DG006", "DG007"]
+minimum_severity = "low"
+max_file_bytes = 1048576
+
+[parser]
+backend = "auto"
+clang_tool = ""
+compilation_database = ""
+
+[models]
+backend = "disabled"
+checkpoint = ""
+encoder = ""
+# trained 模式可指定 threshold；省略时使用检查点阈值。
+
+[repair]
+backend = "disabled"
+max_candidates = 5
+
+[verification]
+build_command = []
+test_command = []
+timeout_seconds = 120
+
+[reporting]
+formats = ["json", "markdown", "html"]

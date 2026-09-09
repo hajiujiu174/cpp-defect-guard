@@ -1,0 +1,44 @@
+[project]
+name = "project"
+exclude = [".git", ".venv", ".venv-ml", "build", "dist", "artifacts"]
+
+[analysis]
+enabled_rules = ["DG001", "DG002", "DG003", "DG004", "DG005", "DG006", "DG007"]
+minimum_severity = "low"
+max_file_bytes = 1048576
+
+[parser]
+backend = "clang"
+clang_tool = ""
+compilation_database = "build/compile_commands.json"
+
+[models]
+backend = "disabled"
+
+[repair]
+backend = "disabled"
+
+[verification]
+# Windows / MSYS2 本机配置；构建目录不会从原工程复制到隔离副本。
+build_command = [
+  "cmake",
+  "-S",
+  ".",
+  "-B",
+  "build",
+  "-G",
+  "MinGW Makefiles",
+  "-DCMAKE_CXX_COMPILER=clang++",
+  "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+]
+# 配置完成后，先编译程序，再执行 CTest；编译失败时不会继续测试。
+test_command = [
+  "cmd",
+  "/d",
+  "/c",
+  "cmake --build build --parallel 2 && ctest --test-dir build --output-on-failure",
+]
+timeout_seconds = 120
+
+[reporting]
+formats = ["json", "markdown", "html"]

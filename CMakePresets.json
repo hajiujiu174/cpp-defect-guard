@@ -1,0 +1,44 @@
+{
+  "version": 5,
+  "configurePresets": [
+    {
+      "name": "core-debug",
+      "displayName": "CodeGuard core and CLI (no Qt, no Python)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/codeguard-core",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "BUILD_TESTING": "ON",
+        "CODEGUARD_BUILD_GUI": "OFF"
+      }
+    },
+    {
+      "name": "desktop-debug",
+      "inherits": "core-debug",
+      "binaryDir": "${sourceDir}/build/codeguard-desktop",
+      "cacheVariables": { "CODEGUARD_BUILD_GUI": "ON" }
+    },
+    {
+      "name": "analysis-release",
+      "inherits": "desktop-debug",
+      "displayName": "CodeGuard Clang analysis + Qt (Release)",
+      "binaryDir": "${sourceDir}/build/codeguard-analysis",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CODEGUARD_ENABLE_ANALYSIS": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "core-debug", "configurePreset": "core-debug" },
+    { "name": "desktop-debug", "configurePreset": "desktop-debug" },
+    { "name": "analysis-release", "configurePreset": "analysis-release" }
+  ],
+  "testPresets": [
+    { "name": "core-debug", "configurePreset": "core-debug", "output": { "outputOnFailure": true } },
+    { "name": "desktop-debug", "configurePreset": "desktop-debug", "output": { "outputOnFailure": true } },
+    { "name": "analysis-release", "configurePreset": "analysis-release", "output": { "outputOnFailure": true } }
+  ]
+}

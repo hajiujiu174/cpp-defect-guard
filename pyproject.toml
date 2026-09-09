@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cpp-defect-guard"
+version = "0.5.0"
+description = "C/C++ 静态缺陷检测与自动修复课程设计框架"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+ml = ["torch==2.14.0", "transformers==5.16.1", "torch-geometric==2.8.0.post1", "safetensors==0.8.0"]
+
+[project.scripts]
+defectguard = "defectguard.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

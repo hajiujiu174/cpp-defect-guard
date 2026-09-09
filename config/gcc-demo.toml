@@ -1,0 +1,27 @@
+[project]
+name = "vulnerable-sample"
+exclude = [".git", ".venv", ".venv-ml", "build", "dist", "artifacts"]
+
+[analysis]
+enabled_rules = ["DG001", "DG002", "DG003", "DG004", "DG005", "DG006", "DG007"]
+minimum_severity = "low"
+max_file_bytes = 1048576
+
+[parser]
+backend = "auto"
+clang_tool = ""
+compilation_database = ""
+
+[models]
+backend = "disabled"
+
+[repair]
+backend = "disabled"
+
+[verification]
+build_command = ["g++", "-std=c++17", "-Wall", "-Wextra", "-pedantic", "main.cpp", "-o", "vulnerable_sample.exe"]
+test_command = [".\\vulnerable_sample.exe", "safe"]
+timeout_seconds = 120
+
+[reporting]
+formats = ["json", "markdown", "html"]

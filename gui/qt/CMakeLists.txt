@@ -1,0 +1,7 @@
+find_package(Qt6 6.2 REQUIRED COMPONENTS Widgets)
+find_package(Threads REQUIRED)
+add_library(codeguard-qt-task STATIC scan_task.cpp build_task.cpp)
+target_link_libraries(codeguard-qt-task PUBLIC codeguard-core Qt6::Core Threads::Threads)
+target_include_directories(codeguard-qt-task PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+add_executable(codeguard-gui main.cpp source_editor.cpp)
+target_link_libraries(codeguard-gui PRIVATE codeguard-qt-task Qt6::Widgets)

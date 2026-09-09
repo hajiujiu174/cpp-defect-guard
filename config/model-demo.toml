@@ -1,0 +1,21 @@
+[project]
+name = "project"
+exclude = [".git", ".venv", ".venv-ml", "build", "dist", "artifacts"]
+
+[parser]
+backend = "clang"
+clang_tool = ""
+compilation_database = "build/compile_commands.json"
+
+[models]
+backend = "trained"
+# 路径相对于本配置文件，不依赖调用时工作目录。
+checkpoint = "../artifacts/layer2/demo-20260906/fusion"
+encoder = "../artifacts/models/graphcodebert-base"
+# 省略 threshold 表示沿用训练时固定的 0.5；不按演示测试结果调阈值。
+
+[repair]
+backend = "disabled"
+
+[reporting]
+formats = ["json", "markdown", "html"]

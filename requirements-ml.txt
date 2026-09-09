@@ -1,0 +1,7 @@
+# Tested on Python 3.12.14; install CPU torch first via setup_ml.ps1.
+transformers==5.16.1
+torch-geometric==2.8.0.post1
+safetensors==0.8.0
+huggingface-hub==1.30.0
+tokenizers==0.23.2
+numpy==2.5.2
