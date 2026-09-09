@@ -1,5 +1,7 @@
 # CodeGuard：跨平台 C/C++ 软件质量分析与工程管理系统
 
+2026-09-10 交付范围调整：当前仅面向 Windows x64，跨平台开发与新增验收暂缓。Windows CI、锁定工具链、干净构建及运行包检查见 [Windows 构建说明](docs/windows-ci.md)。
+
 当前以 `CodeGuard_课程设计项目方案书.docx`（V1.0，2026 年 9 月）为主方案，正式交付目标为 **Level 3 工程分析闭环**。架构调整为 C++20 Core 静态库、原生 CLI、可选 Qt 6 前端；AI 训练、CFG/DFG 和自动修复归入 Level 4，不再作为基础交付的前置条件。保留原目录名 `cpp-defect-guard`，避免破坏配置和历史产物路径。
 
 ## Level 3 规则与工程闭环
@@ -24,7 +26,7 @@ v0.3.0 已补齐五类 Clang AST 规则、多 TU 线程池、单写线程批量�
   --query "SELECT name, file, complexity FROM functions WHERE complexity >= 2 ORDER BY complexity DESC LIMIT 20;"
 ```
 
-查询语法、字段、边界和验收见 [查询语言说明](docs/query-language.md)。最新范围见 [方向调整与当前进度](docs/codeguard-status.md)。规则引擎、并行分析与构建测试管理已经接入，完整 Linux Qt/Clang 环境和更多真实工程验收仍单独列为待验证项。
+查询语法、字段、边界和验收见 [查询语言说明](docs/query-language.md)。最新范围见 [方向调整与当前进度](docs/codeguard-status.md)。规则引擎、并行分析与构建测试管理已经接入；后续重点为 Windows 交付与真实工程验收，Linux Qt/Clang 验收暂缓。
 
 ## Clang 符号、复杂度与项目关系图
 

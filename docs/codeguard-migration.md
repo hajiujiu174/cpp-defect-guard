@@ -1,6 +1,6 @@
 # 新方案迁移与首个里程碑
 
-本文件保留首个迁移里程碑的历史记录。后续 Clang Core、符号/度量/调用与依赖图、schema 2 和 GUI 标签页已完成接入，当前状态以 [codeguard-analysis.md](codeguard-analysis.md) 为准。
+本文件保留首个迁移里程碑的历史记录，下面的“未完成”“下一步”等只描述当时状态。后续 Clang Core、规则、线程池、查询、构建测试和 Windows 打包已经实现，当前状态以 [项目进度](codeguard-status.md)、[Level 3 验收](level3-acceptance.md) 和 [Windows CI](windows-ci.md) 为准。
 
 ## 依据与决策
 

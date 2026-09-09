@@ -86,4 +86,4 @@ Core 的 `ScanContext` / `ScanControl` 使用标准 C++ 回调与原子状态，
 - 该实测暴露重复路径规范化的开销，已增加每 TU 路径缓存。修正后单次耗时约 5.87 秒；不是受控性能基准，未据此声称并行或千文件性能。修正前的慢扫描已停止，没有产生伪造的成功快照。
 - 自动验收数据库与文本输出：`build/codeguard-analysis/tests/codeguard/cli-analysis.sqlite3*`；Qt 截图：`build/codeguard-analysis/tests/codeguard/gui-analysis/gui-smoke.png`。
 
-Linux 全量编译、多个外部开源项目、性能基准、线程池、深层静态规则和 Level 3 自研查询语言尚未验收。
+后续已经实现并验证线程池、受控性能基准、五类 AST 规则和 Level 3 自研查询语言，最新记录见 [Level 3 验收](level3-acceptance.md)。外部真实工程与更深的数据流规则仍待推进；2026-09-10 起 Linux 全功能验收按用户要求暂缓，当前交付重点为 [Windows CI](windows-ci.md)。

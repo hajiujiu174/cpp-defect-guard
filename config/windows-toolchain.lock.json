@@ -1,0 +1,650 @@
+{
+  "schema": 1,
+  "platform": "windows-x64-mingw64",
+  "roots": [
+    "mingw-w64-x86_64-clang",
+    "mingw-w64-x86_64-clang-tools-extra",
+    "mingw-w64-x86_64-llvm",
+    "mingw-w64-x86_64-gcc",
+    "mingw-w64-x86_64-cmake",
+    "mingw-w64-x86_64-ninja",
+    "mingw-w64-x86_64-qt6-base",
+    "mingw-w64-x86_64-sqlite3",
+    "mingw-w64-x86_64-gtest",
+    "mingw-w64-x86_64-binutils"
+  ],
+  "packages": [
+    {
+      "name": "mingw-w64-x86_64-binutils",
+      "version": "2.47-3",
+      "file": "mingw-w64-x86_64-binutils-2.47-3-any.pkg.tar.zst",
+      "bytes": 6639996,
+      "sha256": "827363748ce3320683319d860ee4fcfcdbb36baf66aac6dab0ec3822be2d4ff7",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-binutils-2.47-3-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-brotli",
+      "version": "1.2.0-1",
+      "file": "mingw-w64-x86_64-brotli-1.2.0-1-any.pkg.tar.zst",
+      "bytes": 455164,
+      "sha256": "f5f2f7e723a08378241d15f0537386950c1a48e2d82bc47bedd632bd61852aba",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-brotli-1.2.0-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-bzip2",
+      "version": "1.0.8-4",
+      "file": "mingw-w64-x86_64-bzip2-1.0.8-4-any.pkg.tar.zst",
+      "bytes": 95428,
+      "sha256": "123768f30ae14ba654a6feb70f8526146a331bc85f831a91a549ffb3f6cbffc7",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-bzip2-1.0.8-4-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-c-ares",
+      "version": "1.34.8-1",
+      "file": "mingw-w64-x86_64-c-ares-1.34.8-1-any.pkg.tar.zst",
+      "bytes": 321445,
+      "sha256": "34c1b4c196f52bd3f0c0b4ac652fabd2325086183c000baa10f721c815b29542",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-c-ares-1.34.8-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-ca-certificates",
+      "version": "20260816-1",
+      "file": "mingw-w64-x86_64-ca-certificates-20260816-1-any.pkg.tar.zst",
+      "bytes": 402966,
+      "sha256": "6030a6e98afd408164e9fdf2b76b53492189b57c6d2ec3b460fcb4d9d249e1ed",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-ca-certificates-20260816-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-clang",
+      "version": "22.1.8-2",
+      "file": "mingw-w64-x86_64-clang-22.1.8-2-any.pkg.tar.zst",
+      "bytes": 30618807,
+      "sha256": "fa7a2b93ededeaffeda35d30bd8fb93b9f42814ce8fad92f7062958af8052029",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-clang-22.1.8-2-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-clang-libs",
+      "version": "22.1.8-2",
+      "file": "mingw-w64-x86_64-clang-libs-22.1.8-2-any.pkg.tar.zst",
+      "bytes": 22897280,
+      "sha256": "88e82c3baea8f027c90ea2bf894f258bf15bd1512647d67ce3822654d04f216b",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-clang-libs-22.1.8-2-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-clang-tools-extra",
+      "version": "22.1.8-2",
+      "file": "mingw-w64-x86_64-clang-tools-extra-22.1.8-2-any.pkg.tar.zst",
+      "bytes": 13517001,
+      "sha256": "0f7cdf837783d2111af9ed81ada41bc0c4c620d1fd1c1f088bc1d93fdfcfe1e6",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-clang-tools-extra-22.1.8-2-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-cmake",
+      "version": "4.4.2-2",
+      "file": "mingw-w64-x86_64-cmake-4.4.2-2-any.pkg.tar.zst",
+      "bytes": 11039576,
+      "sha256": "78d5c8c59efb92cbe06e1a716546ce4dce4cc6ca129e52ea20d2427c9d7d6f77",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-cmake-4.4.2-2-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-cppdap",
+      "version": "1.65.r11.g6464cd7-1",
+      "file": "mingw-w64-x86_64-cppdap-1.65.r11.g6464cd7-1-any.pkg.tar.zst",
+      "bytes": 529861,
+      "sha256": "642c616cba95776fa0bb6d11e985ed177e633db797481d22c3ad018953086ac9",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-cppdap-1.65.r11.g6464cd7-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-crt",
+      "version": "14.0.0.r302.gd7f3c5201-1",
+      "file": "mingw-w64-x86_64-crt-14.0.0.r302.gd7f3c5201-1-any.pkg.tar.zst",
+      "bytes": 4811392,
+      "sha256": "86dece558e503ca00b2b2122f7f3cf927ff00e8b89195d344559ff74ca2a554d",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-crt-14.0.0.r302.gd7f3c5201-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-curl",
+      "version": "8.21.0-2",
+      "file": "mingw-w64-x86_64-curl-8.21.0-2-any.pkg.tar.zst",
+      "bytes": 1732085,
+      "sha256": "4edcde9de2f033ae6e734e295613aef65c41ce5ab77edfc21ef82f0434d49ea0",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-curl-8.21.0-2-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-dbus",
+      "version": "1.16.2-4",
+      "file": "mingw-w64-x86_64-dbus-1.16.2-4-any.pkg.tar.zst",
+      "bytes": 643718,
+      "sha256": "23ca4fd21683f7e482a4f6a950eb05c9d68fc923c4691880bc0afbe5ddf2bd68",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-dbus-1.16.2-4-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-double-conversion",
+      "version": "3.4.0-1",
+      "file": "mingw-w64-x86_64-double-conversion-3.4.0-1-any.pkg.tar.zst",
+      "bytes": 70782,
+      "sha256": "ae3a1df8920ecf4965e72419eb101f0a8807fb9b06d57326d6c5a4986fc5acc2",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-double-conversion-3.4.0-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-expat",
+      "version": "2.8.3-1",
+      "file": "mingw-w64-x86_64-expat-2.8.3-1-any.pkg.tar.zst",
+      "bytes": 194198,
+      "sha256": "1150633696e2cad490c03517b4a3e240dfb23b8937afef7e7fc45e2dc8751f55",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-expat-2.8.3-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-freetype",
+      "version": "2.14.3-1",
+      "file": "mingw-w64-x86_64-freetype-2.14.3-1-any.pkg.tar.zst",
+      "bytes": 630015,
+      "sha256": "b3e310f457c90348fd14b8c1085e9c036016d168812a657fec21f496f7e3de99",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-freetype-2.14.3-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-gcc",
+      "version": "16.2.0-3",
+      "file": "mingw-w64-x86_64-gcc-16.2.0-3-any.pkg.tar.zst",
+      "bytes": 48689870,
+      "sha256": "8b37c953ae12f3d8fa05c854236463231ea0a294dff423007cbd93d4d8089f9f",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-gcc-16.2.0-3-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-gcc-libs",
+      "version": "16.2.0-3",
+      "file": "mingw-w64-x86_64-gcc-libs-16.2.0-3-any.pkg.tar.zst",
+      "bytes": 1149664,
+      "sha256": "f8e25ea67bb796e7f65550f0dca9fce4cdde8aaa3dadafe4d13c6a8233c8de26",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-gcc-libs-16.2.0-3-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-gettext-runtime",
+      "version": "1.0-1",
+      "file": "mingw-w64-x86_64-gettext-runtime-1.0-1-any.pkg.tar.zst",
+      "bytes": 427276,
+      "sha256": "be68d7f260633284b910c588c6d82ee304a81c8817a686d2cd9df83f872c27af",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-gettext-runtime-1.0-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-glib2",
+      "version": "2.88.3-1",
+      "file": "mingw-w64-x86_64-glib2-2.88.3-1-any.pkg.tar.zst",
+      "bytes": 5402063,
+      "sha256": "5aa850934d0216f5b7237bd54c3ec660ebfc3a42fd992bc7abbd611bd9cc7663",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-glib2-2.88.3-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-gmp",
+      "version": "6.3.0-2",
+      "file": "mingw-w64-x86_64-gmp-6.3.0-2-any.pkg.tar.zst",
+      "bytes": 591674,
+      "sha256": "8924433974c4add46cb46ea4f6ef283b5c5139d3f552375115b5580f855015cc",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-gmp-6.3.0-2-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-gnutls",
+      "version": "3.8.13-3",
+      "file": "mingw-w64-x86_64-gnutls-3.8.13-3-any.pkg.tar.zst",
+      "bytes": 2402607,
+      "sha256": "0d5a373ac558af20dc0a46d249e99f8a3b3d3562ae013e73f00642dc3bd118cf",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-gnutls-3.8.13-3-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-graphite2",
+      "version": "1.3.15-1",
+      "file": "mingw-w64-x86_64-graphite2-1.3.15-1-any.pkg.tar.zst",
+      "bytes": 153194,
+      "sha256": "6ad20d6c16e559f7c4b06fe71248e1201c7edf494d04e5721ed7f9b3f7fd1f74",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-graphite2-1.3.15-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-gtest",
+      "version": "1.17.0-2",
+      "file": "mingw-w64-x86_64-gtest-1.17.0-2-any.pkg.tar.zst",
+      "bytes": 533220,
+      "sha256": "2fec029ccf360375b7d06ce49694573308b132b7730c4e319c5ceea9028ae87c",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-gtest-1.17.0-2-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-harfbuzz",
+      "version": "14.4.0-1",
+      "file": "mingw-w64-x86_64-harfbuzz-14.4.0-1-any.pkg.tar.zst",
+      "bytes": 2346947,
+      "sha256": "7343f6aae536e8b0604395a26ecb2666b7bab4936163bdec61e38139169afea0",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-harfbuzz-14.4.0-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-headers",
+      "version": "14.0.0.r302.gd7f3c5201-1",
+      "file": "mingw-w64-x86_64-headers-14.0.0.r302.gd7f3c5201-1-any.pkg.tar.zst",
+      "bytes": 6892447,
+      "sha256": "5ef6b34cea46b8c7416077f116d5a20828125a7f189b9ee315202a4a8b1cae2b",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-headers-14.0.0.r302.gd7f3c5201-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-icu",
+      "version": "78.3-4",
+      "file": "mingw-w64-x86_64-icu-78.3-4-any.pkg.tar.zst",
+      "bytes": 23975763,
+      "sha256": "8486a018aca2e56d1fcd2eed2069011f2e1da02e03af72b38916ee06cbe7203f",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-icu-78.3-4-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-isl",
+      "version": "0.28-1",
+      "file": "mingw-w64-x86_64-isl-0.28-1-any.pkg.tar.zst",
+      "bytes": 1533140,
+      "sha256": "03ed191718a89edc46e783deed46b8fd20ec47a09fcdefb37c6c4169b6188b08",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-isl-0.28-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-jsoncpp",
+      "version": "1.9.8-1",
+      "file": "mingw-w64-x86_64-jsoncpp-1.9.8-1-any.pkg.tar.zst",
+      "bytes": 206488,
+      "sha256": "514966580bb44ae31a1a3fcfa218c9dbf0f5a14e80830c1ae62f6564ff7c7bdc",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-jsoncpp-1.9.8-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-libarchive",
+      "version": "3.8.9-5",
+      "file": "mingw-w64-x86_64-libarchive-3.8.9-5-any.pkg.tar.zst",
+      "bytes": 2187693,
+      "sha256": "431016c393e3f0fec64c143eedd77c93c4003f8a6d04230ce44325937f4b8880",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-libarchive-3.8.9-5-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-libb2",
+      "version": "0.98.1-3",
+      "file": "mingw-w64-x86_64-libb2-0.98.1-3-any.pkg.tar.zst",
+      "bytes": 24731,
+      "sha256": "3c898f08c5f19e25dc6d7e39aa36b6f323141f0e62c5c50f089cd3f89711854c",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-libb2-0.98.1-3-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-libffi",
+      "version": "3.8.0-1",
+      "file": "mingw-w64-x86_64-libffi-3.8.0-1-any.pkg.tar.zst",
+      "bytes": 51683,
+      "sha256": "6dad7f3c6c900d3c64a4fe0c2764b405e678b22df3521d2284ffaeff0198b84b",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-libffi-3.8.0-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-libiconv",
+      "version": "1.19-1",
+      "file": "mingw-w64-x86_64-libiconv-1.19-1-any.pkg.tar.zst",
+      "bytes": 745957,
+      "sha256": "21e334d0911f25de75d3e18e0697648bcecfa9658256d600cad0827d719c2f35",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-libiconv-1.19-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-libidn2",
+      "version": "2.3.8-4",
+      "file": "mingw-w64-x86_64-libidn2-2.3.8-4-any.pkg.tar.zst",
+      "bytes": 175756,
+      "sha256": "f98a157446f9ac35465022e329cdaf6169b0c9fa19837e9d80aff9d4e5109013",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-libidn2-2.3.8-4-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-libjpeg-turbo",
+      "version": "3.2.0-1",
+      "file": "mingw-w64-x86_64-libjpeg-turbo-3.2.0-1-any.pkg.tar.zst",
+      "bytes": 792181,
+      "sha256": "ef3f55cf5238a8045c8f37796d730e4a5ee619d29ca9254aaa62456e5b5b7e51",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-libjpeg-turbo-3.2.0-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-libpng",
+      "version": "1.6.58-1",
+      "file": "mingw-w64-x86_64-libpng-1.6.58-1-any.pkg.tar.zst",
+      "bytes": 409510,
+      "sha256": "d8ae6066f99b3a04b83b8013b554a26a205d7e68580b80823c173ed045ba76a5",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-libpng-1.6.58-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-libpsl",
+      "version": "0.21.5-3",
+      "file": "mingw-w64-x86_64-libpsl-0.21.5-3-any.pkg.tar.zst",
+      "bytes": 96690,
+      "sha256": "2a86f7ce3cd3fabff7eb8e5c0d3eb1134808881a44c3838e1b518b75cb402e35",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-libpsl-0.21.5-3-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-libssh2",
+      "version": "1.11.1-2",
+      "file": "mingw-w64-x86_64-libssh2-1.11.1-2-any.pkg.tar.zst",
+      "bytes": 318627,
+      "sha256": "83d0b99f79e930b30eb642382662686b696d64ceb927c2606debd79cb6ff670a",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-libssh2-1.11.1-2-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-libsystre",
+      "version": "1.0.2-2",
+      "file": "mingw-w64-x86_64-libsystre-1.0.2-2-any.pkg.tar.zst",
+      "bytes": 9942,
+      "sha256": "f351bde32637e87516dbad61a5c77c63aae0709273693c5aee6e0a8533d68f14",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-libsystre-1.0.2-2-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-libtasn1",
+      "version": "4.21.0-1",
+      "file": "mingw-w64-x86_64-libtasn1-4.21.0-1-any.pkg.tar.zst",
+      "bytes": 203869,
+      "sha256": "9f7aa213d14135e5856cc7a1254d871cbed60dee00b40db87a6ca7a4e733d2b2",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-libtasn1-4.21.0-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-libtre",
+      "version": "0.9.0-2",
+      "file": "mingw-w64-x86_64-libtre-0.9.0-2-any.pkg.tar.zst",
+      "bytes": 83058,
+      "sha256": "c4051508d063258e1e02dd29615edb7d73c5c5f582ae42795fdd92e7ddce506b",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-libtre-0.9.0-2-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-libunistring",
+      "version": "1.4.2-1",
+      "file": "mingw-w64-x86_64-libunistring-1.4.2-1-any.pkg.tar.zst",
+      "bytes": 869794,
+      "sha256": "c940cf52fb2b579baa596d3c1d911f7544cbf90f8bd19c260377aa115c65b059",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-libunistring-1.4.2-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-libuv",
+      "version": "1.52.1-1",
+      "file": "mingw-w64-x86_64-libuv-1.52.1-1-any.pkg.tar.zst",
+      "bytes": 224279,
+      "sha256": "41a5e8a25f7806db012887857df587dec6da89c7545db769c0c269457867700d",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-libuv-1.52.1-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-libwinpthread",
+      "version": "14.0.0.r302.gd7f3c5201-1",
+      "file": "mingw-w64-x86_64-libwinpthread-14.0.0.r302.gd7f3c5201-1-any.pkg.tar.zst",
+      "bytes": 30665,
+      "sha256": "f8f6d61c30c8019b8b6721ed5ef87c21d643288547ccc7eacccddf705c3ae2a9",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-libwinpthread-14.0.0.r302.gd7f3c5201-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-libxml2",
+      "version": "2.15.3-1",
+      "file": "mingw-w64-x86_64-libxml2-2.15.3-1-any.pkg.tar.zst",
+      "bytes": 1005526,
+      "sha256": "5da9828356a54938e5402f90b0a104f8b9175ab0f5266e9ed1e6ffd057b754b1",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-libxml2-2.15.3-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-llvm",
+      "version": "22.1.8-2",
+      "file": "mingw-w64-x86_64-llvm-22.1.8-2-any.pkg.tar.zst",
+      "bytes": 58082848,
+      "sha256": "55867f0ee43514c5d69300396f69c5e2158bf7efb3ff6c373830a5cc99963bd8",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-llvm-22.1.8-2-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-llvm-libs",
+      "version": "22.1.8-2",
+      "file": "mingw-w64-x86_64-llvm-libs-22.1.8-2-any.pkg.tar.zst",
+      "bytes": 30964354,
+      "sha256": "9d873ff295885e714fc1d1ee2096e52a653d0cbebc50c62c8c89f42e944e0833",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-llvm-libs-22.1.8-2-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-llvm-tools",
+      "version": "22.1.8-2",
+      "file": "mingw-w64-x86_64-llvm-tools-22.1.8-2-any.pkg.tar.zst",
+      "bytes": 25648619,
+      "sha256": "e13c5563f35d6ac0f55fcb6e01215da9e0eb6cd4632432570b4c3ce53f1c26dd",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-llvm-tools-22.1.8-2-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-lz4",
+      "version": "1.10.0-1",
+      "file": "mingw-w64-x86_64-lz4-1.10.0-1-any.pkg.tar.zst",
+      "bytes": 170938,
+      "sha256": "a4c5a3bcd26111554c87591275b8a681bfa4473d1607647e24c22ef6213c055c",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-lz4-1.10.0-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-md4c",
+      "version": "0.5.3-1",
+      "file": "mingw-w64-x86_64-md4c-0.5.3-1-any.pkg.tar.zst",
+      "bytes": 113125,
+      "sha256": "22505cefa4a15a79ded6dea7272343d27389a5b03a6101d3cab27ce6adc6cc74",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-md4c-0.5.3-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-mpc",
+      "version": "1.4.1-1",
+      "file": "mingw-w64-x86_64-mpc-1.4.1-1-any.pkg.tar.zst",
+      "bytes": 140728,
+      "sha256": "ce024a90d59c8a591d2c88ef94a386c6367750bf9edc6a944e80815ec5d93344",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-mpc-1.4.1-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-mpdecimal",
+      "version": "4.0.1-3",
+      "file": "mingw-w64-x86_64-mpdecimal-4.0.1-3-any.pkg.tar.zst",
+      "bytes": 159685,
+      "sha256": "8da7e7f78434f188664c4d2779c03ea7a80f7f5837a115834ab734b352a613e5",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-mpdecimal-4.0.1-3-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-mpfr",
+      "version": "4.2.2-3",
+      "file": "mingw-w64-x86_64-mpfr-4.2.2-3-any.pkg.tar.zst",
+      "bytes": 554568,
+      "sha256": "9ecbc05f1f855bc656a8f111d367f61fbd90dbbfcf469ba74d6d5dd1ec07a542",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-mpfr-4.2.2-3-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-ncurses",
+      "version": "6.6-4",
+      "file": "mingw-w64-x86_64-ncurses-6.6-4-any.pkg.tar.zst",
+      "bytes": 1608838,
+      "sha256": "7bf5159441d00262085d2619f6c26877ea7595d4dafc6840637c6c5fccda5cf5",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-ncurses-6.6-4-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-nettle",
+      "version": "4.0-1",
+      "file": "mingw-w64-x86_64-nettle-4.0-1-any.pkg.tar.zst",
+      "bytes": 577414,
+      "sha256": "505773abfb4f3af514012e2926c11db6365299c7eda141d958a065740740dc86",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-nettle-4.0-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-nghttp2",
+      "version": "1.70.0-1",
+      "file": "mingw-w64-x86_64-nghttp2-1.70.0-1-any.pkg.tar.zst",
+      "bytes": 205498,
+      "sha256": "c086d42107f8c142f0f45e32f81665816732f071d9486359875da20df0a7cdd3",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-nghttp2-1.70.0-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-nghttp3",
+      "version": "1.18.0-1",
+      "file": "mingw-w64-x86_64-nghttp3-1.18.0-1-any.pkg.tar.zst",
+      "bytes": 141172,
+      "sha256": "00c55f940bb8d2f4b06690858efcaa42158dc33ccb7b7b8412e05659d3e22802",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-nghttp3-1.18.0-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-ngtcp2",
+      "version": "1.25.0-1",
+      "file": "mingw-w64-x86_64-ngtcp2-1.25.0-1-any.pkg.tar.zst",
+      "bytes": 316799,
+      "sha256": "e110f5b9a2c783ac437be2b80955e79a72f9d3a329fdb626c41516044aaee47a",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-ngtcp2-1.25.0-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-ninja",
+      "version": "1.13.2-1",
+      "file": "mingw-w64-x86_64-ninja-1.13.2-1-any.pkg.tar.zst",
+      "bytes": 190833,
+      "sha256": "107792ed3b5ffc9807e004602609661fbd95637546a66cfb5b7f661e9eb891aa",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-ninja-1.13.2-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-openssl",
+      "version": "3.6.4-1",
+      "file": "mingw-w64-x86_64-openssl-3.6.4-1-any.pkg.tar.zst",
+      "bytes": 8280825,
+      "sha256": "d613ab4e1b5af9e95cde16895765e1be53ab05657d8d51ff2707d4e99c29c55b",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-openssl-3.6.4-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-p11-kit",
+      "version": "0.26.5-1",
+      "file": "mingw-w64-x86_64-p11-kit-0.26.5-1-any.pkg.tar.zst",
+      "bytes": 650805,
+      "sha256": "171b877586efd64888648007a56c3a263eb2d4abc82594c90d30b1b7e4b9f5eb",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-p11-kit-0.26.5-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-pcre2",
+      "version": "10.47-1",
+      "file": "mingw-w64-x86_64-pcre2-10.47-1-any.pkg.tar.zst",
+      "bytes": 1435271,
+      "sha256": "7c9e3cd47af02a096c0c1810d1021f63c5fb1d22dbec91fa019d8b37eda00d98",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-pcre2-10.47-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-pkgconf",
+      "version": "1~3.0.5-1",
+      "file": "mingw-w64-x86_64-pkgconf-1~3.0.5-1-any.pkg.tar.zst",
+      "bytes": 151530,
+      "sha256": "264dec0720184650e50a10cb01cffa16806523fbb233bbe570c226cdff9fd1fc",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-pkgconf-1~3.0.5-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-python",
+      "version": "3.14.7-1",
+      "file": "mingw-w64-x86_64-python-3.14.7-1-any.pkg.tar.zst",
+      "bytes": 27617241,
+      "sha256": "39aa1fe66f065490843c633d0819e4548718ed99b7bdf1b02512a59f31afa474",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-python-3.14.7-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-python-packaging",
+      "version": "26.3-1",
+      "file": "mingw-w64-x86_64-python-packaging-26.3-1-any.pkg.tar.zst",
+      "bytes": 263474,
+      "sha256": "69e6eff5c623ebd1cc3cfca13d8bbc6c70b0ca1dfbc3704b251478a30a25b20e",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-python-packaging-26.3-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-qt6-base",
+      "version": "6.11.2-2",
+      "file": "mingw-w64-x86_64-qt6-base-6.11.2-2-any.pkg.tar.zst",
+      "bytes": 16979178,
+      "sha256": "c15187bfa6c4c15a8d64788af4ba8b830c3faab6e2395201e2aaa7e0d993cb84",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-qt6-base-6.11.2-2-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-rhash",
+      "version": "1.4.6-1",
+      "file": "mingw-w64-x86_64-rhash-1.4.6-1-any.pkg.tar.zst",
+      "bytes": 232742,
+      "sha256": "40459ad22d87995dbbcf1b9ab16156e93bcccc635f0b50085f9b9956664f9037",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-rhash-1.4.6-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-sqlite3",
+      "version": "3.53.4-1",
+      "file": "mingw-w64-x86_64-sqlite3-3.53.4-1-any.pkg.tar.zst",
+      "bytes": 2487790,
+      "sha256": "baca1837b4f5ae4ea39198c4ec98459a446eb4af17459ad6376d734b285b4ff0",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-sqlite3-3.53.4-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-tcl",
+      "version": "8.6.18-1",
+      "file": "mingw-w64-x86_64-tcl-8.6.18-1-any.pkg.tar.zst",
+      "bytes": 2809165,
+      "sha256": "d95289300fd8e16bd5cb241b9928a256695aeebeca2885deef3326cd4a4d5ba8",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-tcl-8.6.18-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-tk",
+      "version": "8.6.18-1",
+      "file": "mingw-w64-x86_64-tk-8.6.18-1-any.pkg.tar.zst",
+      "bytes": 2124557,
+      "sha256": "42aa79962e1679dd55e93f79a25dc1e50c7235f143ab501b3ec68debd0d32a3e",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-tk-8.6.18-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-tzdata",
+      "version": "2026c-1",
+      "file": "mingw-w64-x86_64-tzdata-2026c-1-any.pkg.tar.zst",
+      "bytes": 225019,
+      "sha256": "502e6f8e65c554e717f6c749dcbb70cc9b85ed94b01c151c26a0c25235e63df2",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-tzdata-2026c-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-vulkan-headers",
+      "version": "1~1.4.357.0-1",
+      "file": "mingw-w64-x86_64-vulkan-headers-1~1.4.357.0-1-any.pkg.tar.zst",
+      "bytes": 1768187,
+      "sha256": "68c7b758194a255c66d08fe484fe615e254fad9259a70c9dc9d9bec9e51b1384",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-vulkan-headers-1~1.4.357.0-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-vulkan-loader",
+      "version": "1~1.4.357.0-1",
+      "file": "mingw-w64-x86_64-vulkan-loader-1~1.4.357.0-1-any.pkg.tar.zst",
+      "bytes": 203080,
+      "sha256": "4050dcd32f011f28b4784bf8bccdd48681c3bc5f0efee02f897566abb96bbb76",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-vulkan-loader-1~1.4.357.0-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-windows-default-manifest",
+      "version": "20260815-1",
+      "file": "mingw-w64-x86_64-windows-default-manifest-20260815-1-any.pkg.tar.zst",
+      "bytes": 2652,
+      "sha256": "d2dd9a4f3a3362bc85ca273dff2b0f9868cfba7ba60151499b5935a049f00d74",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-windows-default-manifest-20260815-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-wineditline",
+      "version": "2.208-1",
+      "file": "mingw-w64-x86_64-wineditline-2.208-1-any.pkg.tar.zst",
+      "bytes": 61435,
+      "sha256": "dfe7fab66632eececc73d84053eae2be8dd2146ecefe0fc2133277706084d7ea",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-wineditline-2.208-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-winpthreads",
+      "version": "14.0.0.r302.gd7f3c5201-1",
+      "file": "mingw-w64-x86_64-winpthreads-14.0.0.r302.gd7f3c5201-1-any.pkg.tar.zst",
+      "bytes": 44078,
+      "sha256": "3c2f69972064b24519aa8a6cfe1906c603a7cea9961b0ae91f6625be292f9f19",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-winpthreads-14.0.0.r302.gd7f3c5201-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-xz",
+      "version": "5.8.3-1",
+      "file": "mingw-w64-x86_64-xz-5.8.3-1-any.pkg.tar.zst",
+      "bytes": 486139,
+      "sha256": "075bfaf1c7527f2fdd02ad5b973378e1e8d426ba7b614f122cebd81a8fe5d1c1",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-xz-5.8.3-1-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-zlib",
+      "version": "1.3.2-2",
+      "file": "mingw-w64-x86_64-zlib-1.3.2-2-any.pkg.tar.zst",
+      "bytes": 112476,
+      "sha256": "9e75842a070ba648e986e12424e1c92c9d7d77200e85f6a34eeb600819f2e694",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-zlib-1.3.2-2-any.pkg.tar.zst"
+    },
+    {
+      "name": "mingw-w64-x86_64-zstd",
+      "version": "1.5.7-2",
+      "file": "mingw-w64-x86_64-zstd-1.5.7-2-any.pkg.tar.zst",
+      "bytes": 669879,
+      "sha256": "1add6705b344664f6aca108c85f79ab5bdd9e1162662bb06a4cf40a34f6e0907",
+      "url": "https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-zstd-1.5.7-2-any.pkg.tar.zst"
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 [CmdletBinding()]
-param([string]$Output='')
+param([string]$Output='', [string]$BuildDirectory='')
 $ErrorActionPreference='Stop'
 $repo=(Resolve-Path (Join-Path $PSScriptRoot '..')).Path
-$build=Join-Path $repo 'build/codeguard-analysis'
+$build=if($BuildDirectory){(Resolve-Path -LiteralPath $BuildDirectory).Path}else{Join-Path $repo 'build/codeguard-analysis'}
 if(-not $Output){$Output=Join-Path $repo ('artifacts/CodeGuard-Level3-'+(Get-Date -Format 'yyyyMMdd-HHmmss'))}
 if(Test-Path -LiteralPath $Output){throw 'Use a new package directory'}
 $out=[IO.Path]::GetFullPath($Output)

@@ -1,0 +1,101 @@
+name: Windows CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: Windows x64 build, test and package
+    runs-on: windows-2022
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Cache verified dependency archives
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ runner.temp }}/codeguard-package-cache
+          key: windows-mingw64-${{ hashFiles('config/windows-toolchain.lock.json') }}
+      - name: Restore locked native toolchain
+        run: ./scripts/restore_windows_toolchain.ps1 -Destination "$env:RUNNER_TEMP/codeguard-toolchain" -PackageCache "$env:RUNNER_TEMP/codeguard-package-cache"
+      - name: Verify toolchain restore guards
+        run: ./tests/windows/restore_tests.ps1
+      - name: Core debug build and tests
+        run: ./scripts/ci_windows.ps1 -ToolchainRoot "$env:RUNNER_TEMP/codeguard-toolchain" -Mode Core
+      - name: Clang and Qt release build, tests and package
+        run: ./scripts/ci_windows.ps1 -ToolchainRoot "$env:RUNNER_TEMP/codeguard-toolchain" -Mode Analysis -Package
+      - name: Preserve diagnostics even on failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: windows-ci-diagnostics
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            artifacts/windows-ci/**/*.log
+            artifacts/windows-ci/**/*.json
+            artifacts/windows-ci/**/tests.xml
+            artifacts/windows-ci/**/*.png
+            build/windows-ci-*/CMakeCache.txt
+            build/windows-ci-*/CMakeFiles/CMakeConfigureLog.yaml
+            build/windows-ci-*/Testing/Temporary/*.log
+            build/windows-ci-*/tests/codeguard/**/*.png
+      - name: Upload tested Windows package
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: CodeGuard-Windows-x64
+          retention-days: 14
+          if-no-files-found: error
+          compression-level: 0
+          path: |
+            artifacts/windows-ci/CodeGuard-Windows-x64.zip
+            artifacts/windows-ci/CodeGuard-Windows-x64.zip.sha256
+
+  clean-runtime:
+    name: Fresh Windows runner package smoke test
+    needs: build-test
+    runs-on: windows-2022
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: CodeGuard-Windows-x64
+          path: artifacts/download
+      - name: Verify and unpack package
+        run: |
+          $archive='artifacts/download/CodeGuard-Windows-x64.zip'
+          $expected=(Get-Content "$archive.sha256").Split(' ')[0]
+          if((Get-FileHash $archive -Algorithm SHA256).Hash -ne $expected){throw 'Archive checksum mismatch'}
+          Expand-Archive -LiteralPath $archive -DestinationPath artifacts/unpacked
+      - name: Run without the build toolchain
+        run: ./scripts/verify_codeguard_package.ps1 -Package artifacts/unpacked/CodeGuard-Windows-x64 -Output artifacts/clean-runtime-qa
+      - name: Preserve runtime verification
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: windows-clean-runtime-qa
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            artifacts/clean-runtime-qa/*.log
+            artifacts/clean-runtime-qa/*.json
+            artifacts/clean-runtime-qa/*.png
