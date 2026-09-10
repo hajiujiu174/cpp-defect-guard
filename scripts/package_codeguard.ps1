@@ -38,6 +38,7 @@ while($queue.Count){
 $resource=(& (Join-Path $runtime 'clang.exe') -print-resource-dir).Trim()
 $resourceTarget=Join-Path $out 'resources/clang';[IO.Directory]::CreateDirectory($resourceTarget)|Out-Null
 Copy-Item -LiteralPath (Join-Path $resource 'include') -Destination $resourceTarget -Recurse
+& (Join-Path $PSScriptRoot 'package_windows_font.ps1') -Output (Join-Path $out 'resources/fonts')
 $sdk=Join-Path $out 'sdk';[IO.Directory]::CreateDirectory($sdk)|Out-Null
 Copy-Item -LiteralPath (Join-Path $repo 'core/include') -Destination $sdk -Recurse
 Copy-Item -LiteralPath (Join-Path $build 'libcodeguard-core.a') -Destination $sdk
@@ -51,6 +52,7 @@ CodeGuard Level 3 Windows x64
 
 双击 codeguard-gui.exe 启动。CLI: codeguard-cli.exe --help
 程序自带 Qt、SQLite、Clang 运行库和 Clang 内建头文件。
+中文界面使用包内 Noto Sans CJK SC 字体，原始许可见 resources/fonts/LICENSE；无需安装系统字体。
 分析真实工程仍需该工程的 compile_commands.json、系统/第三方头文件。
 构建测试需要另行提供 CMake、Ninja、C/C++ 编译器和 CTest；Git 功能需要 Git。
 这些开发工具可通过 PATH 或界面中的编译器设置使用，未打包整套编译工具链。

@@ -35,6 +35,8 @@
 #include <iomanip>
 #include <QEventLoop>
 #include <QFont>
+#include <QFontDatabase>
+#include <QFontMetrics>
 #include <QProgressBar>
 #include <QElapsedTimer>
 
@@ -54,11 +56,22 @@ QString text(const std::string& value) { return QString::fromUtf8(value.data(), 
 int main(int argc, char** argv) {
     QApplication app(argc, argv);
     app.setStyle(QStyleFactory::create("Fusion"));
-    app.setFont(QFont(QStringLiteral("Microsoft YaHei UI"), 10));
+    const auto fontPath = QCoreApplication::applicationDirPath() + QStringLiteral("/resources/fonts/NotoSansCJKsc-Regular.otf");
+    QString uiFontFamily = QStringLiteral("Microsoft YaHei UI");
+    bool bundledFont = false;
+    if (QFile::exists(fontPath)) {
+        const auto id = QFontDatabase::addApplicationFont(fontPath);
+        const auto families = QFontDatabase::applicationFontFamilies(id);
+        if (!families.isEmpty()) { uiFontFamily = families.front(); bundledFont = true; }
+    }
+    if (qEnvironmentVariableIsSet("CODEGUARD_REQUIRE_BUNDLED_FONT") && !bundledFont) {
+        std::cerr << "Packaged Chinese UI font is missing or invalid" << std::endl; return 1;
+    }
+    app.setFont(QFont(uiFontFamily, 10));
     app.setApplicationName("CodeGuard");
     app.setStyleSheet(QStringLiteral(R"CSS(
         QMainWindow, QWidget#workspace { background: #f3f6fa; color: #24344b; }
-        QWidget { font-family: "Segoe UI"; font-size: 13px; }
+        QWidget { font-family: "%1"; font-size: 13px; }
         QLabel#brand { color: #1d4ed8; font-size: 25px; font-weight: 700; }
         QLabel#subtitle { color: #64748b; }
         QLabel#summary { background: white; border: 1px solid #e0e7ef; border-radius: 8px; padding: 12px; }
@@ -79,7 +92,7 @@ int main(int argc, char** argv) {
         QTabBar::tab:selected { background: white; color: #2563eb; border-top: 2px solid #2563eb; }
         QSplitter::handle { background: #e3eaf3; }
         QStatusBar { background: #eaf0f7; color: #52647b; }
-    )CSS"));
+    )CSS").arg(uiFontFamily));
     TaskWindow window;
     window.setWindowTitle(QStringLiteral("CodeGuard — C/C++ 软件质量分析与工程管理"));
     window.resize(1480, 860);
@@ -607,6 +620,13 @@ int main(int argc, char** argv) {
     QObject::connect(build_stop,&QPushButton::clicked,[&]{if(build_task.cancel()){build_stop->setEnabled(false);build_status->setText(QStringLiteral("正在停止进程并保存日志…"));}});
     QObject::connect(build_history,&QPushButton::clicked,[&]{if(task.busy()||build_task.busy())return;try{refresh_builds();if(build_table->rowCount())build_table->cellClicked(0,0);}catch(const std::exception&e){build_status->setText(text(e.what()));}});
     window.show();
+    if (qEnvironmentVariableIsSet("CODEGUARD_REQUIRE_BUNDLED_FONT")) {
+        const QFontMetrics metrics(open->font());
+        for (const auto ch : QStringLiteral("导入工程扫描选择编译数据库查询线程构建测试源码只读")) {
+            if (!metrics.inFont(ch)) { std::cerr << "Chinese UI glyph missing" << std::endl; return 1; }
+        }
+        std::cout << "GUI_FONT_OK family=" << bytes(uiFontFamily) << std::endl;
+    }
     // Deterministic widget + persistence smoke check; not a substitute for visual QA.
     if (!smoke_project.isEmpty()) {
         if (database.isEmpty()) return 1;

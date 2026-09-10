@@ -11,6 +11,7 @@ function Invoke-Packaged([string]$Name,[string[]]$Arguments,[string]$Label){
     $info.Environment['PATH']=$packageRoot+';'+(Join-Path $env:SystemRoot 'System32')
     [void]$info.Environment.Remove('QT_PLUGIN_PATH');[void]$info.Environment.Remove('QML2_IMPORT_PATH');[void]$info.Environment.Remove('QTDIR')
     $info.Environment['QT_QPA_PLATFORM']='offscreen'
+    $info.Environment['CODEGUARD_REQUIRE_BUNDLED_FONT']='1'
     foreach($value in $Arguments){$info.ArgumentList.Add($value)}
     $process=[Diagnostics.Process]::new();$process.StartInfo=$info;[void]$process.Start()
     $stdout=$process.StandardOutput.ReadToEndAsync();$stderr=$process.StandardError.ReadToEndAsync()
@@ -34,6 +35,7 @@ $resourcePath=$packageRoot.Replace('\','/')+'/resources/clang/include/stddef.h'
 if($includes.IndexOf($resourcePath,[StringComparison]::OrdinalIgnoreCase) -lt 0){throw 'Clang did not use the packaged builtin headers'}
 $gui=Invoke-Packaged 'codeguard-gui.exe' @('--smoke-test',$source,'--database',(Join-Path $qa 'gui.sqlite3'),'--compile-commands',$commands) 'gui'
 if($gui -notmatch 'GUI_SMOKE_OK'){throw 'GUI smoke checks did not complete'}
-$result=@{package=$packageRoot;clean_path=$true;cli=$true;clang=$true;packaged_resource_header=$resourcePath;gui=$true;timestamp=(Get-Date -Format o)}
+if($gui -notmatch 'GUI_FONT_OK family=Noto Sans CJK SC'){throw 'Packaged Chinese font was not verified'}
+$result=@{package=$packageRoot;clean_path=$true;cli=$true;clang=$true;packaged_resource_header=$resourcePath;gui=$true;chinese_font=$true;timestamp=(Get-Date -Format o)}
 $result|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $qa 'result.json') -Encoding utf8
 Write-Output 'PACKAGE_QA_OK: clean PATH, CLI, Clang, packaged headers and Qt GUI'

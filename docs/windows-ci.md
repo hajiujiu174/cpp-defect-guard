@@ -19,6 +19,8 @@
 
 这里的“可复现”指固定源代码与原生工具链输入、相同的构建测试操作和可核对记录，不承诺二进制逐字节一致。Windows runner 镜像、PowerShell、Git、系统 tar、7-Zip 和操作系统仍是宿主前置条件，CI 保存其可获取版本信息；构建路径、时间戳等也可能影响二进制字节。
 
+运行包另通过 `config/windows-font.lock.json` 固定 Noto Sans CJK SC 字体及原始 OFL 1.1 许可的来源提交、字节数和 SHA-256。打包时校验下载或缓存内容，放入 `resources/fonts`，Qt 仅在应用内加载，无需安装系统字体。这样可在缺少中文系统字体的 Windows Server 上正常显示中文；源码开发启动仍可使用系统字体。
+
 ## 本地从干净克隆开始
 
 需要 Windows x64、PowerShell 7、Git、系统 tar，以及 PATH 中支持 Zstandard 的 `7z.exe`（7-Zip 24.01 或更新版本）。还原时先由 7-Zip 解压压缩流，再由 tar 提取原生前缀，避免旧版 Windows Server tar 的解压子进程兼容问题；单个中间 tar 在提取完成后清除。以下命令在仓库根目录用 PowerShell 7 执行；目标工具链和构建目录必须尚未存在。
@@ -45,7 +47,7 @@ cd cpp-defect-guard
 3. 完整版通过后收集 Qt、SQLite、Clang 运行依赖及内建头文件；执行清理 PATH 后的 CLI/Clang/Qt 自动检查，打包 ZIP 并生成 SHA-256。
 4. 第二个全新 Windows runner 下载、校验和解压 ZIP，不还原开发工具链，再执行运行包检查。
 
-运行包检查包含程序启动、真实 Clang 分析、包内头文件来源、Qt 后台操作/取消和窗口截图。真实工程的构建测试仍需要用户自己的 CMake、CTest、编译器、Ninja 和 Git，不随运行包提供。这里不发布 GitHub Release，仅提供本次 CI 产物。
+运行包检查包含程序启动、真实 Clang 分析、包内头文件来源、Qt 后台操作/取消、中文字体加载及代表性汉字字形检查和窗口截图。缺失包内字体会使验收失败，不能仅凭 GUI 启动成功判定中文显示正常。真实工程的构建测试仍需要用户自己的 CMake、CTest、编译器、Ninja 和 Git，不随运行包提供。这里不发布 GitHub Release，仅提供本次 CI 产物。
 
 - `windows-ci-diagnostics`：配置、编译、测试日志，环境信息、CTest XML 和界面截图；失败时也尝试上传。
 - `CodeGuard-Windows-x64`：通过检查的运行 ZIP 和 SHA-256。
