@@ -17,7 +17,7 @@ $bin=Join-Path $toolchain 'mingw64/bin'
 $git=(Get-Command git.exe).Source
 $saved=@{}
 $variables=@('PATH','CC','CXX','CMAKE_PREFIX_PATH','CMAKE_TOOLCHAIN_FILE','CMAKE_GENERATOR','CMAKE_GENERATOR_PLATFORM','CMAKE_GENERATOR_TOOLSET','Qt6_DIR','LLVM_DIR','Clang_DIR','QT_PLUGIN_PATH','QML2_IMPORT_PATH','QTDIR','QT_QPA_PLATFORM','CPATH','CPLUS_INCLUDE_PATH','C_INCLUDE_PATH','LIBRARY_PATH','INCLUDE','LIB','CFLAGS','CXXFLAGS','LDFLAGS','PKG_CONFIG_PATH')
-foreach($name in $variables){$saved[$name]=[Environment]::GetEnvironmentVariable($name,'Process');[Environment]::SetEnvironmentVariable($name,$null,'Process')}
+foreach($name in $variables){$saved[$name]=[Environment]::GetEnvironmentVariable($name,'Process');Remove-Item -LiteralPath "Env:$name" -ErrorAction SilentlyContinue}
 $env:PATH=$bin+';'+(Split-Path $git)+';'+(Join-Path $env:SystemRoot 'System32')+';'+$env:SystemRoot
 $env:CC=Join-Path $bin 'clang.exe';$env:CXX=Join-Path $bin 'clang++.exe'
 $env:QT_PLUGIN_PATH=Join-Path $toolchain 'mingw64/share/qt6/plugins';$env:QT_QPA_PLATFORM='offscreen'
@@ -49,5 +49,8 @@ try {
     }
 } finally {
     Pop-Location
-    foreach($name in $variables){[Environment]::SetEnvironmentVariable($name,$saved[$name],'Process')}
+    foreach($name in $variables){
+        if($null -eq $saved[$name]){Remove-Item -LiteralPath "Env:$name" -ErrorAction SilentlyContinue}
+        else{[Environment]::SetEnvironmentVariable($name,$saved[$name],'Process')}
+    }
 }

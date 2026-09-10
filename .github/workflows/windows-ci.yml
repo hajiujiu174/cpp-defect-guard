@@ -40,6 +40,8 @@ jobs:
           key: windows-mingw64-${{ hashFiles('config/windows-toolchain.lock.json') }}
       - name: Verify toolchain restore guards
         run: ./tests/windows/restore_tests.ps1
+      - name: Verify failed builds preserve caller environment
+        run: ./tests/windows/ci_environment_tests.ps1 -ToolchainRoot "$env:RUNNER_TEMP/codeguard-toolchain"
       - name: Core debug build and tests
         run: ./scripts/ci_windows.ps1 -ToolchainRoot "$env:RUNNER_TEMP/codeguard-toolchain" -Mode Core
       - name: Clang and Qt release build, tests and package
