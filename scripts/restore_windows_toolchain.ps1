@@ -16,6 +16,11 @@ $cache=[IO.Path]::GetFullPath($PackageCache)
 [IO.Directory]::CreateDirectory($cache)|Out-Null
 [IO.Directory]::CreateDirectory($root)|Out-Null
 $tar=Join-Path $env:SystemRoot 'System32/tar.exe'
+$sevenZip=(Get-Command 7z.exe -ErrorAction Stop).Source
+& $tar --version
+& $sevenZip | Select-Object -First 3
+$stage=Join-Path $root 'extract-stage'
+[IO.Directory]::CreateDirectory($stage)|Out-Null
 $seen=[Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
 foreach($package in $lock.packages){
     if($package.file -notmatch '^mingw-w64-x86_64-[A-Za-z0-9_.+~\-]+\.pkg\.tar\.(zst|xz)$' -or -not $seen.Add($package.file) -or $package.sha256 -notmatch '^[a-f0-9]{64}$') {throw 'Invalid package lock entry'}
@@ -31,9 +36,17 @@ foreach($package in $lock.packages){
     }
     if((Get-Item $archive).Length -ne $package.bytes -or (Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant() -ne $package.sha256){throw "Cached package checksum mismatch: $($package.file)"}
     Write-Output "Restoring $($package.name) $($package.version)"
+    # Windows Server tar can fail in its external zstd child when selecting a prefix.
+    # Decompress first; tar then reads an ordinary uncompressed archive.
+    & $sevenZip x $archive "-o$stage" -y -bso0 -bsp0
+    if($LASTEXITCODE -ne 0){throw "Cannot decompress $($package.file)"}
+    $uncompressed=@(Get-ChildItem -LiteralPath $stage -File -Filter '*.tar')
+    if($uncompressed.Count -ne 1){throw 'Expected exactly one decompressed tar archive'}
     # Only restore the native prefix; no pacman hooks or changes to installed MSYS2.
-    & $tar -xf $archive -C $root 'mingw64'
+    & $tar -xf $uncompressed[0].FullName -C $root 'mingw64'
     if($LASTEXITCODE -ne 0){throw "Cannot extract $($package.file)"}
+    # This is the single intermediate file just created in our new destination.
+    Remove-Item -LiteralPath $uncompressed[0].FullName
 }
 Copy-Item -LiteralPath $LockFile -Destination (Join-Path $root 'toolchain.lock.json')
 [ordered]@{lock_sha256=(Get-FileHash $LockFile -Algorithm SHA256).Hash;packages=$lock.packages.Count;restored_at=(Get-Date -Format o)} | ConvertTo-Json | Set-Content (Join-Path $root 'restore.json') -Encoding utf8

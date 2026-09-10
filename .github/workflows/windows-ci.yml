@@ -25,12 +25,19 @@ jobs:
         with:
           persist-credentials: false
       - name: Cache verified dependency archives
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        id: package-cache
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: ${{ runner.temp }}/codeguard-package-cache
           key: windows-mingw64-${{ hashFiles('config/windows-toolchain.lock.json') }}
       - name: Restore locked native toolchain
         run: ./scripts/restore_windows_toolchain.ps1 -Destination "$env:RUNNER_TEMP/codeguard-toolchain" -PackageCache "$env:RUNNER_TEMP/codeguard-package-cache"
+      - name: Save verified package archives before building
+        if: steps.package-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ runner.temp }}/codeguard-package-cache
+          key: windows-mingw64-${{ hashFiles('config/windows-toolchain.lock.json') }}
       - name: Verify toolchain restore guards
         run: ./tests/windows/restore_tests.ps1
       - name: Core debug build and tests

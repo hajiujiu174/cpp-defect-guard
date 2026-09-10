@@ -17,11 +17,11 @@
 
 还原脚本只将校验通过的包内 `mingw64` 前缀解压到新目录，不更新本机 MSYS2，不运行安装钩子、不修改系统 PATH。下载失败或校验不符时终止，不回退到最新版。归档来自 [MSYS2 官方包服务器](https://repo.msys2.org/mingw/mingw64/)，包管理与归档机制见 [官方说明](https://www.msys2.org/docs/package-management/)。官方若移除旧归档，需要维护者审查更新锁文件或保留已校验的包缓存，不能保证归档永久在线。
 
-这里的“可复现”指固定源代码与原生工具链输入、相同的构建测试操作和可核对记录，不承诺二进制逐字节一致。Windows runner 镜像、PowerShell、Git、系统 tar 和操作系统仍是宿主前置条件，CI 保存其可获取版本信息；构建路径、时间戳等也可能影响二进制字节。
+这里的“可复现”指固定源代码与原生工具链输入、相同的构建测试操作和可核对记录，不承诺二进制逐字节一致。Windows runner 镜像、PowerShell、Git、系统 tar、7-Zip 和操作系统仍是宿主前置条件，CI 保存其可获取版本信息；构建路径、时间戳等也可能影响二进制字节。
 
 ## 本地从干净克隆开始
 
-需要 Windows x64、PowerShell 7、Git 和可读取 `.tar.zst` 的系统 tar。以下命令在仓库根目录用 PowerShell 7 执行；目标工具链和构建目录必须尚未存在。
+需要 Windows x64、PowerShell 7、Git、系统 tar，以及 PATH 中支持 Zstandard 的 `7z.exe`（7-Zip 24.01 或更新版本）。还原时先由 7-Zip 解压压缩流，再由 tar 提取原生前缀，避免旧版 Windows Server tar 的解压子进程兼容问题；单个中间 tar 在提取完成后清除。以下命令在仓库根目录用 PowerShell 7 执行；目标工具链和构建目录必须尚未存在。
 
 ```powershell
 git clone https://github.com/hajiujiu174/cpp-defect-guard.git
