@@ -65,4 +65,15 @@ cd cpp-defect-guard
 
 还原脚本另通过真实小包下载/解压、错误校验值拒绝、已有目标目录保护、异常来源及文件名拒绝测试。79 个锁定包的官方 URL 已检查可访问。本地记录在 `artifacts/windows-ci`、`artifacts/windows-ci-2`；这些目录不进入 Git。
 
-GitHub Actions 的实际结果在远端运行后另行记录；本地通过不替代远端验收。跨平台工作不属于本轮完成条件。
+2026-09-11（北京时间），代码提交 `f0794b463170dfff3882928e3f3905bc1929d811` 的 [GitHub Actions 运行 34507757014](https://github.com/hajiujiu174/cpp-defect-guard/actions/runs/34507757014) 两个作业均成功。已下载并核对实际报告：
+
+| 验收层 | 远端结果 |
+|---|---|
+| Core Debug | 43 项：42 通过、0 失败、1 符号链接权限跳过 |
+| Clang/Qt Release | 65 项：64 通过、0 失败、1 同类跳过 |
+| 独立运行包 | ZIP 校验通过；清理 PATH 后 CLI、Clang、包内头文件和 Qt 检查均通过 |
+| 中文显示 | `chinese_font=true`、`GUI_FONT_OK family=Noto Sans CJK SC`；已打开远端主界面及紧凑查询页截图，中文正常显示 |
+
+此前运行 `34437970465` 的功能检查通过，但截图发现干净 Windows Server 缺少中文字体，已通过包内字体修复并重新完成上述验收。最终验证 runner 镜像为 `20260907.297.1`，Windows Server 2022，实际环境与工具版本保存在诊断产物中。
+
+下载的报告和截图位于本地 `artifacts/ci-run-34507757014`，不进入 Git。P0-1 至此完成；后续仅修改进度文档的提交不改变上述被测试代码。CI 的离屏窗口及截图检查不代表所有实体桌面、DPI 或显卡组合均已验收，真实工程覆盖属于后续 P0-2，跨平台工作不属于本轮完成条件。
