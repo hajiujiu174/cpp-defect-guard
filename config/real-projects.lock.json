@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "projects": [
+    {
+      "id": "cjson",
+      "repository": "https://github.com/DaveGamble/cJSON.git",
+      "version": "v1.7.19",
+      "commit": "c859b25da02955fef659d658b8f324b5cde87be3",
+      "license": "MIT",
+      "license_file": "LICENSE",
+      "license_sha256": "a36dda207c36db5818729c54e7ad4e8b0c6fba847491ba64f372c1a2037b6d5c",
+      "c_compiler": "gcc.exe",
+      "definitions": ["CMAKE_POLICY_VERSION_MINIMUM=3.5", "BUILD_SHARED_LIBS=OFF", "ENABLE_CJSON_UTILS=ON", "ENABLE_CJSON_TEST=ON", "ENABLE_CUSTOM_COMPILER_FLAGS=OFF"],
+      "copy_includes": [],
+      "preferred_targets": ["CMakeFiles/cjson.dir/", "CMakeFiles/cjson_utils.dir/"],
+      "minimum_tests": 22
+    },
+    {
+      "id": "tinyxml2",
+      "repository": "https://github.com/leethomason/tinyxml2.git",
+      "version": "10.0.0",
+      "commit": "321ea883b7190d4e85cae5512a12e5eaa8f8731f",
+      "license": "Zlib",
+      "license_file": "LICENSE.txt",
+      "license_sha256": "9332252e9b9e46db8285d4a3f0bf25f139bf1dca6781b956d57f2302efca6432",
+      "definitions": ["BUILD_SHARED_LIBS=OFF", "tinyxml2_BUILD_TESTING=ON"],
+      "copy_includes": ["resources/out"],
+      "preferred_targets": [],
+      "minimum_tests": 1
+    },
+    {
+      "id": "fmt",
+      "repository": "https://github.com/fmtlib/fmt.git",
+      "version": "11.1.4",
+      "commit": "123913715afeb8a437e6388b4473fcc4753e1c9a",
+      "license": "MIT with optional exception (see LICENSE)",
+      "license_file": "LICENSE",
+      "license_sha256": "07580f2a3b35709ce703d523f447b242f6dfec7582a8c0df102c7fa2849375f8",
+      "definitions": ["BUILD_SHARED_LIBS=OFF", "FMT_TEST=ON", "FMT_DOC=OFF", "FMT_MODULE=OFF"],
+      "copy_includes": [],
+      "preferred_targets": ["CMakeFiles/fmt.dir/", "test/CMakeFiles/test-main.dir/"],
+      "minimum_tests": 21
+    }
+  ]
+}

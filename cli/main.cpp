@@ -81,6 +81,7 @@ int run(const std::vector<std::string>& args) {
                      "codeguard-cli rules\n"
                      "codeguard-cli issues PROJECT --database DATABASE [--severity error|warning]\n"
                      "codeguard-cli build PROJECT --database DATABASE --output DIRECTORY [--jobs 4] [--timeout 120] [--target NAME] [--c-compiler PATH] [--cxx-compiler PATH]\n"
+                     "Build also supports repeated --cmake-define KEY=VALUE and --copy-include RELATIVE_DIRECTORY.\n"
                      "codeguard-cli builds PROJECT --database DATABASE\n"
                      "codeguard-cli git PROJECT\n"
                      "Scan supports --threads 0..64 (0=automatic). Ctrl+C cancels scan/build.\n"
@@ -114,7 +115,7 @@ int run(const std::vector<std::string>& args) {
     std::set<std::string> seen;
     for (; position < args.size(); position += 2) {
         if (position + 1 >= args.size()) throw std::invalid_argument("missing option value");
-        if (args[position] != "--ignore" && !seen.insert(args[position]).second) throw std::invalid_argument("repeated option");
+        if (args[position] != "--ignore" && args[position] != "--cmake-define" && args[position] != "--copy-include" && !seen.insert(args[position]).second) throw std::invalid_argument("repeated option");
         if (args[position] == "--database" && database.empty()) database = args[position + 1];
         else if (args[position] == "--ignore" && command == "scan") options.ignored_directories.push_back(args[position + 1]);
         else if (args[position] == "--compile-commands" && command == "scan") options.compile_commands = args[position + 1];
@@ -129,6 +130,8 @@ int run(const std::vector<std::string>& args) {
         else if (args[position] == "--target" && command == "build") build_options.target=args[position+1];
         else if (args[position] == "--c-compiler" && command == "build") build_options.c_compiler=args[position+1];
         else if (args[position] == "--cxx-compiler" && command == "build") build_options.cxx_compiler=args[position+1];
+        else if (args[position] == "--cmake-define" && command == "build") build_options.cmake_definitions.push_back(args[position+1]);
+        else if (args[position] == "--copy-include" && command == "build") build_options.copy_includes.push_back(args[position+1]);
         else throw std::invalid_argument("unknown or repeated option: " + args[position]);
     }
     if (database.empty()) throw std::invalid_argument("--database is required");

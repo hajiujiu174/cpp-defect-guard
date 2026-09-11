@@ -54,7 +54,10 @@ void copy_project(const fs::path& root, const fs::path& target, const BuildOptio
         if (fs::is_symlink(status)) { it.disable_recursion_pending(); continue; }
         auto name = utf8_path(it->path().filename());
         std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c){ return static_cast<char>(std::tolower(c)); });
-        if (fs::is_directory(status) && std::find(ignored.begin(), ignored.end(), name) != ignored.end()) { it.disable_recursion_pending(); continue; }
+        const bool included = std::any_of(options.copy_includes.begin(), options.copy_includes.end(), [&](const auto& value) {
+            return it->path().lexically_relative(root) == from_utf8(value).lexically_normal();
+        });
+        if (fs::is_directory(status) && !included && std::find(ignored.begin(), ignored.end(), name) != ignored.end()) { it.disable_recursion_pending(); continue; }
         const auto destination = target / it->path().lexically_relative(root);
         if (fs::is_directory(status)) fs::create_directory(destination);
         else if (fs::is_regular_file(status)) {
@@ -106,6 +109,21 @@ BuildRun build_and_test(const fs::path& input, const fs::path& database, const B
     if (options.output_directory.empty() || options.timeout.count() <= 0 || options.jobs > 64 || options.target.starts_with('-'))
         throw std::invalid_argument("build needs an output directory, positive timeout, jobs 0..64 and a non-option target");
     if (inside(dbpath,root) || inside(options.output_directory,root)) throw std::invalid_argument("build database and output must be outside source directory");
+    for (const auto& definition : options.cmake_definitions) {
+        const auto equal = definition.find('=');
+        if (equal == std::string::npos || !std::regex_match(definition.substr(0,equal),std::regex("[A-Za-z_][A-Za-z0-9_]*(:[A-Za-z]+)?")) || definition.find('\0') != std::string::npos)
+            throw std::invalid_argument("CMake definition must be KEY[:TYPE]=VALUE");
+    }
+    for (const auto& value : options.copy_includes) {
+        const auto relative = from_utf8(value);
+        bool unsafe = value.empty() || relative.has_root_path();
+        for (const auto& component : relative) {
+            auto name=utf8_path(component); std::transform(name.begin(),name.end(),name.begin(),[](unsigned char c){return static_cast<char>(std::tolower(c));});
+            unsafe = unsafe || name==".." || name=="." || name==".git";
+        }
+        if (unsafe || !inside(root/relative,root) || !fs::is_directory(root/relative) || fs::is_symlink(root/relative))
+            throw std::invalid_argument("copy include must name an existing project-relative directory, without dot segments, symlinks or .git");
+    }
     ScanResult snapshot;
     { SqliteDatabase db(dbpath,true); snapshot = db.latest(utf8_path(root)); }
     if (!snapshot.id) throw std::invalid_argument("scan the project before build/test");
@@ -136,6 +154,7 @@ BuildRun build_and_test(const fs::path& input, const fs::path& database, const B
             "-DCMAKE_BUILD_TYPE=Debug","-DBUILD_TESTING=ON","-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"};
         if (!options.c_compiler.empty()) configure.push_back("-DCMAKE_C_COMPILER="+options.c_compiler);
         if (!options.cxx_compiler.empty()) configure.push_back("-DCMAKE_CXX_COMPILER="+options.cxx_compiler);
+        for (const auto& definition : options.cmake_definitions) configure.push_back("-D"+definition);
         std::vector<std::string> compile{options.cmake,"--build",utf8_path(build),"--config","Debug","--parallel",std::to_string(jobs)};
         if (!options.target.empty()) { compile.push_back("--target"); compile.push_back(options.target); }
         const auto seconds=std::max<std::int64_t>(1,options.timeout.count()/1000);

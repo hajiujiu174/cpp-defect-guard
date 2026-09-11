@@ -18,6 +18,8 @@ struct BuildOptions {
     std::filesystem::path output_directory;
     std::string cmake = "cmake", ctest = "ctest", git = "git", generator = "Ninja";
     std::string c_compiler, cxx_compiler, target;
+    std::vector<std::string> cmake_definitions; // KEY=VALUE; forwarded as individual -D arguments
+    std::vector<std::string> copy_includes; // exact project-relative directories overriding default ignores
     unsigned jobs = 0;
     std::chrono::milliseconds timeout{120000}; // per stage
     std::shared_ptr<ScanControl> control;

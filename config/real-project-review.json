@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "reviewed_on": "2026-09-11",
+  "scope": "Source review by Codex of every emitted issue in the locked Windows configuration. CG001 confirms an API pattern, not an exploitable overflow. No whole-project recall claim.",
+  "projects": {
+    "cjson": {
+      "commit": "c859b25da02955fef659d658b8f324b5cde87be3",
+      "rule": "CG001",
+      "verdict": "All 26 are real calls to the listed APIs; no overflow was confirmed. Allocation failure and size arithmetic outside these local observations remain unproven.",
+      "locations": [
+        {"file":"cJSON.c","line":127,"note":"15-byte version buffer; locked constants format to 1.7.19."},
+        {"file":"cJSON.c","line":456,"note":"strlen(new) <= strlen(existing), with an overlap guard before strcpy."},
+        {"file":"cJSON.c","line":609,"note":"26-byte number buffer receives the fixed null string."},
+        {"file":"cJSON.c","line":613,"note":"26-byte buffer accommodates the target's 32-bit signed integer representation."},
+        {"file":"cJSON.c","line":618,"note":"26-byte buffer and 15 significant digits; reviewed for ordinary target C locale. Post-write length check alone is not a pre-write bound proof."},
+        {"file":"cJSON.c","line":624,"note":"26-byte buffer and 17 significant digits; same locale and post-write-check limitation as line 618."},
+        {"file":"cJSON.c","line":971,"note":"ensure reserves sizeof the quoted empty-string literal and checks NULL."},
+        {"file":"cJSON.c","line":1058,"note":"First pass accounts for control-character escape expansion; byte input is below 32 on this branch. No global size-overflow proof."},
+        {"file":"cJSON.c","line":1435,"note":"ensure reserves 5 bytes and checks NULL before copying null."},
+        {"file":"cJSON.c","line":1444,"note":"ensure reserves 6 bytes and checks NULL before copying false."},
+        {"file":"cJSON.c","line":1453,"note":"ensure reserves 5 bytes and checks NULL before copying true."},
+        {"file":"cJSON_Utils.c","line":234,"note":"Allocation reserves suffix length plus 20 index digits and separator/NUL; index <= ULONG_MAX. Allocation failure is not checked locally."},
+        {"file":"cJSON_Utils.c","line":245,"note":"Allocation includes encoded key length, suffix, slash and NUL; allocation failure and arithmetic overflow are not proven safe."},
+        {"file":"cJSON_Utils.c","line":1122,"note":"Allocation includes path and encoded suffix lengths plus slash/NUL; allocation failure is not checked locally."},
+        {"file":"cJSON_Utils.c","line":1188,"note":"Allocation reserves path length plus 20 digits and separator/NUL, with ULONG_MAX guard; allocation failure is not checked locally."},
+        {"file":"cJSON_Utils.c","line":1203,"note":"Reuses the index buffer, with ULONG_MAX guard; allocation failure is not checked locally."},
+        {"file":"cJSON_Utils.c","line":1248,"note":"Allocation includes path and encoded key lengths plus slash/NUL; allocation failure is not checked locally."},
+        {"file":"tests/minify_tests.c","line":50,"note":"malloc(sizeof source array), followed by a non-NULL test assertion."},
+        {"file":"tests/minify_tests.c","line":64,"note":"malloc(sizeof source array), followed by a non-NULL test assertion."},
+        {"file":"tests/minify_tests.c","line":78,"note":"malloc(sizeof source array), followed by a non-NULL test assertion."},
+        {"file":"tests/minify_tests.c","line":92,"note":"malloc(sizeof source array), followed by a non-NULL test assertion."},
+        {"file":"tests/minify_tests.c","line":147,"note":"malloc(sizeof source array) provides capacity if successful; no allocation failure assertion at this call."},
+        {"file":"tests/parse_examples.c","line":68,"note":"Allocation includes prefix sizeof plus test-name length, and NULL is asserted."},
+        {"file":"tests/parse_examples.c","line":69,"note":"Allocation includes prefix, test-name and suffix sizes, and NULL is asserted."},
+        {"file":"tests/parse_hex4.c","line":39,"note":"6-byte buffer, loop bounds 0..0xFFFF, four hexadecimal digits plus NUL."},
+        {"file":"tests/parse_hex4.c","line":40,"note":"6-byte buffer, loop bounds 0..0xFFFF, four hexadecimal digits plus NUL."}
+      ]
+    },
+    "tinyxml2": {"commit":"321ea883b7190d4e85cae5512a12e5eaa8f8731f","rule":"CG001","locations":[],"verdict":"No issue emitted in the selected configuration; this is not a defect-free certification."},
+    "fmt": {"commit":"123913715afeb8a437e6388b4473fcc4753e1c9a","rule":"CG001","locations":[],"verdict":"No issue emitted in the selected configuration; templates and alternate configurations are not exhaustively instantiated."}
+  }
+}

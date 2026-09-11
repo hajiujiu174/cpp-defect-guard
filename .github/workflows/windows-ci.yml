@@ -4,6 +4,11 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      real_projects:
+        description: Run the locked real C/C++ project acceptance suite
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -46,6 +51,27 @@ jobs:
         run: ./scripts/ci_windows.ps1 -ToolchainRoot "$env:RUNNER_TEMP/codeguard-toolchain" -Mode Core
       - name: Clang and Qt release build, tests and package
         run: ./scripts/ci_windows.ps1 -ToolchainRoot "$env:RUNNER_TEMP/codeguard-toolchain" -Mode Analysis -Package
+      - name: Real C and C++ project acceptance
+        if: github.event_name == 'workflow_dispatch' && inputs.real_projects
+        run: python scripts/accept_real_projects.py --cli build/windows-ci-analysis/codeguard-cli.exe --toolchain "$env:RUNNER_TEMP/codeguard-toolchain" --output artifacts/real-projects
+      - name: Preserve real project acceptance evidence
+        if: always() && github.event_name == 'workflow_dispatch' && inputs.real_projects
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: windows-real-projects
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            artifacts/real-projects/*.json
+            artifacts/real-projects/*/*.json
+            artifacts/real-projects/*/*.log
+            artifacts/real-projects/*/*.sqlite3
+            artifacts/real-projects/*/upstream-LICENSE.txt
+            artifacts/real-projects/*/selected/*.json
+            artifacts/real-projects/*/configure/compile_commands.json
+            artifacts/real-projects/*/runs/*/*.log
+            artifacts/real-projects/*/runs/*/*.txt
+            artifacts/real-projects/*/runs/*/tests.xml
       - name: Preserve diagnostics even on failure
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

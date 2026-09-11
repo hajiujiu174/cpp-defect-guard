@@ -92,11 +92,26 @@ void end_address(){int a[2];int* e=&a[2];(void)e;}
         if(mode=="build_timeout"||mode=="build_cancel")f.write("CMakeLists.txt","cmake_minimum_required(VERSION 3.24)\nexecute_process(COMMAND ${CMAKE_COMMAND} -E sleep 10)\nproject(Fixture LANGUAGES CXX)\n");
         const auto scan=cg::import_project(f.root,f.db);
         cg::BuildOptions options;options.output_directory=f.dir/"runs";options.jobs=2;options.timeout=std::chrono::seconds(30);
+        if(mode=="build_configuration") {
+            cg::fs::create_directories(f.root/"resources"/"out");
+            f.write("resources/out/required.txt","test resource");
+            f.write("CMakeLists.txt","cmake_minimum_required(VERSION 3.24)\nproject(Fixture LANGUAGES CXX)\nif(NOT CG_LABEL STREQUAL \"value with spaces\" OR NOT CG_SECOND STREQUAL \"second\")\nmessage(FATAL_ERROR \"missing definitions\")\nendif()\nif(NOT EXISTS \"${CMAKE_CURRENT_SOURCE_DIR}/resources/out/required.txt\")\nmessage(FATAL_ERROR \"missing ignored resource\")\nendif()\nadd_executable(demo main.cpp)\nenable_testing()\nadd_test(NAME demo COMMAND demo)\n");
+            options.cmake_definitions={"CG_LABEL=value with spaces","CG_SECOND=second"};
+            options.copy_includes={"resources/out"};
+            for(const auto& invalid:std::vector<std::string>{"../outside",".",".git","missing"}) {
+                auto bad=options;bad.copy_includes={invalid};bool rejected=false;
+                try{cg::build_and_test(f.root,f.db,bad);}catch(const std::invalid_argument&){rejected=true;}
+                require(rejected,"unsafe copy include rejected");
+            }
+            auto bad=options;bad.cmake_definitions={"-S=elsewhere"};bool rejected=false;
+            try{cg::build_and_test(f.root,f.db,bad);}catch(const std::invalid_argument&){rejected=true;}
+            require(rejected,"non-definition argument rejected");
+        }
         if(mode=="build_timeout")options.timeout=std::chrono::milliseconds(300);
         if(mode=="build_cancel"){options.control=std::make_shared<cg::ScanControl>();options.progress=[&](const auto& stage){if(stage=="configure")options.control->request_cancel();};}
         if(mode=="build_stale")f.write("main.cpp","int main(){return 1;}\n");
         const auto run=cg::build_and_test(f.root,f.db,options);
-        if(mode=="build_pass")require(run.status=="passed"&&run.steps.back().tests_total==1&&run.steps.back().tests_failed==0,"build/test pass: "+run.steps.back().result.stderr_text);
+        if(mode=="build_pass"||mode=="build_configuration")require(run.status=="passed"&&run.steps.back().tests_total==1&&run.steps.back().tests_failed==0,"build/test pass: "+run.steps.back().result.stderr_text);
         else if(mode=="build_cancel")require(run.status=="cancelled","build cancelled logs");
         else if(mode=="build_timeout")require(run.status=="timed_out","configure timeout");
         else require(run.status!="passed","failure cannot pass");
