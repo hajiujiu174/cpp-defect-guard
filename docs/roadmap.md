@@ -28,7 +28,7 @@
 2. 已实现有界任务队列、多 TU 线程池、单写线程批量事务；提供 1/2/4/8 线程实测脚本，结果按原始数据记录。任务独立 Clang 文件系统，支持取消、进度、异常传播与提交前回滚。
 3. 已实现 Windows/POSIX ProcessRunner，参数数组、stdout/stderr、超时/取消与进程组清理；接入副本内 CMake/CTest 和受控 Git 读取。
 4. 已补齐 schema 3 BuildTest/Issue 持久化、GoogleTest 合同测试、Windows 运行包脚本。Windows 与 WSL Core 有本机验收记录；新增 Windows CI 的执行结果见专项说明，Linux 全功能环境暂缓。GraphEdge 保留 schema 2 的结构。
-5. 用课程工程及 2—3 个许可明确的真实项目验证；不可将 Juliet 函数分类结果替代工程管理验收。
+5. 已完成课程工程及固定 cJSON、TinyXML-2、fmt 的真实工程验收，包含构建测试、覆盖、资源测量、线程一致性和全部告警复核，见 [P0-2 报告](real-project-acceptance.md)。未覆盖配置、完整缺陷真值和更大工程仍有边界，不可将 Juliet 函数分类结果替代工程管理验收。
 
 ## Level 4 增强：时间盒研究
 

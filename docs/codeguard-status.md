@@ -29,7 +29,7 @@ cpp-defect-guard/
 |---|---|---|
 | Level 1 骨架 | Core/CLI/Qt、目录扫描、项目快照、最近项目、SQLite 事务、Windows 运行包 | 更完整的配置管理及实际桌面环境覆盖 |
 | Level 2 分析 | Core Clang、USR 符号与定义、CFG 复杂度、直接调用/include 图、图算法、覆盖诊断、源码定位、五类 AST 规则 | 引用/宏索引、交互图画布、更完整度量及更广规则评测 |
-| Level 3 工程闭环 | 自研查询语言、CLI/Qt 查询、多 TU 线程池、单写线程、有界队列、进度/取消、Windows/POSIX 进程、CMake/CTest/Git、BuildTest/Issue 持久化、并发实验入口、已通过的 Windows CI 和独立运行包验收 | 2—3 个外部真实工程验证；Linux 全功能验收暂缓 |
+| Level 3 工程闭环 | 自研查询语言、CLI/Qt 查询、多 TU 线程池、单写线程、有界队列、进度/取消、Windows/POSIX 进程、CMake/CTest/Git、BuildTest/Issue 持久化、并发实验入口、Windows CI/独立运行包、三个固定真实库工程验收 | 更大应用及更多配置覆盖、完整规则真值评测；Linux 全功能验收暂缓 |
 | Level 4 研究 | 保留旧 AST/CFG/DFG、Juliet 数据、模型实验和检查点 | 可选 ONNX C++ 部署或自动修复对照，不能宣称已完成 |
 
 ## 查询阶段调整（上一轮记录）
@@ -44,6 +44,6 @@ cpp-defect-guard/
 
 ## 后续实施顺序
 
-规则、Issue 存储、多 TU 分析池、集中写入、ProcessRunner 及构建/测试/Git 业务服务已经实现。P0-1 Windows CI 与可复现构建已完成：远端 Core 42 通过、1 跳过，Clang/Qt 64 通过、1 跳过，全新 runner 上的 CLI、Clang、Qt 和包内中文字体检查通过，截图已核对，详见 [Windows CI](windows-ci.md)。下一项为 P0-2 真实工程验收，随后按根目录 AGENTS.md 推进配置、规则、报告、增量分析与引用索引。Linux 全功能环境暂缓，AI 新训练和自动修复在工程主线稳定后推进。
+规则、Issue 存储、多 TU 分析池、集中写入、ProcessRunner 及构建/测试/Git 业务服务已经实现。P0-1 Windows CI 与可复现构建已完成，历史记录见 [Windows CI](windows-ci.md)。P0-2 已通过固定 cJSON、TinyXML-2、fmt 的本地及远端验收，共 44 个上游 CTest 全部通过；26 条 API 提醒均已复核，未覆盖文件仍如实报告。本轮产品回归为 Core 43 通过、1 跳过，Clang/Qt 65 通过、1 跳过，独立运行包检查通过，详见 [真实工程验收](real-project-acceptance.md)。下一项为 P1-1 工程导入与配置管理。Linux 全功能环境暂缓，AI 新训练和自动修复在工程主线稳定后推进。
 
 本次查询验收与运行方式见 [查询语言说明](query-language.md)。

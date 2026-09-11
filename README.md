@@ -2,6 +2,8 @@
 
 2026-09-10 交付范围调整：当前仅面向 Windows x64，跨平台开发与新增验收暂缓。Windows CI、锁定工具链、干净构建及运行包检查见 [Windows 构建说明](docs/windows-ci.md)。
 
+2026-09-11：P0-2 已完成 cJSON、TinyXML-2、fmt 三个固定工程的本地与独立 CI 验收，44 个上游 CTest 全部通过。选定配置的 59 个 TU 均解析成功，仓库未编译文件仍报告部分覆盖；26 条 API 提醒已逐条复核。版本、复现命令、资源数据和结论边界见 [真实工程验收](docs/real-project-acceptance.md)。
+
 当前以 `CodeGuard_课程设计项目方案书.docx`（V1.0，2026 年 9 月）为主方案，正式交付目标为 **Level 3 工程分析闭环**。架构调整为 C++20 Core 静态库、原生 CLI、可选 Qt 6 前端；AI 训练、CFG/DFG 和自动修复归入 Level 4，不再作为基础交付的前置条件。保留原目录名 `cpp-defect-guard`，避免破坏配置和历史产物路径。
 
 ## Level 3 规则与工程闭环

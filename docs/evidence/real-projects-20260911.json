@@ -1,0 +1,493 @@
+{
+  "ci_url": "https://github.com/hajiujiu174/cpp-defect-guard/actions/runs/34579099292",
+  "environment": {
+    "timestamp": "2026-09-11T08:28:58+0000",
+    "os": "Windows-2022Server-10.0.20348-SP0",
+    "python": "3.12.10",
+    "cli_sha256": "c220e3399c9bd1d32678324c32546366494974c5e8b4d54c1314531d9c426a44",
+    "git_commit": "a0073e1a7e0476d4dbff599f66c5c02fc90c6325",
+    "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "project_lock_sha256": "c2b71c09f784bed3fd791ddf249698118d48122a4e3159fd85a4517a1be2acfe",
+    "review_sha256": "24e4a1a5c31a2d1ac17d697eda92e29c8f9843fd346e424746f6d29150e32dc5",
+    "runner_sha256": "7dfee8eb0d8b0eead2132e289af4686dd72aceae574a1f8bdedadcbae2869355",
+    "toolchain": "D:\\a\\_temp\\codeguard-toolchain",
+    "note": "Single local run per thread count; warm caches; no cross-machine performance claim"
+  },
+  "product_tests": {
+    "core": {
+      "total": 44,
+      "passed": 43,
+      "skipped": 1
+    },
+    "analysis": {
+      "total": 66,
+      "passed": 65,
+      "skipped": 1
+    },
+    "skip_reason": "symlink privilege unavailable"
+  },
+  "clean_runtime": {
+    "clang": true,
+    "clean_path": true,
+    "gui": true,
+    "chinese_font": true,
+    "package": "D:\\a\\cpp-defect-guard\\cpp-defect-guard\\artifacts\\unpacked\\CodeGuard-Windows-x64",
+    "packaged_resource_header": "D:/a/cpp-defect-guard/cpp-defect-guard/artifacts/unpacked/CodeGuard-Windows-x64/resources/clang/include/stddef.h",
+    "timestamp": "2026-09-11T08:33:29.7635504+00:00",
+    "cli": true
+  },
+  "projects": [
+    {
+      "project": {
+        "id": "cjson",
+        "repository": "https://github.com/DaveGamble/cJSON.git",
+        "version": "v1.7.19",
+        "commit": "c859b25da02955fef659d658b8f324b5cde87be3",
+        "license": "MIT",
+        "license_file": "LICENSE",
+        "license_sha256": "a36dda207c36db5818729c54e7ad4e8b0c6fba847491ba64f372c1a2037b6d5c",
+        "c_compiler": "gcc.exe",
+        "definitions": [
+          "CMAKE_POLICY_VERSION_MINIMUM=3.5",
+          "BUILD_SHARED_LIBS=OFF",
+          "ENABLE_CJSON_UTILS=ON",
+          "ENABLE_CJSON_TEST=ON",
+          "ENABLE_CUSTOM_COMPILER_FLAGS=OFF"
+        ],
+        "copy_includes": [],
+        "preferred_targets": [
+          "CMakeFiles/cjson.dir/",
+          "CMakeFiles/cjson_utils.dir/"
+        ],
+        "minimum_tests": 22
+      },
+      "analysis": {
+        "analysis": {
+          "scan_id": 1,
+          "status": "partial",
+          "compile_commands": "D:/a/cpp-defect-guard/cpp-defect-guard/artifacts/real-projects/cjson/selected/compile_commands.json",
+          "workers": 4,
+          "elapsed_ms": 1011
+        },
+        "unit_status_counts": {
+          "success": 27,
+          "missing_command": 49
+        },
+        "file_count": 99,
+        "physical_lines": 22367,
+        "covered_files": 33,
+        "issue_counts": {
+          "CG001": 26
+        }
+      },
+      "active_translation_units": 27,
+      "active_translation_units_success": 27,
+      "raw_unit_status_counts": {
+        "success": 27,
+        "missing_command": 49
+      },
+      "equivalent_1_and_4_threads": true,
+      "reviewed_issue_locations_match": true,
+      "build_steps": [
+        {
+          "name": "prepare",
+          "status": "passed",
+          "exit_code": 0,
+          "duration_ms": 0,
+          "tests_total": -1,
+          "tests_failed": -1,
+          "tests_skipped": -1
+        },
+        {
+          "name": "configure",
+          "status": "passed",
+          "exit_code": 0,
+          "duration_ms": 822,
+          "tests_total": -1,
+          "tests_failed": -1,
+          "tests_skipped": -1
+        },
+        {
+          "name": "build",
+          "status": "passed",
+          "exit_code": 0,
+          "duration_ms": 4131,
+          "tests_total": -1,
+          "tests_failed": -1,
+          "tests_skipped": -1
+        },
+        {
+          "name": "test",
+          "status": "passed",
+          "exit_code": 0,
+          "duration_ms": 220,
+          "tests_total": 22,
+          "tests_failed": 0,
+          "tests_skipped": 0
+        }
+      ],
+      "ctest": {
+        "name": "(empty)",
+        "tests": "22",
+        "failures": "0",
+        "disabled": "0",
+        "skipped": "0",
+        "hostname": "",
+        "time": "0",
+        "timestamp": "2026-09-11T08:29:10"
+      },
+      "tracked_files_unchanged": true,
+      "automated_acceptance_passed": true,
+      "build_git_revision": "c859b25da02955fef659d658b8f324b5cde87be3",
+      "compilation_database": {
+        "raw_entries": 27,
+        "selected_entries": 27,
+        "policy": "prefer locked production targets, then stable lexical command order; analyze one configuration per file",
+        "preferred_targets": [
+          "CMakeFiles/cjson.dir/",
+          "CMakeFiles/cjson_utils.dir/"
+        ],
+        "ambiguous_files": []
+      },
+      "uncompiled_sources": [
+        "fuzzing/afl.c",
+        "tests/unity/examples/example_1/src/ProductionCode.c",
+        "tests/unity/examples/example_1/src/ProductionCode2.c",
+        "tests/unity/examples/example_1/test/TestProductionCode.c",
+        "tests/unity/examples/example_1/test/TestProductionCode2.c",
+        "tests/unity/examples/example_1/test/test_runners/TestProductionCode2_Runner.c",
+        "tests/unity/examples/example_1/test/test_runners/TestProductionCode_Runner.c",
+        "tests/unity/examples/example_2/src/ProductionCode.c",
+        "tests/unity/examples/example_2/src/ProductionCode2.c",
+        "tests/unity/examples/example_2/test/TestProductionCode.c",
+        "tests/unity/examples/example_2/test/TestProductionCode2.c",
+        "tests/unity/examples/example_2/test/test_runners/TestProductionCode2_Runner.c",
+        "tests/unity/examples/example_2/test/test_runners/TestProductionCode_Runner.c",
+        "tests/unity/examples/example_2/test/test_runners/all_tests.c",
+        "tests/unity/examples/example_3/helper/UnityHelper.c",
+        "tests/unity/examples/example_3/src/ProductionCode.c",
+        "tests/unity/examples/example_3/src/ProductionCode2.c",
+        "tests/unity/examples/example_3/test/TestProductionCode.c",
+        "tests/unity/examples/example_3/test/TestProductionCode2.c",
+        "tests/unity/extras/fixture/src/unity_fixture.c",
+        "tests/unity/extras/fixture/test/main/AllTests.c",
+        "tests/unity/extras/fixture/test/template_fixture_tests.c",
+        "tests/unity/extras/fixture/test/unity_fixture_Test.c",
+        "tests/unity/extras/fixture/test/unity_fixture_TestRunner.c",
+        "tests/unity/extras/fixture/test/unity_output_Spy.c",
+        "tests/unity/test/expectdata/testsample_cmd.c",
+        "tests/unity/test/expectdata/testsample_def.c",
+        "tests/unity/test/expectdata/testsample_head1.c",
+        "tests/unity/test/expectdata/testsample_mock_cmd.c",
+        "tests/unity/test/expectdata/testsample_mock_def.c",
+        "tests/unity/test/expectdata/testsample_mock_head1.c",
+        "tests/unity/test/expectdata/testsample_mock_new1.c",
+        "tests/unity/test/expectdata/testsample_mock_new2.c",
+        "tests/unity/test/expectdata/testsample_mock_param.c",
+        "tests/unity/test/expectdata/testsample_mock_run1.c",
+        "tests/unity/test/expectdata/testsample_mock_run2.c",
+        "tests/unity/test/expectdata/testsample_mock_yaml.c",
+        "tests/unity/test/expectdata/testsample_new1.c",
+        "tests/unity/test/expectdata/testsample_new2.c",
+        "tests/unity/test/expectdata/testsample_param.c",
+        "tests/unity/test/expectdata/testsample_run1.c",
+        "tests/unity/test/expectdata/testsample_run2.c",
+        "tests/unity/test/expectdata/testsample_yaml.c",
+        "tests/unity/test/testdata/testRunnerGenerator.c",
+        "tests/unity/test/testdata/testRunnerGeneratorSmall.c",
+        "tests/unity/test/testdata/testRunnerGeneratorWithMocks.c",
+        "tests/unity/test/tests/testparameterized.c",
+        "tests/unity/test/tests/testunity.c",
+        "tests/unity_setup.c"
+      ],
+      "scans": {
+        "1": {
+          "exit_code": 2,
+          "timed_out": false,
+          "wall_ms": 2084,
+          "peak_working_set_bytes_sampled": 40595456,
+          "memory_scope": "parent process only, sampled every 20ms; scan includes its worker threads"
+        },
+        "4": {
+          "exit_code": 2,
+          "timed_out": false,
+          "wall_ms": 1145,
+          "peak_working_set_bytes_sampled": 55447552,
+          "memory_scope": "parent process only, sampled every 20ms; scan includes its worker threads"
+        }
+      }
+    },
+    {
+      "project": {
+        "id": "tinyxml2",
+        "repository": "https://github.com/leethomason/tinyxml2.git",
+        "version": "10.0.0",
+        "commit": "321ea883b7190d4e85cae5512a12e5eaa8f8731f",
+        "license": "Zlib",
+        "license_file": "LICENSE.txt",
+        "license_sha256": "9332252e9b9e46db8285d4a3f0bf25f139bf1dca6781b956d57f2302efca6432",
+        "definitions": [
+          "BUILD_SHARED_LIBS=OFF",
+          "tinyxml2_BUILD_TESTING=ON"
+        ],
+        "copy_includes": [
+          "resources/out"
+        ],
+        "preferred_targets": [],
+        "minimum_tests": 1
+      },
+      "analysis": {
+        "analysis": {
+          "scan_id": 1,
+          "status": "partial",
+          "compile_commands": "D:/a/cpp-defect-guard/cpp-defect-guard/artifacts/real-projects/tinyxml2/selected/compile_commands.json",
+          "workers": 3,
+          "elapsed_ms": 951
+        },
+        "unit_status_counts": {
+          "missing_command": 1,
+          "success": 2
+        },
+        "file_count": 4,
+        "physical_lines": 8266,
+        "covered_files": 3,
+        "issue_counts": {}
+      },
+      "active_translation_units": 2,
+      "active_translation_units_success": 2,
+      "raw_unit_status_counts": {
+        "missing_command": 1,
+        "success": 2
+      },
+      "equivalent_1_and_4_threads": true,
+      "reviewed_issue_locations_match": true,
+      "build_steps": [
+        {
+          "name": "prepare",
+          "status": "passed",
+          "exit_code": 0,
+          "duration_ms": 0,
+          "tests_total": -1,
+          "tests_failed": -1,
+          "tests_skipped": -1
+        },
+        {
+          "name": "configure",
+          "status": "passed",
+          "exit_code": 0,
+          "duration_ms": 825,
+          "tests_total": -1,
+          "tests_failed": -1,
+          "tests_skipped": -1
+        },
+        {
+          "name": "build",
+          "status": "passed",
+          "exit_code": 0,
+          "duration_ms": 1262,
+          "tests_total": -1,
+          "tests_failed": -1,
+          "tests_skipped": -1
+        },
+        {
+          "name": "test",
+          "status": "passed",
+          "exit_code": 0,
+          "duration_ms": 127,
+          "tests_total": 1,
+          "tests_failed": 0,
+          "tests_skipped": 0
+        }
+      ],
+      "ctest": {
+        "name": "Win32-ninja",
+        "tests": "1",
+        "failures": "0",
+        "disabled": "0",
+        "skipped": "0",
+        "hostname": "runnervmbkp6f",
+        "time": "0",
+        "timestamp": "2026-09-11T08:29:18"
+      },
+      "tracked_files_unchanged": true,
+      "automated_acceptance_passed": true,
+      "build_git_revision": "321ea883b7190d4e85cae5512a12e5eaa8f8731f",
+      "compilation_database": {
+        "raw_entries": 2,
+        "selected_entries": 2,
+        "policy": "prefer locked production targets, then stable lexical command order; analyze one configuration per file",
+        "preferred_targets": [],
+        "ambiguous_files": []
+      },
+      "uncompiled_sources": [
+        "contrib/html5-printer.cpp"
+      ],
+      "scans": {
+        "1": {
+          "exit_code": 2,
+          "timed_out": false,
+          "wall_ms": 1185,
+          "peak_working_set_bytes_sampled": 71446528,
+          "memory_scope": "parent process only, sampled every 20ms; scan includes its worker threads"
+        },
+        "4": {
+          "exit_code": 2,
+          "timed_out": false,
+          "wall_ms": 1063,
+          "peak_working_set_bytes_sampled": 72220672,
+          "memory_scope": "parent process only, sampled every 20ms; scan includes its worker threads"
+        }
+      }
+    },
+    {
+      "project": {
+        "id": "fmt",
+        "repository": "https://github.com/fmtlib/fmt.git",
+        "version": "11.1.4",
+        "commit": "123913715afeb8a437e6388b4473fcc4753e1c9a",
+        "license": "MIT with optional exception (see LICENSE)",
+        "license_file": "LICENSE",
+        "license_sha256": "07580f2a3b35709ce703d523f447b242f6dfec7582a8c0df102c7fa2849375f8",
+        "definitions": [
+          "BUILD_SHARED_LIBS=OFF",
+          "FMT_TEST=ON",
+          "FMT_DOC=OFF",
+          "FMT_MODULE=OFF"
+        ],
+        "copy_includes": [],
+        "preferred_targets": [
+          "CMakeFiles/fmt.dir/",
+          "test/CMakeFiles/test-main.dir/"
+        ],
+        "minimum_tests": 21
+      },
+      "analysis": {
+        "analysis": {
+          "scan_id": 1,
+          "status": "partial",
+          "compile_commands": "D:/a/cpp-defect-guard/cpp-defect-guard/artifacts/real-projects/fmt/selected/compile_commands.json",
+          "workers": 4,
+          "elapsed_ms": 34951
+        },
+        "unit_status_counts": {
+          "missing_command": 16,
+          "success": 30
+        },
+        "file_count": 70,
+        "physical_lines": 68025,
+        "covered_files": 52,
+        "issue_counts": {}
+      },
+      "active_translation_units": 30,
+      "active_translation_units_success": 30,
+      "raw_unit_status_counts": {
+        "missing_command": 16,
+        "ambiguous_command": 5,
+        "success": 25
+      },
+      "equivalent_1_and_4_threads": true,
+      "reviewed_issue_locations_match": true,
+      "build_steps": [
+        {
+          "name": "prepare",
+          "status": "passed",
+          "exit_code": 0,
+          "duration_ms": 0,
+          "tests_total": -1,
+          "tests_failed": -1,
+          "tests_skipped": -1
+        },
+        {
+          "name": "configure",
+          "status": "passed",
+          "exit_code": 0,
+          "duration_ms": 1241,
+          "tests_total": -1,
+          "tests_failed": -1,
+          "tests_skipped": -1
+        },
+        {
+          "name": "build",
+          "status": "passed",
+          "exit_code": 0,
+          "duration_ms": 63193,
+          "tests_total": -1,
+          "tests_failed": -1,
+          "tests_skipped": -1
+        },
+        {
+          "name": "test",
+          "status": "passed",
+          "exit_code": 0,
+          "duration_ms": 549,
+          "tests_total": 21,
+          "tests_failed": 0,
+          "tests_skipped": 0
+        }
+      ],
+      "ctest": {
+        "name": "(empty)",
+        "tests": "21",
+        "failures": "0",
+        "disabled": "0",
+        "skipped": "0",
+        "hostname": "",
+        "time": "0",
+        "timestamp": "2026-09-11T08:32:54"
+      },
+      "tracked_files_unchanged": true,
+      "automated_acceptance_passed": true,
+      "build_git_revision": "123913715afeb8a437e6388b4473fcc4753e1c9a",
+      "compilation_database": {
+        "raw_entries": 50,
+        "selected_entries": 30,
+        "policy": "prefer locked production targets, then stable lexical command order; analyze one configuration per file",
+        "preferred_targets": [
+          "CMakeFiles/fmt.dir/",
+          "test/CMakeFiles/test-main.dir/"
+        ],
+        "ambiguous_files": [
+          "src/format.cc",
+          "src/os.cc",
+          "test/gtest-extra.cc",
+          "test/test-main.cc",
+          "test/util.cc"
+        ]
+      },
+      "uncompiled_sources": [
+        "src/fmt.cc",
+        "test/add-subdirectory-test/main.cc",
+        "test/cuda-test/cpp14.cc",
+        "test/detect-stdfs.cc",
+        "test/find-package-test/main.cc",
+        "test/fuzzing/chrono-duration.cc",
+        "test/fuzzing/chrono-timepoint.cc",
+        "test/fuzzing/float.cc",
+        "test/fuzzing/main.cc",
+        "test/fuzzing/named-arg.cc",
+        "test/fuzzing/one-arg.cc",
+        "test/fuzzing/two-args.cc",
+        "test/module-test.cc",
+        "test/noexception-test.cc",
+        "test/static-export-test/library.cc",
+        "test/static-export-test/main.cc"
+      ],
+      "scans": {
+        "1": {
+          "exit_code": 2,
+          "timed_out": false,
+          "wall_ms": 74697,
+          "peak_working_set_bytes_sampled": 514596864,
+          "memory_scope": "parent process only, sampled every 20ms; scan includes its worker threads"
+        },
+        "4": {
+          "exit_code": 2,
+          "timed_out": false,
+          "wall_ms": 36778,
+          "peak_working_set_bytes_sampled": 757211136,
+          "memory_scope": "parent process only, sampled every 20ms; scan includes its worker threads"
+        }
+      }
+    }
+  ]
+}
