@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <map>
 #include "codeguard/scan_control.hpp"
 #include "codeguard/rules.hpp"
 
@@ -35,9 +36,14 @@ struct AnalysisResult {
     std::vector<Issue> issues;
     unsigned workers = 0;
     std::int64_t elapsed_ms = 0;
+    std::string configuration;
 };
 bool clang_analysis_available();
-AnalysisResult analyze_project(const ScanResult& inventory, const std::string& compilation_database, const ScanContext& context = {}, unsigned threads = 0);
+AnalysisResult analyze_project(const ScanResult& inventory, const std::string& compilation_database, const ScanContext& context = {}, unsigned threads = 0, const std::map<std::string,std::string>& choices = {});
+struct CompileCommandInfo { std::string file, fingerprint, display; };
+std::vector<CompileCommandInfo> inspect_compile_commands(const std::string& database);
+// Rebase copied source paths, while keeping the generated build directory and headers.
+std::string relocate_compile_commands(const std::string& input,const std::string& copied_source,const std::string& original_source,const std::string& output);
 std::vector<Symbol> find_symbols(const AnalysisResult& analysis, const std::string& prefix);
 
 struct GraphSummary {

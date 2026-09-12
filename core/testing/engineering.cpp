@@ -52,6 +52,7 @@ void copy_project(const fs::path& root, const fs::path& target, const BuildOptio
     for (fs::recursive_directory_iterator it(root), end; it != end; ++it) {
         check_cancel(options); const auto status = it->symlink_status();
         if (fs::is_symlink(status)) { it.disable_recursion_pending(); continue; }
+        if(std::any_of(options.copy_excludes.begin(),options.copy_excludes.end(),[&](const auto& path){return inside(it->path(),root/from_utf8(path));})) {it.disable_recursion_pending();continue;}
         auto name = utf8_path(it->path().filename());
         std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c){ return static_cast<char>(std::tolower(c)); });
         const bool included = std::any_of(options.copy_includes.begin(), options.copy_includes.end(), [&](const auto& value) {
@@ -109,6 +110,8 @@ BuildRun build_and_test(const fs::path& input, const fs::path& database, const B
     if (options.output_directory.empty() || options.timeout.count() <= 0 || options.jobs > 64 || options.target.starts_with('-'))
         throw std::invalid_argument("build needs an output directory, positive timeout, jobs 0..64 and a non-option target");
     if (inside(dbpath,root) || inside(options.output_directory,root)) throw std::invalid_argument("build database and output must be outside source directory");
+    ProjectConfig settings;settings.build=options;validate_config(settings);
+    ScanOptions inventory_options;inventory_options.ignored_paths=options.copy_excludes;
     for (const auto& definition : options.cmake_definitions) {
         const auto equal = definition.find('=');
         if (equal == std::string::npos || !std::regex_match(definition.substr(0,equal),std::regex("[A-Za-z_][A-Za-z0-9_]*(:[A-Za-z]+)?")) || definition.find('\0') != std::string::npos)
@@ -127,7 +130,7 @@ BuildRun build_and_test(const fs::path& input, const fs::path& database, const B
     ScanResult snapshot;
     { SqliteDatabase db(dbpath,true); snapshot = db.latest(utf8_path(root)); }
     if (!snapshot.id) throw std::invalid_argument("scan the project before build/test");
-    BuildRun run; run.root=snapshot.root; run.scan_id=snapshot.id; run.started_at=timestamp(); run.target=options.target;
+    BuildRun run; run.root=snapshot.root; run.scan_id=snapshot.id; run.started_at=timestamp(); run.target=options.target;run.configuration=encode_config(settings);
     const auto base = fs::absolute(options.output_directory); fs::create_directories(base);
     fs::path work;
     for (unsigned attempt=0;attempt<100;++attempt) {
@@ -141,9 +144,9 @@ BuildRun build_and_test(const fs::path& input, const fs::path& database, const B
     try {
         if (options.progress) options.progress("prepare");
         check_cancel(options);
-        if (!same_source(snapshot,scan_project(root))) throw std::runtime_error("source differs from saved scan; rescan before building");
+        if (!same_source(snapshot,scan_project(root,inventory_options))) throw std::runtime_error("source or excluded directories differ from saved scan; rescan before building");
         copy_project(root,source,options); check_cancel(options);
-        if (!same_source(snapshot,scan_project(root)) || !same_source(snapshot,scan_project(source)))
+        if (!same_source(snapshot,scan_project(root,inventory_options)) || !same_source(snapshot,scan_project(source,inventory_options)))
             throw std::runtime_error("source changed while copying; build stopped");
         if (!fs::is_regular_file(source/"CMakeLists.txt")) throw std::runtime_error("project has no CMakeLists.txt");
         prepare.result.status="passed"; prepare.result.exit_code=0; prepare.result.stdout_text="Source snapshot copied; original C/C++ inventory matches saved scan.\n";
@@ -151,17 +154,18 @@ BuildRun build_and_test(const fs::path& input, const fs::path& database, const B
         run.git_log=read_git(root,options,&run.git_revision);
         const unsigned jobs=options.jobs ? options.jobs : std::min(8u,std::max(1u,std::thread::hardware_concurrency()));
         std::vector<std::string> configure{options.cmake,"-S",utf8_path(source),"-B",utf8_path(build),"-G",options.generator,
-            "-DCMAKE_BUILD_TYPE=Debug","-DBUILD_TESTING=ON","-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"};
+            "-DCMAKE_BUILD_TYPE="+options.build_type,"-DBUILD_TESTING=ON","-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"};
         if (!options.c_compiler.empty()) configure.push_back("-DCMAKE_C_COMPILER="+options.c_compiler);
         if (!options.cxx_compiler.empty()) configure.push_back("-DCMAKE_CXX_COMPILER="+options.cxx_compiler);
         for (const auto& definition : options.cmake_definitions) configure.push_back("-D"+definition);
-        std::vector<std::string> compile{options.cmake,"--build",utf8_path(build),"--config","Debug","--parallel",std::to_string(jobs)};
+        std::vector<std::string> compile{options.cmake,"--build",utf8_path(build),"--config",options.build_type,"--parallel",std::to_string(jobs)};
         if (!options.target.empty()) { compile.push_back("--target"); compile.push_back(options.target); }
         const auto seconds=std::max<std::int64_t>(1,options.timeout.count()/1000);
-        std::vector<std::string> test{options.ctest,"--test-dir",utf8_path(build),"-C","Debug","--output-on-failure","--no-tests=error",
+        std::vector<std::string> test{options.ctest,"--test-dir",utf8_path(build),"-C",options.build_type,"--output-on-failure","--no-tests=error",
             "--timeout",std::to_string(seconds),"--output-junit",utf8_path(work/"tests.xml")};
         run.status="passed";
         for (const auto& [name,args] : std::vector<std::pair<std::string,std::vector<std::string>>>{{"configure",configure},{"build",compile},{"test",test}}) {
+            if(options.configure_only&&name!="configure")continue;
             BuildStep step; step.name=name; step.command=format_arguments(args); step.working_directory=utf8_path(work);
             if (run.status != "passed") { step.result.status="skipped"; step.result.stderr_text="Previous stage did not pass."; }
             else {
@@ -172,17 +176,22 @@ BuildRun build_and_test(const fs::path& input, const fs::path& database, const B
             }
             run.steps.push_back(std::move(step));
         }
+        if(options.configure_only&&run.status=="passed") {
+            if(!same_source(snapshot,scan_project(source,inventory_options)))throw std::runtime_error("CMake generated or changed source-tree C/C++ files; use out-of-source generated files or supply a matching compilation database manually");
+            run.compile_commands=relocate_compile_commands(utf8_path(build/"compile_commands.json"),utf8_path(source),utf8_path(root),utf8_path(work/"analysis-input"/"compile_commands.json"));
+            run.status="configured";
+        }
     } catch (const std::exception& error) {
         run.status=options.control && options.control->state()==ScanControl::State::cancel_requested ? "cancelled" : "failed";
         BuildStep step; step.name=run.steps.empty() ? "prepare" : "manager"; step.result.status=run.status; step.result.stderr_text=error.what();
         run.steps.push_back(std::move(step));
     }
-    try { run.source_unchanged=same_source(snapshot,scan_project(root)); }
+    try { run.source_unchanged=same_source(snapshot,scan_project(root,inventory_options)); }
     catch(const std::exception& error) {
         BuildStep verify;verify.name="source_check";verify.result.status="failed";verify.result.stderr_text=error.what();run.steps.push_back(std::move(verify));
         run.source_unchanged=false;
     }
-    if (!run.source_unchanged && run.status=="passed") run.status="source_changed";
+    if (!run.source_unchanged && (run.status=="passed"||run.status=="configured")) run.status="source_changed";
     if (options.control) {
         try { options.control->begin_commit(); }
         catch (const ScanCancelled&) { run.status="cancelled"; }

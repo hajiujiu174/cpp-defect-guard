@@ -13,13 +13,17 @@ struct BuildRun {
     std::string root, started_at, status, workspace, target, git_revision, git_log;
     bool source_unchanged = false;
     std::vector<BuildStep> steps;
+    std::string compile_commands, configuration;
 };
 struct BuildOptions {
     std::filesystem::path output_directory;
     std::string cmake = "cmake", ctest = "ctest", git = "git", generator = "Ninja";
     std::string c_compiler, cxx_compiler, target;
+    std::string build_type = "Debug";
+    bool configure_only = false;
     std::vector<std::string> cmake_definitions; // KEY=VALUE; forwarded as individual -D arguments
     std::vector<std::string> copy_includes; // exact project-relative directories overriding default ignores
+    std::vector<std::string> copy_excludes;
     unsigned jobs = 0;
     std::chrono::milliseconds timeout{120000}; // per stage
     std::shared_ptr<ScanControl> control;

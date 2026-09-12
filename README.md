@@ -6,6 +6,8 @@
 
 当前以 `CodeGuard_课程设计项目方案书.docx`（V1.0，2026 年 9 月）为主方案，正式交付目标为 **Level 3 工程分析闭环**。架构调整为 C++20 Core 静态库、原生 CLI、可选 Qt 6 前端；AI 训练、CFG/DFG 和自动修复归入 Level 4，不再作为基础交付的前置条件。保留原目录名 `cpp-defect-guard`，避免破坏配置和历史产物路径。
 
+2026-09-13：P1-1 已接入自动发现/生成编译数据库、按工程保存配置、多编译命令显式选择，以及 Qt 设置与重启恢复。完整操作、复制/生成文件边界及回归证据见 [工程导入与配置管理](docs/project-configuration.md)。
+
 ## Level 3 规则与工程闭环
 
 v0.3.0 已补齐五类 Clang AST 规则、多 TU 线程池、单写线程批量事务、Windows/POSIX ProcessRunner、源码副本内 CMake/CTest、只读 Git 信息及构建历史。CLI/Qt 共用 Core，SQLite schema 3 保存 Issue 和 BuildTest 记录，查询语言新增 `issues` / `builds`。Qt 已提供问题定位、线程设置、后台构建测试、停止、历史与 Git 日志。

@@ -21,7 +21,7 @@ lambda 函数体不归到外层函数；尚未提供独立 lambda 调用建模�
 ## 编译数据库与失败处理
 
 - 显式传入目录或 `compile_commands.json`；匹配规范化源文件路径，不猜默认编译参数。
-- 保留宏、include 路径和语言标准；多条配置对应同一 TU 时标记 `ambiguous_command`，需提供单配置数据库。
+- 保留宏、include 路径和语言标准；多条配置对应同一 TU 时默认标记 `ambiguous_command`。P1-1 可通过 CLI/Qt 显式选择命令指纹，保留未分析变体说明；旧选择失效则报错，详见 [配置管理](project-configuration.md)。
 - 缺少条目记 `missing_command`，语法失败记 `parse_failed`。只合并成功 TU 的 AST，保存失败诊断；单个失败不阻断其余 TU。
 - `complete` 指清单中所有源文件 TU 成功，不代表每个头文件都被引用；`covered_files` / `uncovered` 独立展示。
 - 插件、response file、额外编译器配置、PCH/module 和部分写文件选项被拒绝；LibTooling 采用 syntax-only 并去除依赖文件输出。这不是执行不可信源码的安全沙箱，不能用于保证恶意编译器输入不会触发 Clang 缺陷。

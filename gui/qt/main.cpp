@@ -3,6 +3,10 @@
 #include "source_editor.hpp"
 #include "scan_task.hpp"
 #include "build_task.hpp"
+#include "project_settings.hpp"
+#include <QSettings>
+#include <QStandardPaths>
+#include <QInputDialog>
 #include <QSpinBox>
 #include <QApplication>
 #include <QFileDialog>
@@ -113,7 +117,7 @@ int main(int argc, char** argv) {
     auto* choose_commands = new QPushButton(QStringLiteral("选择编译数据库"), container);
     choose_commands->setEnabled(codeguard::clang_analysis_available());
     auto* commands_path = new QLineEdit(container);
-    commands_path->setPlaceholderText(QStringLiteral("compile_commands.json 路径；留空仅扫描文件，不进行 Clang 分析"));
+    commands_path->setPlaceholderText(QStringLiteral("compile_commands.json 路径；留空按工程设置自动发现"));
     commands_path->setEnabled(codeguard::clang_analysis_available());
     auto* thread_count = new QSpinBox(container); thread_count->setRange(0,64); thread_count->setSpecialValueText(QStringLiteral("自动"));
     thread_count->setToolTip(QStringLiteral("Clang 分析线程数；自动最多 8 个，显式可选 1–64")); thread_count->setPrefix(QStringLiteral("分析线程 "));
@@ -212,6 +216,9 @@ int main(int argc, char** argv) {
     splitter->setSizes({190, 690, 560}); splitter->setStretchFactor(1, 1); splitter->setStretchFactor(2, 1);
     auto* configuration = new QHBoxLayout;
     configuration->addWidget(choose_commands); configuration->addWidget(commands_path);configuration->addWidget(thread_count);
+    auto* project_settings=new QPushButton(QStringLiteral("工程设置"),container);project_settings->setObjectName("projectSettingsButton");project_settings->setEnabled(false);
+    auto* generate=new QPushButton(QStringLiteral("生成参数并分析"),container);generate->setObjectName("generateCommands");generate->setEnabled(false);
+    configuration->addWidget(project_settings);configuration->addWidget(generate);
     auto* task_row = new QHBoxLayout;
     auto* task_message = new QLabel(QStringLiteral("就绪 · 尚未启动扫描"), container); task_message->setWordWrap(true);
     task_message->setTextFormat(Qt::PlainText);
@@ -226,6 +233,9 @@ int main(int argc, char** argv) {
     bool engineering_smoke = false;
     int engineering_stage = 0;
     QString initial_project;
+    QString session_file, config_root, config_database, configuration_smoke;
+    codeguard::ProjectConfig project_config;
+    bool generating=false;
     codeguard::ScanResult current;
     ScanTask task;
     BuildTask build_task;
@@ -251,8 +261,36 @@ int main(int argc, char** argv) {
         else if (args[i] == "--engineering-smoke" && smoke_project.isEmpty()) {smoke_project=args[i+1];engineering_smoke=true;}
         else if (args[i] == "--compile-commands" && commands_path->text().isEmpty()) commands_path->setText(args[i + 1]);
         else if (args[i] == "--project" && initial_project.isEmpty()) initial_project = args[i + 1];
+        else if (args[i] == "--session-file" && session_file.isEmpty()) session_file = args[i + 1];
+        else if (args[i] == "--configuration-smoke" && configuration_smoke.isEmpty()) configuration_smoke = args[i + 1];
         else return 1;
     }
+    const auto initial_commands=commands_path->text();
+    if(session_file.isEmpty()&&smoke_project.isEmpty())session_file=QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)+"/session.ini";
+    auto remember=[&]{
+        if(session_file.isEmpty()||current.root.empty())return;
+        QSettings session(session_file,QSettings::IniFormat);session.setValue("database",database);session.setValue("project",text(current.root));session.sync();
+        if(session.status()!=QSettings::NoError)task_message->setText(QStringLiteral("工程已保存，但无法写入会话文件：")+session_file);
+    };
+    auto apply_config=[&](const codeguard::ProjectConfig& config){
+        project_config=config;commands_path->setText(text(config.compile_commands));thread_count->setValue(config.threads);
+        build_output->setText(text(codeguard::utf8_path(config.build.output_directory)));build_target->setText(text(config.build.target));
+        build_compiler->setText(text(config.build.cxx_compiler));build_jobs->setRange(0,64);build_jobs->setSpecialValueText(QStringLiteral("自动"));build_jobs->setValue(config.build.jobs);
+        build_timeout->setValue(static_cast<int>(config.build.timeout.count()/1000));
+    };
+    auto capture_config=[&]{
+        auto config=project_config;const auto path=bytes(commands_path->text().trimmed());
+        if(path!=config.compile_commands)config.command_choices.clear();config.compile_commands=path;
+        config.threads=thread_count->value();config.build.output_directory=codeguard::from_utf8(bytes(build_output->text().trimmed()));
+        config.build.target=bytes(build_target->text().trimmed());config.build.cxx_compiler=bytes(build_compiler->text().trimmed());
+        config.build.jobs=build_jobs->value();config.build.timeout=std::chrono::seconds(build_timeout->value());return config;
+    };
+    auto load_config=[&](const QString& root){
+        const auto canonical=codeguard::fs::canonical(codeguard::from_utf8(bytes(root)));
+        auto config=codeguard::load_project_config(canonical,codeguard::from_utf8(bytes(database))).value_or(codeguard::ProjectConfig{});
+        if(config.build.output_directory.empty())config.build.output_directory=codeguard::from_utf8(bytes(QFileInfo(database).absolutePath()+"/codeguard-builds"));
+        config_root=text(codeguard::utf8_path(canonical));config_database=database;apply_config(config);
+    };
     auto choose_database = [&]() {
         if (database.isEmpty()) database = QFileDialog::getSaveFileName(&window,
             QStringLiteral("保存/追加分析数据库（必须位于源码目录之外）"), {}, "SQLite (*.sqlite3)", nullptr, QFileDialog::DontConfirmOverwrite);
@@ -261,7 +299,7 @@ int main(int argc, char** argv) {
     QObject::connect(choose_commands, &QPushButton::clicked, [&]() {
         if (task.busy()||build_task.busy()) return;
         const auto path = QFileDialog::getOpenFileName(&window, QStringLiteral("选择编译数据库"), {}, "Compilation database (compile_commands.json)");
-        if (!path.isEmpty()) commands_path->setText(path);
+        if (!path.isEmpty()) {commands_path->setText(path);project_config.analysis_enabled=true;project_config.auto_discover=false;}
     });
     auto apply_filter = [&]() {
         auto* target = qobject_cast<QTableWidget*>(tabs->currentWidget());
@@ -398,6 +436,14 @@ int main(int argc, char** argv) {
             .arg(text(result.analysis.status)).arg(result.analysis.covered_files.size()).arg(result.files.size()).arg(result.analysis.metrics.size()));
         label->setText(label->text()+QStringLiteral(" | 问题: %1 | 分析线程: %2 | 分析耗时: %3 ms")
             .arg(result.analysis.issues.size()).arg(result.analysis.workers).arg(result.analysis.elapsed_ms));
+        if(!result.analysis.configuration.empty()){
+            try{
+                const auto settings=codeguard::decode_config(result.analysis.configuration);QStringList disabled;
+                for(const auto& rule:settings.disabled_rules)disabled<<text(rule);
+                label->setText(label->text()+QStringLiteral("\n本快照停用规则：%1 | 显式编译命令选择：%2")
+                    .arg(disabled.isEmpty()?QStringLiteral("无"):disabled.join(", ")).arg(settings.command_choices.size()));
+            }catch(const std::exception& e){label->setText(label->text()+QStringLiteral("\n无法读取历史配置：")+text(e.what()));}
+        }
         std::map<std::string, codeguard::Symbol> symbols;
         std::vector<QStringList> symbol_rows, metric_rows, edge_rows, cycle_rows, unit_rows;
         for (const auto& symbol : result.analysis.symbols) {
@@ -460,7 +506,9 @@ int main(int argc, char** argv) {
     };
     auto set_running = [&](bool running) {
         open->setEnabled(!running); reopen->setEnabled(!running);
-        rescan->setEnabled(!running && !current.root.empty());
+        rescan->setEnabled(!running && (!config_root.isEmpty()||!current.root.empty()));
+        project_settings->setEnabled(!running&&!build_task.busy()&&!config_root.isEmpty());
+        generate->setEnabled(!running&&!build_task.busy()&&current.id>0&&codeguard::clang_analysis_available());
         choose_commands->setEnabled(!running && codeguard::clang_analysis_available());
         commands_path->setEnabled(!running && codeguard::clang_analysis_available());
         cancel->setEnabled(running);
@@ -503,12 +551,21 @@ int main(int argc, char** argv) {
             display(*outcome.result); view_database = database; progress->setValue(100);
             task_message->setText(outcome.state == TaskState::completed ? QStringLiteral("已完成 · 新快照已保存")
                 : QStringLiteral("部分完成 · 成功结果与诊断已保存，请查看诊断页"));
+            if(smoke_project.isEmpty()){
+                if(current.analysis.status=="not_requested"&&project_config.analysis_enabled)
+                    task_message->setText(QStringLiteral("文件清单已保存 · 缺少编译参数：在工程设置中选择数据库，或点击“生成参数并分析”（CMake 工程）"));
+                remember();set_running(false);
+            }
         } else {
             progress->setValue(0);
             task_message->setText(outcome.state == TaskState::cancelled ? QStringLiteral("已取消 · 未提交新快照，旧结果保持不变")
                 : QStringLiteral("失败 · 未保存新快照，旧结果保持不变"));
             task_message->setToolTip(text(outcome.error));
-            if (!current.root.empty()) { database = view_database; commands_path->setText(text(current.analysis.compile_commands)); }
+            if (!current.root.empty()) {
+                database = view_database;
+                if(smoke_project.isEmpty()){try{load_config(text(current.root));}catch(const std::exception& e){task_message->setToolTip(text(e.what()));}}
+                else commands_path->setText(text(current.analysis.compile_commands));
+            }
         }
         if (!smoke_project.isEmpty()) {
             if (verify_background) verify_background(outcome);
@@ -531,11 +588,42 @@ int main(int argc, char** argv) {
     };
     auto scan = [&](const QString& root) {
         if (task.busy()||build_task.busy()) return false;
+        auto restore_selection=[&]{
+            if(!current.root.empty()) {database=view_database;load_config(text(current.root));}
+            set_running(false);
+        };
+        try {
         codeguard::ScanOptions options; options.compile_commands = bytes(commands_path->text());
         options.threads=static_cast<unsigned>(thread_count->value());
+        if(smoke_project.isEmpty()){
+            const auto canonical=text(codeguard::utf8_path(codeguard::fs::canonical(codeguard::from_utf8(bytes(root)))));
+            if(config_root!=canonical||config_database!=database)load_config(root);
+            auto config=capture_config();
+            if(config.analysis_enabled&&config.compile_commands.empty()&&config.auto_discover&&codeguard::clang_analysis_available()){
+                const auto candidates=codeguard::discover_compilation_databases(codeguard::from_utf8(bytes(root)));
+                if(candidates.size()>1){
+                    QStringList paths;for(const auto& path:candidates)paths<<text(path);bool ok=false;
+                    const auto choice=QInputDialog::getItem(&window,QStringLiteral("发现多个编译数据库"),QStringLiteral("选择本次分析使用的构建配置"),paths,0,false,&ok);
+                    if(!ok){restore_selection();return false;}config.compile_commands=bytes(choice);
+                }
+            }
+            options=codeguard::configured_scan_options(codeguard::from_utf8(bytes(root)),config);
+            config.compile_commands=options.compile_commands;apply_config(config);
+            codeguard::save_project_config(codeguard::from_utf8(bytes(root)),codeguard::from_utf8(bytes(database)),config);
+        }
         task_message->setToolTip({});
         return task.start(codeguard::from_utf8(bytes(root)), codeguard::from_utf8(bytes(database)), options);
+        } catch (...) {restore_selection();throw;}
     };
+    QObject::connect(project_settings,&QPushButton::clicked,[&]{
+        if(task.busy()||build_task.busy()||config_root.isEmpty())return;
+        try{
+            ProjectSettings dialog(codeguard::from_utf8(bytes(config_root)),capture_config(),&window);
+            if(dialog.exec()!=QDialog::Accepted)return;
+            auto config=dialog.configuration();codeguard::save_project_config(codeguard::from_utf8(bytes(config_root)),codeguard::from_utf8(bytes(database)),config);apply_config(config);
+            task_message->setText(QStringLiteral("工程设置已保存 · 重新扫描后生效；生成参数将执行 CMake 配置"));remember();
+        }catch(const std::exception& e){QMessageBox::warning(&window,QStringLiteral("配置未保存"),text(e.what()));}
+    });
     QObject::connect(open, &QPushButton::clicked, [&]() {
         if (task.busy()||build_task.busy()) return;
         auto root = QFileDialog::getExistingDirectory(&window, QStringLiteral("选择 C/C++ 工程目录"));
@@ -545,8 +633,8 @@ int main(int argc, char** argv) {
     });
     QObject::connect(rescan, &QPushButton::clicked, [&]() {
         if (task.busy()||build_task.busy()) return;
-        if (current.root.empty() || !choose_database()) return;
-        const auto root = text(current.root);
+        if ((current.root.empty()&&config_root.isEmpty()) || !choose_database()) return;
+        const auto root = config_root.isEmpty()?text(current.root):config_root;
         try { scan(root); }
         catch (const std::exception& exception) { QMessageBox::warning(&window, QStringLiteral("扫描未完成"), text(exception.what())); }
     });
@@ -563,6 +651,7 @@ int main(int argc, char** argv) {
             view_database = selected;
             if(build_output->text().isEmpty())build_output->setText(QFileInfo(selected).absolutePath()+"/codeguard-builds");
             commands_path->setText(text(current.analysis.compile_commands));
+            load_config(text(current.root));remember();set_running(false);
             task_message->setText(QStringLiteral("已载入历史快照 · 未启动新扫描")); task_message->setToolTip({});
             progress->setRange(0, 100); progress->setValue(100);
         } catch (const std::exception& exception) { QMessageBox::warning(&window, QStringLiteral("打开失败"), text(exception.what())); }
@@ -598,6 +687,7 @@ int main(int argc, char** argv) {
         }catch(const std::exception&e){build_log->setPlainText(text(e.what()));}
     });
     build_task.updated=[&](const std::string& phase){
+        project_settings->setEnabled(false);generate->setEnabled(false);
         open->setEnabled(false);rescan->setEnabled(false);reopen->setEnabled(false);choose_commands->setEnabled(false);commands_path->setEnabled(false);thread_count->setEnabled(false);
         build_start->setEnabled(false);build_history->setEnabled(false);build_output->setEnabled(false);build_target->setEnabled(false);build_compiler->setEnabled(false);build_jobs->setEnabled(false);build_timeout->setEnabled(false);
         build_status->setText(QStringLiteral("后台构建测试：%1 · 在源码副本中执行").arg(text(phase)));
@@ -607,16 +697,34 @@ int main(int argc, char** argv) {
         if(outcome.result){
             try{refresh_builds();if(build_table->rowCount())build_table->cellClicked(0,0);}catch(const std::exception&e){build_log->setPlainText(text(e.what()));}
         }else build_status->setText(QStringLiteral("构建管理失败：")+text(outcome.error));
+        const bool follow_analysis=generating;generating=false;
+        if(follow_analysis&&!close_pending){
+            if(outcome.result&&outcome.result->status=="configured"){
+                try{
+                    auto config=capture_config();config.compile_commands=outcome.result->compile_commands;config.analysis_enabled=true;config.auto_discover=false;config.command_choices.clear();
+                    codeguard::save_project_config(codeguard::from_utf8(current.root),codeguard::from_utf8(bytes(database)),config);apply_config(config);scan(text(current.root));
+                }catch(const std::exception& e){task_message->setText(QStringLiteral("参数已生成，分析未启动：")+text(e.what()));}
+            }else task_message->setText(QStringLiteral("参数生成未完成 · 查看构建测试页的阶段日志，修正工程设置后重试"));
+        }
         if(close_pending)QTimer::singleShot(0,&window,&QWidget::close);
     };
     auto start_build = [&]() {
         if(task.busy()||build_task.busy()||current.id<=0)return false;
-        codeguard::BuildOptions options;options.output_directory=codeguard::from_utf8(bytes(build_output->text()));options.target=bytes(build_target->text());
+        codeguard::BuildOptions options=project_config.build;options.output_directory=codeguard::from_utf8(bytes(build_output->text()));options.target=bytes(build_target->text());
         options.cxx_compiler=bytes(build_compiler->text());options.jobs=static_cast<unsigned>(build_jobs->value());options.timeout=std::chrono::seconds(build_timeout->value());
+        if(smoke_project.isEmpty()){auto config=capture_config();codeguard::save_project_config(codeguard::from_utf8(current.root),codeguard::from_utf8(bytes(database)),config);project_config=config;}
         build_log->clear();git_log->clear();build_stop->setEnabled(true);tabs->setCurrentWidget(build_panel);
         return build_task.start(codeguard::from_utf8(current.root),codeguard::from_utf8(bytes(database)),options);
     };
     QObject::connect(build_start,&QPushButton::clicked,[&]{try{start_build();}catch(const std::exception&e){build_status->setText(text(e.what()));}});
+    QObject::connect(generate,&QPushButton::clicked,[&]{
+        if(task.busy()||build_task.busy()||current.id<=0)return;
+        try{
+            auto config=capture_config();codeguard::save_project_config(codeguard::from_utf8(current.root),codeguard::from_utf8(bytes(database)),config);project_config=config;
+            auto options=config.build;options.configure_only=true;generating=true;build_stop->setEnabled(true);tabs->setCurrentWidget(build_panel);
+            if(!build_task.start(codeguard::from_utf8(current.root),codeguard::from_utf8(bytes(database)),options))generating=false;
+        }catch(const std::exception& e){generating=false;task_message->setText(QStringLiteral("无法生成参数：")+text(e.what()));}
+    });
     QObject::connect(build_stop,&QPushButton::clicked,[&]{if(build_task.cancel()){build_stop->setEnabled(false);build_status->setText(QStringLiteral("正在停止进程并保存日志…"));}});
     QObject::connect(build_history,&QPushButton::clicked,[&]{if(task.busy()||build_task.busy())return;try{refresh_builds();if(build_table->rowCount())build_table->cellClicked(0,0);}catch(const std::exception&e){build_status->setText(text(e.what()));}});
     window.show();
@@ -797,9 +905,64 @@ int main(int argc, char** argv) {
     } else if (!initial_project.isEmpty()) {
         QTimer::singleShot(0, [&]() {
             if (!choose_database()) return;
-            try { scan(initial_project); }
+            try { load_config(initial_project);if(!initial_commands.isEmpty()){project_config.analysis_enabled=true;project_config.auto_discover=false;commands_path->setText(initial_commands);}scan(initial_project); }
             catch (const std::exception& exception) { QMessageBox::warning(&window, QStringLiteral("扫描未完成"), text(exception.what())); }
         });
+    } else if(!session_file.isEmpty()&&database.isEmpty()) {
+        QTimer::singleShot(0,[&]{try{
+            QSettings session(session_file,QSettings::IniFormat);const auto saved_db=session.value("database").toString();const auto root=session.value("project").toString();
+            if(root.isEmpty()||saved_db.isEmpty())return;
+            codeguard::SqliteDatabase db(codeguard::from_utf8(bytes(saved_db)),true);const auto saved=db.latest(bytes(root));
+            if(!saved.id)throw std::runtime_error("会话中的工程快照不存在，请重新导入工程");
+            database=saved_db;load_config(root);display(saved);view_database=database;set_running(false);
+            task_message->setText(QStringLiteral("已恢复上次工程与配置 · 当前显示历史快照，重新扫描可更新结果"));
+        }catch(const std::exception& e){task_message->setText(QStringLiteral("会话恢复失败：")+text(e.what()));}});
+    }
+    // Deterministic UI acceptance: real controls, tasks and a separate restart process.
+    if(!configuration_smoke.isEmpty()){
+        if(configuration_smoke!="import"&&configuration_smoke!="restore")return 1;
+        auto* pulse=new QTimer(&window);pulse->setInterval(50);
+        QObject::connect(pulse,&QTimer::timeout,[&,pulse,stage=0,ticks=0]() mutable {
+            try{
+                if(++ticks>2000)throw std::runtime_error("configuration window acceptance timed out");
+                if(task.busy()||build_task.busy()||current.id<=0)return;
+                if(configuration_smoke=="restore"){
+                    if(project_config.threads!=2||project_config.build.target!="demo"||project_config.disabled_rules!=std::vector<std::string>{"CG004"}||commands_path->text().isEmpty()||build_target->text()!="demo")
+                        throw std::runtime_error("restart did not restore project controls");
+                    if(current.analysis.units.size()!=1||current.build_runs.empty()||current.build_runs.front().status!="passed")throw std::runtime_error("restart did not load saved scan and build");
+                    std::cout<<"GUI_CONFIG_RESTORE_OK scan="<<current.id<<std::endl;pulse->stop();app.exit(0);return;
+                }
+                if(stage==0){
+                    ++stage;
+                    QTimer::singleShot(0,[&]{
+                        auto* dialog=window.findChild<QDialog*>("projectSettings");if(!dialog){app.exit(1);return;}
+                        dialog->findChild<QLineEdit*>("configTarget")->setText("demo");
+                        dialog->findChild<QSpinBox*>("configThreads")->setValue(2);
+                        dialog->findChild<QPlainTextEdit*>("configDefinitions")->setPlainText("CG_LABEL=with spaces");
+                        dialog->findChild<QPlainTextEdit*>("configIncludes")->setPlainText("resources/out");
+                        dialog->findChild<QPlainTextEdit*>("configExcludes")->setPlainText("excluded");
+                        dialog->findChild<QCheckBox*>("CG004")->setChecked(false);dialog->accept();
+                    });
+                    pulse->stop();project_settings->click();pulse->start();
+                    rescan->click();return;
+                }
+                if(stage==1){++stage;generate->click();if(!build_task.busy())throw std::runtime_error("generate control did not start task");return;}
+                if(stage==2){
+                    if(current.analysis.status!="complete"||current.analysis.units.size()!=1||project_config.compile_commands.empty())throw std::runtime_error("generate did not analyze original project");
+                    ++stage;build_start->click();if(!build_task.busy())throw std::runtime_error("build control did not start task");return;
+                }
+                if(stage==3){
+                    if(build_runs.empty()||build_runs.front().status!="passed"||build_runs.front().steps.back().tests_total!=1)throw std::runtime_error("configured GUI build/test failed");
+                    const auto dir=QFileInfo(database).absolutePath();
+                    if(!window.grab().save(dir+"/configuration-workspace.png"))throw std::runtime_error("configuration screenshot failed");
+                    ProjectSettings dialog(codeguard::from_utf8(current.root),capture_config(),&window);dialog.show();app.processEvents();
+                    auto* pages=dialog.findChild<QTabWidget*>();
+                    for(int i=0;i<pages->count();++i){pages->setCurrentIndex(i);app.processEvents();if(!dialog.grab().save(dir+QString("/configuration-page-%1.png").arg(i)))throw std::runtime_error("settings screenshot failed");}
+                    dialog.resize(700,560);pages->setCurrentIndex(2);app.processEvents();dialog.grab().save(dir+"/configuration-compact.png");
+                    remember();std::cout<<"GUI_CONFIG_IMPORT_OK scan="<<current.id<<std::endl;pulse->stop();app.exit(0);
+                }
+            }catch(const std::exception& e){std::cerr<<e.what()<<std::endl;pulse->stop();app.exit(1);}
+        });pulse->start();
     }
     return app.exec();
 }

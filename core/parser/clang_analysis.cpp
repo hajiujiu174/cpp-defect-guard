@@ -18,6 +18,12 @@
 #include <clang/Tooling/Tooling.h>
 #include <llvm/ADT/SmallString.h>
 #include <llvm/Support/VirtualFileSystem.h>
+#include <llvm/Support/SHA256.h>
+#include <llvm/Support/JSON.h>
+#include <llvm/Support/FormatVariadic.h>
+#include <fstream>
+#include <iomanip>
+#include <sstream>
 #include <algorithm>
 #include <cctype>
 #include <map>
@@ -304,25 +310,69 @@ bool safe_arguments(const std::vector<std::string>& args) {
     }
     return true;
 }
+std::string command_id(const CompileCommand& command) {
+    llvm::SHA256 hash;
+    auto add=[&](const std::string& s){hash.update(s);hash.update(llvm::StringRef("\0",1));};
+    add(command.Directory);add(command.Filename);add(command.Output);for(const auto& arg:command.CommandLine)add(arg);
+    const auto value=hash.final();std::ostringstream out;out<<std::hex<<std::setfill('0');for(auto c:value)out<<std::setw(2)<<static_cast<unsigned>(c);return out.str();
+}
+std::vector<CompileCommand> read_commands(const std::string& input) {
+    auto path=fs::canonical(from_utf8(input));if(fs::is_directory(path))path/="compile_commands.json";
+    std::string error;auto db=JSONCompilationDatabase::loadFromFile(utf8_path(path),error,JSONCommandLineSyntax::AutoDetect);
+    if(!db)throw std::invalid_argument("invalid compilation database: "+error);
+    auto commands=db->getAllCompileCommands();
+    for(auto& command:commands) {
+        auto dir=from_utf8(command.Directory);if(!dir.is_absolute())dir=path.parent_path()/dir;
+        command.Directory=utf8_path(fs::weakly_canonical(dir));
+        auto file=from_utf8(command.Filename);if(!file.is_absolute())file=dir/file;
+        command.Filename=utf8_path(fs::weakly_canonical(file));
+    }
+    return commands;
+}
 } // namespace
 bool clang_analysis_available() { return true; }
-AnalysisResult analyze_project(const ScanResult& inventory, const std::string& database, const ScanContext& context, unsigned threads) {
+std::vector<CompileCommandInfo> inspect_compile_commands(const std::string& database) {
+    std::vector<CompileCommandInfo> result;
+    for(const auto& command:read_commands(database))result.push_back({key(from_utf8(command.Filename)),command_id(command),format_arguments(command.CommandLine)});
+    return result;
+}
+std::string relocate_compile_commands(const std::string& input,const std::string& copied_source,const std::string& original_source,const std::string& output) {
+    const auto from=utf8_path(fs::canonical(from_utf8(copied_source))),to=utf8_path(fs::canonical(from_utf8(original_source)));
+    auto replace=[&](std::string value) {
+        auto windows_from=from;std::replace(windows_from.begin(),windows_from.end(),'/','\\');
+        for(const auto& prefix:std::vector<std::string>{from,windows_from})for(std::size_t p=0;(p=value.find(prefix,p))!=std::string::npos;) {
+            const auto end=p+prefix.size();
+            if(end==value.size()||value[end]=='/'||value[end]=='\\'){value.replace(p,prefix.size(),to);p+=to.size();}else p=end;
+        }
+        return value;
+    };
+    llvm::json::Array result;
+    for(const auto& command:read_commands(input)) {
+        llvm::json::Array args;for(const auto& arg:command.CommandLine)args.push_back(replace(arg));
+        result.push_back(llvm::json::Object{{"directory",command.Directory},{"file",replace(command.Filename)},{"arguments",std::move(args)},{"output",command.Output}});
+    }
+    const auto path=from_utf8(output);if(fs::exists(path))throw std::invalid_argument("generated compilation database must use a new file");
+    fs::create_directories(path.parent_path());std::ofstream stream(path,std::ios::binary);
+    stream<<llvm::formatv("{0:2}",llvm::json::Value(std::move(result))).str();
+    if(!stream)throw std::runtime_error("cannot write prepared compilation database");return utf8_path(fs::absolute(path));
+}
+AnalysisResult analyze_project(const ScanResult& inventory, const std::string& database, const ScanContext& context, unsigned threads, const std::map<std::string,std::string>& choices) {
+    std::map<std::string,std::string> selected_choices;
+    for(const auto& [file,id]:choices)if(!selected_choices.emplace(key(from_utf8(file)),id).second)throw std::invalid_argument("duplicate canonical command choice");
     const auto started = std::chrono::steady_clock::now();
     if (threads > 64) throw std::invalid_argument("threads must be 0..64");
     context.report("analysis_setup");
     auto path = fs::canonical(from_utf8(database));
     if (fs::is_directory(path)) path /= "compile_commands.json";
     if (path.filename() != "compile_commands.json") throw std::invalid_argument("expected compile_commands.json or its directory");
-    std::string error;
-    const auto commands = JSONCompilationDatabase::loadFromFile(utf8_path(path), error, JSONCommandLineSyntax::AutoDetect);
-    if (!commands) throw std::invalid_argument("invalid compilation database: " + error);
+    const auto commands=read_commands(utf8_path(path));
     AnalysisResult result; result.compile_commands = utf8_path(path);
     const auto packaged_resources=from_utf8(executable_directory())/"resources"/"clang";
     const auto resource_directory=fs::is_regular_file(packaged_resources/"include"/"stddef.h") ? utf8_path(packaged_resources) : std::string(CODEGUARD_RESOURCE_DIR);
     std::map<std::string, std::string> files;
     for (const auto& file : inventory.files) files[key(from_utf8(inventory.root) / from_utf8(file.path))] = file.path;
     std::map<std::string, std::vector<CompileCommand>> by_file;
-    for (const auto& command : commands->getAllCompileCommands()) {
+    for (const auto& command : commands) {
         context.check();
         auto directory = from_utf8(command.Directory);
         if (!directory.is_absolute()) directory = path.parent_path() / directory;
@@ -330,6 +380,11 @@ AnalysisResult analyze_project(const ScanResult& inventory, const std::string& d
         if (!absolute.is_absolute()) absolute = directory / absolute;
         auto adjusted = command; adjusted.Directory = utf8_path(fs::weakly_canonical(directory));
         by_file[key(absolute)].push_back(std::move(adjusted));
+    }
+    for(const auto& [file,id]:selected_choices) {
+        const auto found=by_file.find(key(from_utf8(file)));
+        if(found==by_file.end()||std::none_of(found->second.begin(),found->second.end(),[&](const auto& command){return command_id(command)==id;}))
+            throw std::invalid_argument("saved compile command selection is stale; choose again: "+file);
     }
     std::map<std::string, Symbol> symbols;
     std::map<std::string, FunctionMetric> metrics;
@@ -360,15 +415,21 @@ AnalysisResult analyze_project(const ScanResult& inventory, const std::string& d
         auto& unit = part.unit; unit.file = file.path;
         const auto absolute = from_utf8(inventory.root) / from_utf8(file.path);
         const auto found = by_file.find(key(absolute));
+        const auto choice=selected_choices.find(key(absolute));
+        const CompileCommand* selected=nullptr;
+        if(found!=by_file.end()) {
+            if(choice!=selected_choices.end()) {for(const auto& command:found->second)if(command_id(command)==choice->second){selected=&command;break;}}
+            else if(found->second.size()==1)selected=&found->second.front();
+        }
         if (found == by_file.end()) {
             unit.status = "missing_command"; unit.diagnostics = "No exact compilation database entry; no fallback flags guessed.";
-        } else if (found->second.size() != 1) {
-            unit.status = "ambiguous_command"; unit.diagnostics = "Multiple build configurations; provide a single-configuration compilation database.";
-        } else if (!safe_arguments(found->second[0].CommandLine)) {
+        } else if (!selected) {
+            unit.status = "ambiguous_command"; unit.diagnostics = "Multiple build configurations; select a command in project settings or provide a single-configuration compilation database.";
+        } else if (!safe_arguments(selected->CommandLine)) {
             unit.status = "rejected_command"; unit.diagnostics = "Plugin, response-file, module or side-effect compiler option is not supported in read-only analysis.";
         } else {
-            Collector output{files, found->second[0].Directory}; Factory factory(output); Diagnostics diagnostic;
-            OneCommand command(found->second[0]);
+            Collector output{files, selected->Directory}; Factory factory(output); Diagnostics diagnostic;
+            OneCommand command(*selected);
             // A private VFS working directory avoids mutating the GUI process CWD.
             llvm::IntrusiveRefCntPtr<llvm::vfs::FileSystem> filesystem(llvm::vfs::createPhysicalFileSystem().release());
             ClangTool tool(command, {utf8_path(absolute)}, std::make_shared<PCHContainerOperations>(), filesystem);
@@ -379,6 +440,7 @@ AnalysisResult analyze_project(const ScanResult& inventory, const std::string& d
             context.check(); // cancellation is cooperative at TU boundaries
             unit.status = code == 0 ? "success" : "parse_failed";
             unit.diagnostics = diagnostic.text;
+            if(found->second.size()>1)unit.diagnostics="Selected configuration "+command_id(*selected)+"; "+std::to_string(found->second.size()-1)+" other command variants were not analyzed.\n"+unit.diagnostics;
             if (code == 0) {
                 unit.indirect_calls = output.indirect;
                 output.covered.insert(file.path);

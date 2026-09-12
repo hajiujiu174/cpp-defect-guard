@@ -6,6 +6,7 @@
 #include <vector>
 #include "codeguard/analysis.hpp"
 #include "codeguard/engineering.hpp"
+#include "codeguard/configuration.hpp"
 
 namespace codeguard {
 namespace fs = std::filesystem;
@@ -43,6 +44,9 @@ struct ScanOptions {
     std::string scan_phase = "scanning";
     std::string compile_commands; // opt-in; empty means inventory only
     unsigned threads = 0; // 0=hardware concurrency (capped at 8); explicit 1..64
+    std::map<std::string,std::string> command_choices;
+    std::vector<std::string> disabled_rules, ignored_paths;
+    std::string configuration;
     // Exact directory basenames, case insensitive; no glob interpretation.
     std::vector<std::string> ignored_directories = {
         "build", "out", "dist", "artifacts", ".git", ".venv", ".venv-ml",
@@ -74,6 +78,8 @@ public:
     void save(ScanResult& result, const ScanContext& context = {}) override;
     void save_build(BuildRun& run) override;
     std::vector<BuildRun> builds(const std::string& root, bool include_logs = false, std::int64_t only_id = 0) override;
+    std::optional<ProjectConfig> configuration(const std::string& root);
+    void save_configuration(const std::string& root,const ProjectConfig& config);
 private:
     struct Impl;
     Impl* impl_;

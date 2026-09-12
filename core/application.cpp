@@ -2,6 +2,7 @@
 #include "codeguard/thread_pool.hpp"
 
 #include <map>
+#include <algorithm>
 #include <stdexcept>
 #ifdef _WIN32
 #include <cwctype>
@@ -54,7 +55,12 @@ ScanResult import_project(const fs::path& input, const fs::path& database, const
     if (!result.diagnostics.empty()) return result;
     result.removed = old.size();
     if (!options.compile_commands.empty()) {
-        result.analysis = analyze_project(result, options.compile_commands, options.context, options.threads);
+        result.analysis = analyze_project(result, options.compile_commands, options.context, options.threads, options.command_choices);
+        for(const auto& rule:options.disabled_rules) {
+            const auto& catalog=rule_catalog();
+            if(std::none_of(catalog.begin(),catalog.end(),[&](const auto& r){return r.id==rule;}))throw std::invalid_argument("unknown disabled rule: "+rule);
+        }
+        std::erase_if(result.analysis.issues,[&](const auto& issue){return std::find(options.disabled_rules.begin(),options.disabled_rules.end(),issue.rule_id)!=options.disabled_rules.end();});
         // Do not attach analysis to a different source snapshot if files changed meanwhile.
         auto verification = options; verification.scan_phase = "verifying";
         const auto after = scan_project(root, verification);
@@ -68,6 +74,11 @@ ScanResult import_project(const fs::path& input, const fs::path& database, const
         }
     }
     options.context.report("saving");
+    auto recorded=options.configuration.empty()?ProjectConfig{}:decode_config(options.configuration);
+    recorded.analysis_enabled=!options.compile_commands.empty();recorded.auto_discover=false;
+    recorded.compile_commands=options.compile_commands;recorded.threads=options.threads;recorded.command_choices=options.command_choices;
+    recorded.disabled_rules=options.disabled_rules;recorded.build.copy_excludes=options.ignored_paths;
+    result.analysis.configuration=encode_config(recorded);
     // Only this dedicated writer owns a writable SQLite connection. Worker
     // results are merged first, then queued as one atomic snapshot transaction.
     ThreadPool writer(1, 1);

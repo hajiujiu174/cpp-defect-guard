@@ -90,7 +90,7 @@ PRAGMA application_id=1128744018;
 PRAGMA user_version=1;
 COMMIT;
 )SQL");
-    } else if (id != application_id || (version != 1 && version != 2 && version != 3)) {
+    } else if (id != application_id || (version < 1 || version > 4)) {
         throw std::runtime_error("not a supported CodeGuard inventory database; use a separate new database");
     }
     state->version = static_cast<int>(scalar(state->db, "PRAGMA user_version"));
@@ -139,9 +139,34 @@ COMMIT;
 )SQL");
         state->version = 3;
     }
+    if(state->version==3&&!read_only) {
+        execute(state->db,R"SQL(
+BEGIN IMMEDIATE;
+CREATE TABLE project_configuration(root TEXT PRIMARY KEY, payload TEXT NOT NULL);
+ALTER TABLE analysis ADD COLUMN configuration TEXT NOT NULL DEFAULT '';
+ALTER TABLE build_run ADD COLUMN compile_commands TEXT NOT NULL DEFAULT '';
+ALTER TABLE build_run ADD COLUMN configuration TEXT NOT NULL DEFAULT '';
+PRAGMA user_version=4;
+COMMIT;
+)SQL");
+        state->version=4;
+    }
     impl_ = state.release();
 }
 SqliteDatabase::~SqliteDatabase() { delete impl_; }
+
+std::optional<ProjectConfig> SqliteDatabase::configuration(const std::string& root) {
+    if(impl_->version<4)return {};
+    Statement query(impl_->db,"SELECT payload FROM project_configuration WHERE root=?");query.bind(1,root);
+    if(!query.next())return {};
+    return decode_config(query.text(0));
+}
+void SqliteDatabase::save_configuration(const std::string& root,const ProjectConfig& config) {
+    const auto payload=encode_config(config);
+    (void)configuration(root); // never silently replace an unsupported/corrupt profile
+    Statement write(impl_->db,"INSERT INTO project_configuration(root,payload) VALUES(?,?) ON CONFLICT(root) DO UPDATE SET payload=excluded.payload");
+    write.bind(1,root);write.bind(2,payload);write.next();
+}
 
 ScanResult SqliteDatabase::latest(const std::string& root) {
     ScanResult result;
@@ -168,6 +193,10 @@ ScanResult SqliteDatabase::latest(const std::string& root) {
         Statement analysis(impl_->db, "SELECT status,compile_commands FROM analysis WHERE scan_id=?");
         analysis.bind(1, result.id);
         if (analysis.next()) { output.status = analysis.text(0); output.compile_commands = analysis.text(1); }
+        if(impl_->version>=4) {
+            Statement settings(impl_->db,"SELECT configuration FROM analysis WHERE scan_id=?");settings.bind(1,result.id);
+            if(settings.next())output.configuration=settings.text(0);
+        }
         Statement units(impl_->db, "SELECT file,status,diagnostics,indirect_calls FROM translation_unit WHERE scan_id=? ORDER BY file");
         units.bind(1, result.id);
         while (units.next()) output.units.push_back({units.text(0), units.text(1), units.text(2), static_cast<int>(units.number(3))});
@@ -237,9 +266,9 @@ void SqliteDatabase::save(ScanResult& result, const ScanContext& context) {
             insert.next();
         }
         const auto& data = result.analysis;
-        Statement analysis(db, "INSERT INTO analysis(scan_id,status,compile_commands,workers,elapsed_ms) VALUES(?,?,?,?,?)");
+        Statement analysis(db, "INSERT INTO analysis(scan_id,status,compile_commands,workers,elapsed_ms,configuration) VALUES(?,?,?,?,?,?)");
         analysis.bind(1, id); analysis.bind(2, data.status); analysis.bind(3, data.compile_commands);
-        analysis.bind(4, data.workers); analysis.bind(5, data.elapsed_ms); analysis.next();
+        analysis.bind(4, data.workers); analysis.bind(5, data.elapsed_ms); analysis.bind(6,data.configuration); analysis.next();
         for (const auto& unit : data.units) {
             context.check();
             Statement row(db, "INSERT INTO translation_unit VALUES(?,?,?,?,?)");
@@ -298,6 +327,7 @@ void SqliteDatabase::save_build(BuildRun& run) {
         row.bind(1,run.scan_id); row.bind(2,run.root); row.bind(3,run.started_at); row.bind(4,run.status);
         row.bind(5,run.workspace); row.bind(6,run.target); row.bind(7,run.git_revision); row.bind(8,run.git_log); row.bind(9,run.source_unchanged ? 1 : 0); row.next();
         const auto id = sqlite3_last_insert_rowid(db); std::int64_t ordinal = 0;
+        Statement settings(db,"UPDATE build_run SET compile_commands=?,configuration=? WHERE id=?");settings.bind(1,run.compile_commands);settings.bind(2,run.configuration);settings.bind(3,id);settings.next();
         for (const auto& step : run.steps) {
             Statement item(db,"INSERT INTO build_step VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
             item.bind(1,id); item.bind(2,ordinal++); item.bind(3,step.name); item.bind(4,step.command); item.bind(5,step.working_directory);
@@ -316,6 +346,10 @@ std::vector<BuildRun> SqliteDatabase::builds(const std::string& root, bool inclu
     while (query.next()) {
         BuildRun run; run.id=query.number(0); run.scan_id=query.number(1); run.root=query.text(2); run.started_at=query.text(3);
         run.status=query.text(4); run.workspace=query.text(5); run.target=query.text(6); run.git_revision=query.text(7); run.git_log=query.text(8); run.source_unchanged=query.number(9)!=0;
+        if(impl_->version>=4) {
+            Statement settings(impl_->db,"SELECT compile_commands,configuration FROM build_run WHERE id=?");settings.bind(1,run.id);
+            if(settings.next()){run.compile_commands=settings.text(0);run.configuration=settings.text(1);}
+        }
         Statement steps(impl_->db,"SELECT name,command,working_directory,status,exit_code,duration_ms,CASE WHEN ? THEN stdout ELSE '' END,CASE WHEN ? THEN stderr ELSE '' END,truncated,tests_total,tests_failed,tests_skipped FROM build_step WHERE run_id=? ORDER BY ordinal");
         steps.bind(1,include_logs ? 1 : 0);steps.bind(2,include_logs ? 1 : 0);steps.bind(3,run.id);
         while (steps.next()) {

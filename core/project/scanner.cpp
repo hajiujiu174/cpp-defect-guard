@@ -69,6 +69,7 @@ FileRecord read_file(const fs::path& path, const fs::path& root, const ScanConte
 ScanResult scan_project(const fs::path& input, const ScanOptions& options) {
     options.context.report(options.scan_phase);
     const auto root = fs::canonical(input);
+    for(const auto& item:options.ignored_paths)validate_relative_directory(item);
     if (!fs::is_directory(root)) throw std::invalid_argument("project root must be a directory");
     ScanResult result;
     result.root = utf8_path(root);
@@ -93,6 +94,7 @@ ScanResult scan_project(const fs::path& input, const ScanOptions& options) {
             options.context.check();
             if (error) break;
             const auto path = it->path();
+            if(std::any_of(options.ignored_paths.begin(),options.ignored_paths.end(),[&](const auto& p){return project_path_inside(path,root/from_utf8(p));}))continue;
             try {
                 if (fs::is_symlink(it->symlink_status())) continue;
                 if (it->is_directory()) {

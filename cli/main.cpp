@@ -56,6 +56,11 @@ void display(const codeguard::ScanResult& result) {
     std::cout << "analysis=" << result.analysis.status << "\nsymbols=" << result.analysis.symbols.size()
               << "\nfunction_metrics=" << result.analysis.metrics.size() << "\ncovered_files=" << result.analysis.covered_files.size() << '\n';
     std::cout << "issues=" << result.analysis.issues.size() << "\nworkers=" << result.analysis.workers << "\nanalysis_ms=" << result.analysis.elapsed_ms << '\n';
+    if(!result.analysis.configuration.empty()) {
+        const auto config=codeguard::decode_config(result.analysis.configuration);
+        for(const auto& rule:config.disabled_rules)std::cout<<"disabled_rule\t"<<rule<<'\n';
+        for(const auto& [file,id]:config.command_choices)std::cout<<"selected_command\t"<<tsv(file)<<'\t'<<id<<'\n';
+    }
     if (result.analysis.status != "not_requested") {
         const std::set<std::string> covered(result.analysis.covered_files.begin(), result.analysis.covered_files.end());
         for (const auto& file : result.files) if (!covered.contains(file.path)) std::cout << "uncovered\t" << file.path << '\n';
@@ -82,6 +87,14 @@ int run(const std::vector<std::string>& args) {
                      "codeguard-cli issues PROJECT --database DATABASE [--severity error|warning]\n"
                      "codeguard-cli build PROJECT --database DATABASE --output DIRECTORY [--jobs 4] [--timeout 120] [--target NAME] [--c-compiler PATH] [--cxx-compiler PATH]\n"
                      "Build also supports repeated --cmake-define KEY=VALUE and --copy-include RELATIVE_DIRECTORY.\n"
+                     "codeguard-cli discover PROJECT\n"
+                     "codeguard-cli config PROJECT --database DATABASE [settings...]\n"
+                     "codeguard-cli commands PROJECT --database DATABASE [--compile-commands PATH]\n"
+                     "codeguard-cli prepare PROJECT --database DATABASE [build settings...]\n"
+                     "Config: --compile-commands auto|none|PATH, --build-type Debug|Release|RelWithDebInfo|MinSizeRel,\n"
+                     "  --generator NAME, --cmake PATH, --ctest PATH, --git PATH,\n"
+                     "  --copy-exclude DIRECTORY, --disable-rule ID, --select-command SHA256 (repeatable),\n"
+                     "  --clear-list definitions|includes|excludes|rules|commands. Repeated lists replace saved lists.\n"
                      "codeguard-cli builds PROJECT --database DATABASE\n"
                      "codeguard-cli git PROJECT\n"
                      "Scan supports --threads 0..64 (0=automatic). Ctrl+C cancels scan/build.\n"
@@ -90,6 +103,15 @@ int run(const std::vector<std::string>& args) {
         return 0;
     }
     const auto command = args[0];
+    if(command=="discover") {
+        if(args.size()!=2)throw std::invalid_argument("discover requires PROJECT");
+        const auto paths=codeguard::discover_compilation_databases(codeguard::from_utf8(args[1]));
+        for(const auto& path:paths)std::cout<<path<<'\n';
+        if(paths.empty())std::cout<<"No compilation database found. For CMake projects, save config and run prepare.\n";
+        return 0;
+    }
+    const bool configuration_command=command=="config"||command=="prepare"||command=="commands";
+    const bool build_settings=command=="build"||command=="prepare"||command=="config";
     if (command=="rules") {
         if (args.size()!=1) throw std::invalid_argument("rules takes no options");
         for (const auto& rule:codeguard::rule_catalog()) std::cout << rule.id << '\t' << rule.severity << '\t' << rule.title << '\t' << rule.scope << '\n';
@@ -101,7 +123,7 @@ int run(const std::vector<std::string>& args) {
         std::string revision; std::cout << codeguard::read_git(codeguard::fs::canonical(codeguard::from_utf8(args[1])),options,&revision);
         return revision.empty() ? 2 : 0;
     }
-    if (command != "scan" && command != "status" && command != "recent" && command != "symbols" && command != "metrics" && command != "graph" && command != "query" && command != "issues" && command != "build" && command != "builds")
+    if (!configuration_command && command != "scan" && command != "status" && command != "recent" && command != "symbols" && command != "metrics" && command != "graph" && command != "query" && command != "issues" && command != "build" && command != "builds")
         throw std::invalid_argument("unknown command; use --help");
     std::string project, database;
     std::size_t position = 1;
@@ -109,32 +131,96 @@ int run(const std::vector<std::string>& args) {
         if (args.size() < 2 || args[1].starts_with("--")) throw std::invalid_argument("missing PROJECT");
         project = args[position++];
     }
-    codeguard::ScanOptions options;
-    codeguard::BuildOptions build_options;
+    codeguard::ProjectConfig config;
+    if(command=="scan"||build_settings||command=="commands") {
+        for(auto i=position;i+1<args.size();i+=2)if(args[i]=="--database")
+            config=codeguard::load_project_config(codeguard::from_utf8(project),codeguard::from_utf8(args[i+1])).value_or(codeguard::ProjectConfig{});
+    }
+    codeguard::ScanOptions options;options.compile_commands=config.compile_commands;options.threads=config.threads;
+    codeguard::BuildOptions build_options=config.build;
+    std::vector<std::string> selected_commands;
+    bool config_changed=false;
     std::string prefix, kind, query, severity;
     std::set<std::string> seen;
     for (; position < args.size(); position += 2) {
         if (position + 1 >= args.size()) throw std::invalid_argument("missing option value");
-        if (args[position] != "--ignore" && args[position] != "--cmake-define" && args[position] != "--copy-include" && !seen.insert(args[position]).second) throw std::invalid_argument("repeated option");
+        const auto& option=args[position];const auto& value=args[position+1];
+        const bool first=seen.insert(option).second;
+        const std::set<std::string> repeated{"--ignore","--cmake-define","--copy-include","--copy-exclude","--disable-rule","--select-command","--clear-list"};
+        if(!first&&!repeated.contains(option))throw std::invalid_argument("repeated option");
+        if(option!="--database")config_changed=true;
         if (args[position] == "--database" && database.empty()) database = args[position + 1];
         else if (args[position] == "--ignore" && command == "scan") options.ignored_directories.push_back(args[position + 1]);
-        else if (args[position] == "--compile-commands" && command == "scan") options.compile_commands = args[position + 1];
+        else if (option=="--compile-commands"&&(command=="scan"||configuration_command)) {
+            config.analysis_enabled=value!="none";config.auto_discover=value=="auto";
+            options.compile_commands=(value=="auto"||value=="none")?"":codeguard::utf8_path(codeguard::fs::absolute(codeguard::from_utf8(value)));
+            if(options.compile_commands!=config.compile_commands)config.command_choices.clear();
+        }
         else if (args[position] == "--prefix" && command == "symbols") prefix = args[position + 1];
         else if (args[position] == "--kind" && command == "graph") kind = args[position + 1];
         else if (args[position] == "--query" && command == "query") query = args[position + 1];
-        else if (args[position] == "--threads" && command == "scan") options.threads=number(args[position+1],64);
+        else if (args[position] == "--threads" && (command == "scan"||configuration_command)) options.threads=number(args[position+1],64);
         else if (args[position] == "--severity" && command == "issues") severity=args[position+1];
-        else if (args[position] == "--output" && command == "build") build_options.output_directory=codeguard::from_utf8(args[position+1]);
-        else if (args[position] == "--jobs" && command == "build") build_options.jobs=number(args[position+1],64);
-        else if (args[position] == "--timeout" && command == "build") build_options.timeout=std::chrono::seconds(number(args[position+1],86400));
-        else if (args[position] == "--target" && command == "build") build_options.target=args[position+1];
-        else if (args[position] == "--c-compiler" && command == "build") build_options.c_compiler=args[position+1];
-        else if (args[position] == "--cxx-compiler" && command == "build") build_options.cxx_compiler=args[position+1];
-        else if (args[position] == "--cmake-define" && command == "build") build_options.cmake_definitions.push_back(args[position+1]);
-        else if (args[position] == "--copy-include" && command == "build") build_options.copy_includes.push_back(args[position+1]);
+        else if (option=="--output"&&build_settings)build_options.output_directory=codeguard::fs::absolute(codeguard::from_utf8(value));
+        else if (option=="--jobs"&&build_settings)build_options.jobs=number(value,64);
+        else if (option=="--timeout"&&build_settings)build_options.timeout=std::chrono::seconds(number(value,86400));
+        else if (option=="--target"&&build_settings)build_options.target=value;
+        else if (option=="--c-compiler"&&build_settings)build_options.c_compiler=value;
+        else if (option=="--cxx-compiler"&&build_settings)build_options.cxx_compiler=value;
+        else if (option=="--build-type"&&build_settings)build_options.build_type=value;
+        else if (option=="--generator"&&build_settings)build_options.generator=value;
+        else if (option=="--cmake"&&build_settings)build_options.cmake=value;
+        else if (option=="--ctest"&&build_settings)build_options.ctest=value;
+        else if (option=="--git"&&build_settings)build_options.git=value;
+        else if (option=="--cmake-define"&&build_settings){if(first)build_options.cmake_definitions.clear();build_options.cmake_definitions.push_back(value);}
+        else if (option=="--copy-include"&&build_settings){if(first)build_options.copy_includes.clear();build_options.copy_includes.push_back(value);}
+        else if (option=="--copy-exclude"&&build_settings){if(first)build_options.copy_excludes.clear();build_options.copy_excludes.push_back(value);}
+        else if (option=="--disable-rule"&&(command=="config"||command=="scan")){if(first)config.disabled_rules.clear();config.disabled_rules.push_back(value);}
+        else if (option=="--select-command"&&(command=="config"||command=="scan"))selected_commands.push_back(value);
+        else if (option=="--clear-list"&&command=="config") {
+            if(value=="definitions")build_options.cmake_definitions.clear();else if(value=="includes")build_options.copy_includes.clear();
+            else if(value=="excludes")build_options.copy_excludes.clear();else if(value=="rules")config.disabled_rules.clear();
+            else if(value=="commands")config.command_choices.clear();else throw std::invalid_argument("unknown configuration list");
+        }
         else throw std::invalid_argument("unknown or repeated option: " + args[position]);
     }
     if (database.empty()) throw std::invalid_argument("--database is required");
+    config.build=build_options;config.compile_commands=options.compile_commands;config.threads=options.threads;
+    if(!selected_commands.empty()) {
+        const auto input=codeguard::configured_scan_options(codeguard::from_utf8(project),config).compile_commands;
+        if(input.empty())throw std::invalid_argument("choose a compilation database before selecting commands");
+        const auto entries=codeguard::inspect_compile_commands(input);
+        for(const auto& id:selected_commands){bool found=false;for(const auto& item:entries)if(item.fingerprint==id){config.command_choices[item.file]=id;found=true;}if(!found)throw std::invalid_argument("command fingerprint not found: "+id);}
+    }
+    if(command=="config") {
+        codeguard::validate_config(config);
+        if(config_changed)codeguard::save_project_config(codeguard::from_utf8(project),codeguard::from_utf8(database),config);
+        std::cout<<"compile_commands="<<config.compile_commands<<"\nanalysis_enabled="<<config.analysis_enabled<<"\nauto_discover="<<config.auto_discover
+            <<"\nc_compiler="<<config.build.c_compiler<<"\ncxx_compiler="<<config.build.cxx_compiler<<"\ntarget="<<config.build.target
+            <<"\nbuild_type="<<config.build.build_type<<"\ngenerator="<<config.build.generator<<"\noutput="<<codeguard::utf8_path(config.build.output_directory)<<"\nthreads="<<config.threads<<"\njobs="<<config.build.jobs
+            <<"\ncmake="<<config.build.cmake<<"\nctest="<<config.build.ctest<<"\ngit="<<config.build.git<<"\ntimeout="<<config.build.timeout.count()/1000<<'\n';
+        for(const auto& item:config.build.cmake_definitions)std::cout<<"cmake_define\t"<<item<<'\n';
+        for(const auto& item:config.build.copy_includes)std::cout<<"copy_include\t"<<item<<'\n';
+        for(const auto& item:config.build.copy_excludes)std::cout<<"copy_exclude\t"<<item<<'\n';
+        for(const auto& item:config.disabled_rules)std::cout<<"disabled_rule\t"<<item<<'\n';
+        for(const auto& [file,id]:config.command_choices)std::cout<<"selected_command\t"<<file<<'\t'<<id<<'\n';return 0;
+    }
+    if(command=="commands") {
+        const auto input=codeguard::configured_scan_options(codeguard::from_utf8(project),config).compile_commands;
+        if(input.empty())throw std::invalid_argument("no compilation database; use discover or prepare");
+        for(const auto& item:codeguard::inspect_compile_commands(input))std::cout<<item.file<<'\t'<<item.fingerprint<<'\t'<<item.display<<'\n';return 0;
+    }
+    if(command=="prepare") {
+        const auto root=codeguard::fs::canonical(codeguard::from_utf8(project));bool saved=false;
+        if(codeguard::fs::exists(codeguard::from_utf8(database))){codeguard::SqliteDatabase db(codeguard::from_utf8(database),true);saved=db.latest(codeguard::utf8_path(root)).id>0;}
+        if(!saved){codeguard::ScanOptions inventory;inventory.ignored_paths=config.build.copy_excludes;codeguard::import_project(root,codeguard::from_utf8(database),inventory);}
+        if(build_options.output_directory.empty())build_options.output_directory=codeguard::fs::absolute(codeguard::from_utf8(database)).parent_path()/"codeguard-workspaces";
+        build_options.configure_only=true;build_options.control=std::make_shared<codeguard::ScanControl>();InterruptScope scope(build_options.control);
+        const auto result=codeguard::build_and_test(root,codeguard::from_utf8(database),build_options);display_build(result);
+        if(result.status!="configured")return result.status=="cancelled"?130:2;
+        config.build.output_directory=build_options.output_directory;config.compile_commands=result.compile_commands;config.analysis_enabled=true;config.auto_discover=false;config.command_choices.clear();
+        codeguard::save_project_config(root,codeguard::from_utf8(database),config);std::cout<<"compile_commands="<<result.compile_commands<<'\n';return 0;
+    }
     if (command == "query" && query.empty()) throw std::invalid_argument("--query is required");
     if (!severity.empty() && severity!="error" && severity!="warning") throw std::invalid_argument("severity must be error or warning");
     if (command == "build") {
@@ -144,6 +230,9 @@ int run(const std::vector<std::string>& args) {
         display_build(result); return result.status=="passed" ? 0 : (result.status=="cancelled" ? 130 : 2);
     }
     if (command == "scan") {
+        auto configured=codeguard::configured_scan_options(codeguard::from_utf8(project),config);
+        configured.ignored_directories=options.ignored_directories;options=std::move(configured);
+        if(options.compile_commands.empty()&&config.analysis_enabled)std::cerr<<"No compilation database selected; importing inventory only. Use prepare for CMake or set a path with config.\n";
         options.context.control=std::make_shared<codeguard::ScanControl>(); InterruptScope scope(options.context.control);
         const auto result = codeguard::import_project(codeguard::from_utf8(project), codeguard::from_utf8(database), options);
         display(result);

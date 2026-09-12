@@ -17,6 +17,7 @@ if(NOT TARGET SQLite3::SQLite3)
 endif()
 add_library(codeguard-core STATIC
     core/project/scanner.cpp
+    core/project/configuration.cpp
     core/graph/graph.cpp
     core/query/query.cpp
     core/analyzer/rules.cpp

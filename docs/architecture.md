@@ -2,6 +2,8 @@
 
 ## 当前架构（新方案 V1.0）
 
+2026-09-13：当前存储版本为 schema 4，增加工程配置表及分析/构建配置溯源。`core/project/configuration.cpp` 提供纯 C++ 配置校验、编码、发现与恢复；Qt 设置页及 CLI 复用该模型。下文 schema 2/3 说明保留迁移顺序，具体新流程见 [配置管理](project-configuration.md)。
+
 ```text
 cli/                         gui/qt/（仅 Qt Widgets 表示层）
   └──────────────┬──────────────┘
