@@ -287,7 +287,13 @@ int main(int argc, char** argv) {
     };
     auto load_config=[&](const QString& root){
         const auto canonical=codeguard::fs::canonical(codeguard::from_utf8(bytes(root)));
-        auto config=codeguard::load_project_config(canonical,codeguard::from_utf8(bytes(database))).value_or(codeguard::ProjectConfig{});
+        const auto dbpath=codeguard::from_utf8(bytes(database));
+        const auto stored=codeguard::load_project_config(canonical,dbpath);auto config=stored.value_or(codeguard::ProjectConfig{});
+        if(!stored&&codeguard::fs::exists(dbpath)){
+            codeguard::SqliteDatabase db(dbpath,true);const auto saved=db.latest(codeguard::utf8_path(canonical));
+            if(!saved.analysis.configuration.empty())config=codeguard::decode_config(saved.analysis.configuration);
+            else if(!saved.analysis.compile_commands.empty()){config.compile_commands=saved.analysis.compile_commands;config.auto_discover=false;}
+        }
         if(config.build.output_directory.empty())config.build.output_directory=codeguard::from_utf8(bytes(QFileInfo(database).absolutePath()+"/codeguard-builds"));
         config_root=text(codeguard::utf8_path(canonical));config_database=database;apply_config(config);
     };

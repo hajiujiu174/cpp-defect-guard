@@ -116,7 +116,10 @@ void save_project_config(const fs::path& root,const fs::path& database,const Pro
     if(project_path_inside(database,root))throw std::invalid_argument("configuration database must be outside project");
     validate_config(config);
     if(!config.build.output_directory.empty()&&project_path_inside(config.build.output_directory,root))throw std::invalid_argument("build workspace must be outside project");
-    SqliteDatabase db(database);db.save_configuration(config_key(root),config);
+    auto stored=config;
+    if(!stored.compile_commands.empty())stored.compile_commands=utf8_path(fs::absolute(from_utf8(stored.compile_commands)));
+    if(!stored.build.output_directory.empty())stored.build.output_directory=fs::absolute(stored.build.output_directory);
+    SqliteDatabase db(database);db.save_configuration(config_key(root),stored);
 }
 std::vector<std::string> discover_compilation_databases(const fs::path& input) {
     const auto root=fs::canonical(input);std::vector<std::pair<fs::path,int>> pending{{root,0}};std::set<std::string> found;

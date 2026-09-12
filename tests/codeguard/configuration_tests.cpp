@@ -51,6 +51,10 @@ void run(const std::string& name,const std::string& cli){
         auto second=c;second.build.target="other";cg::save_project_config(other,f.database,second);
         check(cg::encode_config(*cg::load_project_config(f.root,f.database))==encoded,"new connection restores full profile");
         check(cg::load_project_config(other,f.database)->build.target=="other","independent project profiles");
+        second.compile_commands=cg::utf8_path(fs::relative(f.directory/"compile_commands.json"));second.build.output_directory=fs::relative(f.directory/"other-work");
+        cg::save_project_config(other,f.database,second);const auto previous=fs::current_path();fs::current_path(other);
+        try{const auto restored=cg::load_project_config(other,f.database);check(restored->build.output_directory==f.directory/"other-work"&&cg::from_utf8(restored->compile_commands).is_absolute(),"relative profile paths stay stable after working directory changes");}
+        catch(...){fs::current_path(previous);throw;}fs::current_path(previous);
         rejects([&]{cg::save_project_config(f.root,f.root/"bad.sqlite3",c);},"database inside source rejected");
         auto bad=c;bad.build.output_directory=f.root/"output";rejects([&]{cg::save_project_config(f.root,f.database,bad);},"source output rejected");
         return;

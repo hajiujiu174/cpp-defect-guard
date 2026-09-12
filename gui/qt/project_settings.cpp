@@ -106,6 +106,7 @@ codeguard::ProjectConfig ProjectSettings::configuration() const {
     auto result=original_;result.analysis_enabled=analysis_->isChecked();result.auto_discover=discover_->isChecked();result.compile_commands=s(commands_->text().trimmed());
     if(!result.compile_commands.empty())result.compile_commands=codeguard::utf8_path(codeguard::fs::absolute(codeguard::from_utf8(result.compile_commands)));
     result.threads=threads_->value();auto& b=result.build;b.output_directory=codeguard::from_utf8(s(output_->text().trimmed()));
+    if(!b.output_directory.empty())b.output_directory=codeguard::fs::absolute(b.output_directory);
     b.c_compiler=s(c_->text().trimmed());b.cxx_compiler=s(cxx_->text().trimmed());b.target=s(target_->text().trimmed());
     b.build_type=s(type_->currentText());b.generator=s(generator_->currentText().trimmed());b.jobs=jobs_->value();b.timeout=std::chrono::seconds(timeout_->value());
     b.cmake=s(cmake_->text().trimmed());b.ctest=s(ctest_->text().trimmed());b.git=s(git_->text().trimmed());
