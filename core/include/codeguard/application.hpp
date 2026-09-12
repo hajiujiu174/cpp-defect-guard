@@ -46,6 +46,8 @@ struct ScanOptions {
     unsigned threads = 0; // 0=hardware concurrency (capped at 8); explicit 1..64
     std::map<std::string,std::string> command_choices;
     std::vector<std::string> disabled_rules, ignored_paths;
+    std::map<std::string,std::string> rule_severities;
+    std::vector<RuleSuppression> suppressions;
     std::string configuration;
     // Exact directory basenames, case insensitive; no glob interpretation.
     std::vector<std::string> ignored_directories = {

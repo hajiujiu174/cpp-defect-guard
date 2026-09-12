@@ -7,7 +7,7 @@
 ## Level 1 必做：可运行骨架（当前）
 
 - 已有：顶层 CMake、多目标构建；独立 C++ Core / CLI；Qt 初版；只读文件扫描、基础物理行统计、忽略目录、文件变化识别；SQLite 项目/扫描/文件历史、事务回滚、最近项目与重新打开。
-- 已补齐 P1-1：编译数据库发现/生成、工程配置持久化、Qt 设置与重启恢复、多命令显式选择。范围和回归见 [配置管理](project-configuration.md)。Windows 打包、源码定位、后台扫描、取消/错误恢复和安全关闭见 [前端说明](qt-frontend.md)。后续按 AGENTS.md 推进 P1-2。
+- 已补齐 P1-1：编译数据库发现/生成、工程配置持久化、Qt 设置与重启恢复、多命令显式选择。范围和回归见 [配置管理](project-configuration.md)。P1-2 已实现规则独立模块、级别、带理由抑制及固定评测集，验收见 [规则引擎](rule-engine.md)；完成验收后推进 P1-3。Windows 打包、源码定位、后台扫描、取消/错误恢复和安全关闭见 [前端说明](qt-frontend.md)。
 - 验收边界：Windows 既有构建测试和运行包验收见 Level 3 说明；WSL Core 已有历史通过记录，Linux 全功能与其他平台验收暂缓。
 
 ## Level 2 核心：真实工程解析与质量分析（进行中）
@@ -24,7 +24,7 @@
 
 ## Level 3 完整：课程交付目标
 
-1. 已实现自研查询 Lexer → Parser → AST → 语义分析 → 执行计划 → 执行器；覆盖 WHERE 优先级、括号、类型检查、多字段排序与 LIMIT。CLI / Qt 共用六类快照实体查询（含 issues/builds），不把用户查询拼入 SQLite。当前内存执行、GUI 显示最多 2000 行；后续按真实规模补充性能实验与异步查询，见 [查询语言](query-language.md)。
+1. 已实现自研查询 Lexer → Parser → AST → 语义分析 → 执行计划 → 执行器；覆盖 WHERE 优先级、括号、类型检查、多字段排序与 LIMIT。CLI / Qt 共用八类快照实体查询（含 issues/builds/suppressed_issues/rule_diagnostics），不把用户查询拼入 SQLite。当前内存执行、GUI 显示最多 2000 行；后续按真实规模补充性能实验与异步查询，见 [查询语言](query-language.md)。
 2. 已实现有界任务队列、多 TU 线程池、单写线程批量事务；提供 1/2/4/8 线程实测脚本，结果按原始数据记录。任务独立 Clang 文件系统，支持取消、进度、异常传播与提交前回滚。
 3. 已实现 Windows/POSIX ProcessRunner，参数数组、stdout/stderr、超时/取消与进程组清理；接入副本内 CMake/CTest 和受控 Git 读取。
 4. 已补齐 schema 3 BuildTest/Issue 持久化、GoogleTest 合同测试、Windows 运行包脚本。Windows 与 WSL Core 有本机验收记录；新增 Windows CI 的执行结果见专项说明，Linux 全功能环境暂缓。GraphEdge 保留 schema 2 的结构。

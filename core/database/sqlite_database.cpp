@@ -90,7 +90,7 @@ PRAGMA application_id=1128744018;
 PRAGMA user_version=1;
 COMMIT;
 )SQL");
-    } else if (id != application_id || (version < 1 || version > 4)) {
+    } else if (id != application_id || (version < 1 || version > 5)) {
         throw std::runtime_error("not a supported CodeGuard inventory database; use a separate new database");
     }
     state->version = static_cast<int>(scalar(state->db, "PRAGMA user_version"));
@@ -151,6 +151,19 @@ COMMIT;
 )SQL");
         state->version=4;
     }
+    if(state->version==4&&!read_only){
+        execute(state->db,R"SQL(
+BEGIN IMMEDIATE;
+CREATE TABLE suppressed_issue(scan_id INTEGER NOT NULL REFERENCES scan(id),rule_id TEXT NOT NULL,severity TEXT NOT NULL,
+ file TEXT NOT NULL,line INTEGER NOT NULL,col INTEGER NOT NULL,message TEXT NOT NULL,evidence TEXT NOT NULL,
+ suggestion TEXT NOT NULL,symbol_id TEXT NOT NULL,detector TEXT NOT NULL,reason TEXT NOT NULL,
+ PRIMARY KEY(scan_id,rule_id,file,line,col,symbol_id));
+CREATE TABLE rule_diagnostic(scan_id INTEGER NOT NULL REFERENCES scan(id),ordinal INTEGER NOT NULL,message TEXT NOT NULL,
+ PRIMARY KEY(scan_id,ordinal));
+PRAGMA user_version=5;
+COMMIT;
+)SQL");state->version=5;
+    }
     impl_ = state.release();
 }
 SqliteDatabase::~SqliteDatabase() { delete impl_; }
@@ -196,6 +209,13 @@ ScanResult SqliteDatabase::latest(const std::string& root) {
         if(impl_->version>=4) {
             Statement settings(impl_->db,"SELECT configuration FROM analysis WHERE scan_id=?");settings.bind(1,result.id);
             if(settings.next())output.configuration=settings.text(0);
+        }
+        if(impl_->version>=5){
+            Statement suppressed(impl_->db,"SELECT rule_id,severity,file,line,col,message,evidence,suggestion,symbol_id,detector,reason FROM suppressed_issue WHERE scan_id=? ORDER BY file,line,col,rule_id,symbol_id");
+            suppressed.bind(1,result.id);
+            while(suppressed.next())output.suppressed_issues.push_back({suppressed.text(0),suppressed.text(1),suppressed.text(2),static_cast<int>(suppressed.number(3)),static_cast<int>(suppressed.number(4)),suppressed.text(5),suppressed.text(6),suppressed.text(7),suppressed.text(8),suppressed.text(9),suppressed.text(10)});
+            Statement diagnostic(impl_->db,"SELECT message FROM rule_diagnostic WHERE scan_id=? ORDER BY ordinal");diagnostic.bind(1,result.id);
+            while(diagnostic.next())output.rule_diagnostics.push_back(diagnostic.text(0));
         }
         Statement units(impl_->db, "SELECT file,status,diagnostics,indirect_calls FROM translation_unit WHERE scan_id=? ORDER BY file");
         units.bind(1, result.id);
@@ -299,12 +319,14 @@ void SqliteDatabase::save(ScanResult& result, const ScanContext& context) {
             Statement row(db, "INSERT INTO coverage VALUES(?,?)");
             row.bind(1, id); row.bind(2, file); row.next();
         }
-        for (const auto& issue : data.issues) {
-            context.check(); Statement row(db, "INSERT INTO issue VALUES(?,?,?,?,?,?,?,?,?,?,?)");
+        for(const auto* list:{&data.issues,&data.suppressed_issues})for (const auto& issue : *list) {
+            context.check(); Statement row(db, list==&data.issues?"INSERT INTO issue VALUES(?,?,?,?,?,?,?,?,?,?,?)":"INSERT INTO suppressed_issue VALUES(?,?,?,?,?,?,?,?,?,?,?,?)");
             row.bind(1,id); row.bind(2,issue.rule_id); row.bind(3,issue.severity); row.bind(4,issue.file);
             row.bind(5,issue.line); row.bind(6,issue.column); row.bind(7,issue.message); row.bind(8,issue.evidence);
-            row.bind(9,issue.suggestion); row.bind(10,issue.symbol_id); row.bind(11,issue.detector); row.next();
+            row.bind(9,issue.suggestion); row.bind(10,issue.symbol_id); row.bind(11,issue.detector);
+            if(list==&data.suppressed_issues)row.bind(12,issue.suppression_reason);row.next();
         }
+        for(std::size_t n=0;n<data.rule_diagnostics.size();++n){context.check();Statement row(db,"INSERT INTO rule_diagnostic VALUES(?,?,?)");row.bind(1,id);row.bind(2,static_cast<std::int64_t>(n));row.bind(3,data.rule_diagnostics[n]);row.next();}
         context.report("before_commit");
         if (context.control) context.control->begin_commit();
         execute(db, "COMMIT");

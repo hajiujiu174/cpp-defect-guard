@@ -8,6 +8,8 @@
 
 2026-09-13：P1-1 已接入自动发现/生成编译数据库、按工程保存配置、多编译命令显式选择，以及 Qt 设置与重启恢复。完整操作、复制/生成文件边界及回归证据见 [工程导入与配置管理](docs/project-configuration.md)。
 
+2026-09-13：P1-2 已将五条规则拆为独立模块，加入逐规则级别、带理由抑制、已抑制问题及失效诊断。45 个宏/模板/反例样例独立评测并保留已知漏报，操作与验收见 [规则引擎](docs/rule-engine.md)。当前数据库为 schema 5，配置编码为版本 2，兼容读取旧配置。
+
 ## Level 3 规则与工程闭环
 
 v0.3.0 已补齐五类 Clang AST 规则、多 TU 线程池、单写线程批量事务、Windows/POSIX ProcessRunner、源码副本内 CMake/CTest、只读 Git 信息及构建历史。CLI/Qt 共用 Core，SQLite schema 3 保存 Issue 和 BuildTest 记录，查询语言新增 `issues` / `builds`。Qt 已提供问题定位、线程设置、后台构建测试、停止、历史与 Git 日志。
@@ -30,7 +32,7 @@ v0.3.0 已补齐五类 Clang AST 规则、多 TU 线程池、单写线程批量�
   --query "SELECT name, file, complexity FROM functions WHERE complexity >= 2 ORDER BY complexity DESC LIMIT 20;"
 ```
 
-查询语法、字段、边界和验收见 [查询语言说明](docs/query-language.md)。最新范围见 [方向调整与当前进度](docs/codeguard-status.md)。规则引擎、并行分析与构建测试管理已经接入；后续重点为 Windows 交付与真实工程验收，Linux Qt/Clang 验收暂缓。
+查询语法、字段、边界和验收见 [查询语言说明](docs/query-language.md)。最新范围见 [方向调整与当前进度](docs/codeguard-status.md)。Windows CI 和固定真实工程验收已完成，规则改进收尾后进入报告与版本对比；Linux Qt/Clang 验收暂缓。
 
 ## Clang 符号、复杂度与项目关系图
 

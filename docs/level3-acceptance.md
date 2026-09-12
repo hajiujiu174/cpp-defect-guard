@@ -8,6 +8,8 @@
 
 后续进展（2026-09-13）：P1-1 增加工程配置、编译数据库发现/生成、多命令选择、Qt 重启恢复和 schema 4 配置溯源。当前验收见 [配置管理](project-configuration.md)；本页原有 schema 3 和测试计数保留历史日期，不代替新版验收。
 
+同日 P1-2 进展：五条 AST 检查已移入独立规则模块，增加级别设置、带理由抑制、宏证据回退和已确定的 constexpr 丢弃分支处理。当前 schema 5 保存已抑制问题及策略诊断，查询增加 `suppressed_issues`/`rule_diagnostics`；45 个标注样例及当前验收见 [规则引擎](rule-engine.md)。下文规则算法的原有局限继续适用，宏证据“可能为空”由显式 AST 节点占位取代。
+
 ## 使用入口
 
 ```powershell

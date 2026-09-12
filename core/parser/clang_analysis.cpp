@@ -1,5 +1,6 @@
 #include "codeguard/application.hpp"
 #include "codeguard/thread_pool.hpp"
+#include "../analyzer/clang_rules/rule.hpp"
 #include <clang/Lex/Lexer.h>
 #include <chrono>
 #include <mutex>
@@ -53,8 +54,9 @@ struct Collector {
     int indirect = 0;
     mutable std::unordered_map<std::string, std::string> path_cache;
     fs::path working_directory;
-    Collector(const std::map<std::string, std::string>& files, const std::string& directory)
-        : inventory(files), working_directory(from_utf8(directory)) {}
+    clang_rules::Engine rules;
+    Collector(const std::map<std::string, std::string>& files, const std::string& directory,const std::vector<std::string>& disabled)
+        : inventory(files), working_directory(from_utf8(directory)),rules(disabled) {}
     const std::string& normalized(llvm::StringRef filename) const {
         const auto name = filename.str();
         const auto found = path_cache.find(name);
@@ -160,85 +162,25 @@ public:
         output.metrics[id] = metric;
         Calls calls(output, sources, id);
         calls.TraverseStmt(const_cast<Stmt*>(function->getBody()));
-        inspect_rules(function->getBody(), *match.Context, id);
+        output.rules.inspect(function->getBody(),*match.Context,[&](const Stmt* statement,const std::string& rule,const std::string& message,const std::string& suggestion){
+            add_issue(statement,*match.Context,id,rule,message,suggestion);
+        });
     }
 private:
-    void add_issue(const Stmt* statement, ASTContext& context, const std::string& id, std::size_t rule,
+    void add_issue(const Stmt* statement, ASTContext& context, const std::string& id, const std::string& rule,
                    const std::string& message, const std::string& suggestion) {
         auto& sources = context.getSourceManager();
         const auto location = sources.getExpansionLoc(statement->getBeginLoc());
         if (location.isInvalid() || !output.internal(sources.getFilename(location))) return;
-        const auto& info = rule_catalog().at(rule);
+        const auto& info = rule_info(rule);
         auto evidence = Lexer::getSourceText(CharSourceRange::getTokenRange(statement->getSourceRange()), sources, context.getLangOpts()).str();
+        if(evidence.empty()&&statement->getBeginLoc().isMacroID())
+            evidence=Lexer::getSourceText(sources.getExpansionRange(statement->getSourceRange()),sources,context.getLangOpts()).str();
+        if(evidence.empty())evidence="[AST node: "+std::string(statement->getStmtClassName())+"]";
         if (evidence.size() > 500) evidence = evidence.substr(0, 500) + "...";
         output.result.issues.push_back({info.id, info.severity, output.path(sources.getFilename(location)),
             static_cast<int>(sources.getExpansionLineNumber(location)), static_cast<int>(sources.getExpansionColumnNumber(location)),
             message, evidence, suggestion, id});
-    }
-    void inspect_rules(const Stmt* statement, ASTContext& context, const std::string& id, bool address = false) {
-        if (!statement || isa<UnaryExprOrTypeTraitExpr>(statement) || isa<CXXNoexceptExpr>(statement) || isa<CXXTypeidExpr>(statement)) return;
-        if (const auto* lambda = dyn_cast<LambdaExpr>(statement)) {
-            for (const auto* capture : lambda->capture_inits()) inspect_rules(capture, context, id);
-            return; // the call operator gets its own callback
-        }
-        if (const auto* call = dyn_cast<CallExpr>(statement)) {
-            const auto* callee = call->getDirectCallee();
-            if (callee && callee->getIdentifier() && !callee->isCXXClassMember() &&
-                (callee->getBuiltinID() || context.getSourceManager().isInSystemHeader(callee->getLocation()))) {
-                const auto name = callee->getNameAsString();
-                if (name == "gets" || name == "strcpy" || name == "strcat" || name == "sprintf")
-                    add_issue(statement, context, id, 0, "Unbounded library call: " + name,
-                        "Use a capacity-aware operation and check destination size; this is an API-risk warning, not proof of overflow.");
-            }
-        }
-        if (const auto* access = dyn_cast<ArraySubscriptExpr>(statement)) {
-            const auto* array = context.getAsConstantArrayType(access->getBase()->IgnoreParenImpCasts()->getType());
-            Expr::EvalResult value;
-            if (array && !access->getIdx()->isValueDependent() && access->getIdx()->EvaluateAsInt(value, context)) {
-                const auto& index = value.Val.getInt(); const auto size = array->getSize().getLimitedValue();
-                if (index.isNegative() || index.getLimitedValue() > size || (!address && index.getLimitedValue() == size))
-                    add_issue(statement, context, id, 1, "Constant index is outside the array extent " + std::to_string(size),
-                        "Keep evaluated indices in [0, size); one-past address formation is permitted.");
-            }
-        }
-        const Expr* condition = nullptr;
-        if (const auto* s = dyn_cast<IfStmt>(statement)) condition = s->getCond();
-        if (const auto* s = dyn_cast<WhileStmt>(statement)) condition = s->getCond();
-        if (const auto* s = dyn_cast<DoStmt>(statement)) condition = s->getCond();
-        if (const auto* s = dyn_cast<ForStmt>(statement)) condition = s->getCond();
-        if (condition && !isa<ParenExpr>(condition->IgnoreImpCasts())) {
-            const auto* assignment = dyn_cast<BinaryOperator>(condition->IgnoreParenImpCasts());
-            if (assignment && assignment->isAssignmentOp()) add_issue(condition, context, id, 2,
-                "Assignment directly controls a branch", "Use comparison if intended; otherwise parenthesize the deliberate assignment.");
-        }
-        if (const auto* ret = dyn_cast<ReturnStmt>(statement)) {
-            const Expr* expression = ret->getRetValue();
-            if (expression && expression->getType()->isPointerType()) {
-                expression = expression->IgnoreParenImpCasts(); bool address_of = false;
-                if (const auto* unary = dyn_cast<UnaryOperator>(expression); unary && unary->getOpcode() == UO_AddrOf) {
-                    expression = unary->getSubExpr()->IgnoreParenImpCasts(); address_of = true;
-                }
-                if (const auto* ref = dyn_cast<DeclRefExpr>(expression)) {
-                    const auto* var = dyn_cast<VarDecl>(ref->getDecl());
-                    if (var && var->hasLocalStorage() && !var->getType()->isReferenceType() &&
-                        (address_of || var->getType()->isArrayType())) add_issue(statement, context, id, 3,
-                            "Returning storage owned by automatic local " + var->getNameAsString(), "Return a value or use storage whose lifetime outlives the call.");
-                }
-            }
-        }
-        const Expr* pointer = nullptr;
-        if (const auto* unary = dyn_cast<UnaryOperator>(statement); unary && unary->getOpcode() == UO_Deref && !address) pointer = unary->getSubExpr();
-        if (const auto* member = dyn_cast<MemberExpr>(statement); member && member->isArrow()) pointer = member->getBase();
-        if (pointer && pointer->getType()->isPointerType() && !pointer->isValueDependent() &&
-            pointer->IgnoreParenCasts()->isNullPointerConstant(context, Expr::NPC_ValueDependentIsNotNull) != Expr::NPCK_NotNull)
-            add_issue(statement, context, id, 4, "Dereference of a constant null pointer", "Provide a valid object before dereferencing this pointer.");
-        if (const auto* declaration = dyn_cast<DeclStmt>(statement)) {
-            for (const auto* decl : declaration->decls()) if (const auto* var = dyn_cast<VarDecl>(decl)) inspect_rules(var->getInit(), context, id);
-            return;
-        }
-        bool child_address = address && (isa<ParenExpr>(statement) || isa<ImplicitCastExpr>(statement));
-        if (const auto* unary = dyn_cast<UnaryOperator>(statement)) child_address = unary->getOpcode() == UO_AddrOf;
-        for (const auto* child : statement->children()) inspect_rules(child, context, id, child_address);
     }
 };
 class Includes final : public PPCallbacks {
@@ -356,7 +298,7 @@ std::string relocate_compile_commands(const std::string& input,const std::string
     stream<<llvm::formatv("{0:2}",llvm::json::Value(std::move(result))).str();
     if(!stream)throw std::runtime_error("cannot write prepared compilation database");return utf8_path(fs::absolute(path));
 }
-AnalysisResult analyze_project(const ScanResult& inventory, const std::string& database, const ScanContext& context, unsigned threads, const std::map<std::string,std::string>& choices) {
+AnalysisResult analyze_project(const ScanResult& inventory, const std::string& database, const ScanContext& context, unsigned threads, const std::map<std::string,std::string>& choices,const std::vector<std::string>& disabled_rules) {
     std::map<std::string,std::string> selected_choices;
     for(const auto& [file,id]:choices)if(!selected_choices.emplace(key(from_utf8(file)),id).second)throw std::invalid_argument("duplicate canonical command choice");
     const auto started = std::chrono::steady_clock::now();
@@ -428,7 +370,7 @@ AnalysisResult analyze_project(const ScanResult& inventory, const std::string& d
         } else if (!safe_arguments(selected->CommandLine)) {
             unit.status = "rejected_command"; unit.diagnostics = "Plugin, response-file, module or side-effect compiler option is not supported in read-only analysis.";
         } else {
-            Collector output{files, selected->Directory}; Factory factory(output); Diagnostics diagnostic;
+            Collector output{files, selected->Directory,disabled_rules}; Factory factory(output); Diagnostics diagnostic;
             OneCommand command(*selected);
             // A private VFS working directory avoids mutating the GUI process CWD.
             llvm::IntrusiveRefCntPtr<llvm::vfs::FileSystem> filesystem(llvm::vfs::createPhysicalFileSystem().release());

@@ -116,6 +116,8 @@ public:
 struct Column { std::string name; bool number; };
 using Schema = std::vector<Column>;
 const std::map<std::string, Schema> schemas = {
+    {"suppressed_issues", {{"rule_id",false},{"severity",false},{"file",false},{"line",true},{"column",true},{"message",false},{"evidence",false},{"suggestion",false},{"symbol_id",false},{"detector",false},{"reason",false}}},
+    {"rule_diagnostics", {{"message",false}}},
     {"issues", {{"rule_id",false},{"severity",false},{"file",false},{"line",true},{"column",true},{"message",false},{"evidence",false},{"suggestion",false},{"symbol_id",false},{"detector",false}}},
     {"builds", {{"run_id",true},{"scan_id",true},{"stage",false},{"status",false},{"exit_code",true},{"duration_ms",true},{"tests_total",true},{"tests_failed",true},{"tests_skipped",true},{"target",false}}},
     {"files", {{"file",false},{"language",false},{"lines",true},{"size",true},{"mtime",true},{"hash",false}}},
@@ -159,7 +161,11 @@ std::int64_t signed_size(std::uintmax_t value) {
 using Row = std::vector<QueryValue>;
 std::vector<Row> materialize(const ScanResult& scan, const std::string& table) {
     std::vector<Row> rows;
-    if (table == "issues") {
+    if(table=="suppressed_issues") {
+        for(const auto& i:scan.analysis.suppressed_issues)rows.push_back({i.rule_id,i.severity,i.file,std::int64_t{i.line},std::int64_t{i.column},i.message,i.evidence,i.suggestion,i.symbol_id,i.detector,i.suppression_reason});
+    }else if(table=="rule_diagnostics"){
+        for(const auto& message:scan.analysis.rule_diagnostics)rows.push_back({message});
+    }else if (table == "issues") {
         for (const auto& i : scan.analysis.issues) rows.push_back({i.rule_id,i.severity,i.file,std::int64_t{i.line},std::int64_t{i.column},i.message,i.evidence,i.suggestion,i.symbol_id,i.detector});
     } else if (table == "builds") {
         for (const auto& run : scan.build_runs) for (const auto& step : run.steps) rows.push_back({run.id,run.scan_id,step.name,step.result.status,

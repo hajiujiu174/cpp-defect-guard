@@ -9,6 +9,7 @@
 #include <csignal>
 #include <thread>
 #include <fstream>
+#include <climits>
 
 namespace {
 volatile std::sig_atomic_t interrupted = 0;
@@ -56,6 +57,8 @@ void display(const codeguard::ScanResult& result) {
     std::cout << "analysis=" << result.analysis.status << "\nsymbols=" << result.analysis.symbols.size()
               << "\nfunction_metrics=" << result.analysis.metrics.size() << "\ncovered_files=" << result.analysis.covered_files.size() << '\n';
     std::cout << "issues=" << result.analysis.issues.size() << "\nworkers=" << result.analysis.workers << "\nanalysis_ms=" << result.analysis.elapsed_ms << '\n';
+    std::cout<<"suppressed_issues="<<result.analysis.suppressed_issues.size()<<'\n';
+    for(const auto& message:result.analysis.rule_diagnostics)std::cerr<<"rule_policy: "<<message<<'\n';
     if(!result.analysis.configuration.empty()) {
         const auto config=codeguard::decode_config(result.analysis.configuration);
         for(const auto& rule:config.disabled_rules)std::cout<<"disabled_rule\t"<<rule<<'\n';
@@ -84,7 +87,9 @@ int run(const std::vector<std::string>& args) {
                      "codeguard-cli graph PROJECT --database DATABASE --kind call|include\n"
                      "codeguard-cli recent --database DATABASE\n"
                      "codeguard-cli rules\n"
-                     "codeguard-cli issues PROJECT --database DATABASE [--severity error|warning]\n"
+                     "codeguard-cli suppress PROJECT --database DATABASE --rule ID --file RELATIVE --line N --column N --reason TEXT\n"
+                     "codeguard-cli suppressed PROJECT --database DATABASE\n"
+                     "codeguard-cli issues PROJECT --database DATABASE [--severity error|warning|info]\n"
                      "codeguard-cli build PROJECT --database DATABASE --output DIRECTORY [--jobs 4] [--timeout 120] [--target NAME] [--c-compiler PATH] [--cxx-compiler PATH]\n"
                      "Build also supports repeated --cmake-define KEY=VALUE and --copy-include RELATIVE_DIRECTORY.\n"
                      "codeguard-cli discover PROJECT\n"
@@ -93,8 +98,8 @@ int run(const std::vector<std::string>& args) {
                      "codeguard-cli prepare PROJECT --database DATABASE [build settings...]\n"
                      "Config: --compile-commands auto|none|PATH, --build-type Debug|Release|RelWithDebInfo|MinSizeRel,\n"
                      "  --generator NAME, --cmake PATH, --ctest PATH, --git PATH,\n"
-                     "  --copy-exclude DIRECTORY, --disable-rule ID, --select-command SHA256 (repeatable),\n"
-                     "  --clear-list definitions|includes|excludes|rules|commands. Repeated lists replace saved lists.\n"
+                     "  --copy-exclude DIRECTORY, --disable-rule ID, --rule-severity ID=error|warning|info, --select-command SHA256 (repeatable),\n"
+                     "  --clear-list definitions|includes|excludes|rules|commands|severities|suppressions. Repeated lists replace saved lists.\n"
                      "codeguard-cli builds PROJECT --database DATABASE\n"
                      "codeguard-cli git PROJECT\n"
                      "Scan supports --threads 0..64 (0=automatic). Ctrl+C cancels scan/build.\n"
@@ -123,7 +128,7 @@ int run(const std::vector<std::string>& args) {
         std::string revision; std::cout << codeguard::read_git(codeguard::fs::canonical(codeguard::from_utf8(args[1])),options,&revision);
         return revision.empty() ? 2 : 0;
     }
-    if (!configuration_command && command != "scan" && command != "status" && command != "recent" && command != "symbols" && command != "metrics" && command != "graph" && command != "query" && command != "issues" && command != "build" && command != "builds")
+    if (!configuration_command && command != "scan" && command != "status" && command != "recent" && command != "symbols" && command != "metrics" && command != "graph" && command != "query" && command != "issues" && command != "suppress" && command != "suppressed" && command != "build" && command != "builds")
         throw std::invalid_argument("unknown command; use --help");
     std::string project, database;
     std::size_t position = 1;
@@ -132,7 +137,7 @@ int run(const std::vector<std::string>& args) {
         project = args[position++];
     }
     codeguard::ProjectConfig config;
-    if(command=="scan"||build_settings||command=="commands") {
+    if(command=="scan"||build_settings||command=="commands"||command=="suppress") {
         for(auto i=position;i+1<args.size();i+=2)if(args[i]=="--database")
             config=codeguard::load_project_config(codeguard::from_utf8(project),codeguard::from_utf8(args[i+1])).value_or(codeguard::ProjectConfig{});
     }
@@ -141,12 +146,13 @@ int run(const std::vector<std::string>& args) {
     std::vector<std::string> selected_commands;
     bool config_changed=false;
     std::string prefix, kind, query, severity;
+    std::string suppress_rule,suppress_file,suppress_reason;unsigned suppress_line=0,suppress_column=0;
     std::set<std::string> seen;
     for (; position < args.size(); position += 2) {
         if (position + 1 >= args.size()) throw std::invalid_argument("missing option value");
         const auto& option=args[position];const auto& value=args[position+1];
         const bool first=seen.insert(option).second;
-        const std::set<std::string> repeated{"--ignore","--cmake-define","--copy-include","--copy-exclude","--disable-rule","--select-command","--clear-list"};
+        const std::set<std::string> repeated{"--ignore","--cmake-define","--copy-include","--copy-exclude","--disable-rule","--rule-severity","--select-command","--clear-list"};
         if(!first&&!repeated.contains(option))throw std::invalid_argument("repeated option");
         if(option!="--database")config_changed=true;
         if (args[position] == "--database" && database.empty()) database = args[position + 1];
@@ -161,6 +167,11 @@ int run(const std::vector<std::string>& args) {
         else if (args[position] == "--query" && command == "query") query = args[position + 1];
         else if (args[position] == "--threads" && (command == "scan"||configuration_command)) options.threads=number(args[position+1],64);
         else if (args[position] == "--severity" && command == "issues") severity=args[position+1];
+        else if(command=="suppress"&&option=="--rule")suppress_rule=value;
+        else if(command=="suppress"&&option=="--file")suppress_file=value;
+        else if(command=="suppress"&&option=="--reason")suppress_reason=value;
+        else if(command=="suppress"&&option=="--line")suppress_line=number(value,INT_MAX);
+        else if(command=="suppress"&&option=="--column")suppress_column=number(value,INT_MAX);
         else if (option=="--output"&&build_settings)build_options.output_directory=codeguard::fs::absolute(codeguard::from_utf8(value));
         else if (option=="--jobs"&&build_settings)build_options.jobs=number(value,64);
         else if (option=="--timeout"&&build_settings)build_options.timeout=std::chrono::seconds(number(value,86400));
@@ -176,16 +187,30 @@ int run(const std::vector<std::string>& args) {
         else if (option=="--copy-include"&&build_settings){if(first)build_options.copy_includes.clear();build_options.copy_includes.push_back(value);}
         else if (option=="--copy-exclude"&&build_settings){if(first)build_options.copy_excludes.clear();build_options.copy_excludes.push_back(value);}
         else if (option=="--disable-rule"&&(command=="config"||command=="scan")){if(first)config.disabled_rules.clear();config.disabled_rules.push_back(value);}
+        else if(option=="--rule-severity"&&(command=="config"||command=="scan")){
+            if(first)config.rule_severities.clear();const auto equal=value.find('=');
+            if(equal==std::string::npos||!config.rule_severities.emplace(value.substr(0,equal),value.substr(equal+1)).second)throw std::invalid_argument("expected distinct ID=severity entries");
+        }
         else if (option=="--select-command"&&(command=="config"||command=="scan"))selected_commands.push_back(value);
         else if (option=="--clear-list"&&command=="config") {
             if(value=="definitions")build_options.cmake_definitions.clear();else if(value=="includes")build_options.copy_includes.clear();
             else if(value=="excludes")build_options.copy_excludes.clear();else if(value=="rules")config.disabled_rules.clear();
-            else if(value=="commands")config.command_choices.clear();else throw std::invalid_argument("unknown configuration list");
+            else if(value=="commands")config.command_choices.clear();else if(value=="severities")config.rule_severities.clear();
+            else if(value=="suppressions")config.suppressions.clear();else throw std::invalid_argument("unknown configuration list");
         }
         else throw std::invalid_argument("unknown or repeated option: " + args[position]);
     }
     if (database.empty()) throw std::invalid_argument("--database is required");
     config.build=build_options;config.compile_commands=options.compile_commands;config.threads=options.threads;
+    if(command=="suppress"){
+        const auto root=codeguard::fs::canonical(codeguard::from_utf8(project));codeguard::SqliteDatabase db(codeguard::from_utf8(database),true);
+        const auto saved=db.latest(codeguard::utf8_path(root));
+        const auto issue=std::find_if(saved.analysis.issues.begin(),saved.analysis.issues.end(),[&](const auto& i){return i.rule_id==suppress_rule&&i.file==suppress_file&&i.line==static_cast<int>(suppress_line)&&i.column==static_cast<int>(suppress_column);});
+        if(issue==saved.analysis.issues.end())throw std::invalid_argument("no exact active issue in latest snapshot; list issues and specify rule/file/line/column");
+        auto entry=codeguard::suppress_issue(saved,*issue,suppress_reason);
+        std::erase_if(config.suppressions,[&](const auto& s){return s.rule_id==entry.rule_id&&s.file==entry.file&&s.line==entry.line&&s.column==entry.column;});config.suppressions.push_back(entry);
+        codeguard::save_project_config(root,codeguard::from_utf8(database),config);std::cout<<"Suppression saved; rescan to apply. Old snapshots are unchanged.\n";return 0;
+    }
     if(!selected_commands.empty()) {
         const auto input=codeguard::configured_scan_options(codeguard::from_utf8(project),config).compile_commands;
         if(input.empty())throw std::invalid_argument("choose a compilation database before selecting commands");
@@ -203,6 +228,8 @@ int run(const std::vector<std::string>& args) {
         for(const auto& item:config.build.copy_includes)std::cout<<"copy_include\t"<<item<<'\n';
         for(const auto& item:config.build.copy_excludes)std::cout<<"copy_exclude\t"<<item<<'\n';
         for(const auto& item:config.disabled_rules)std::cout<<"disabled_rule\t"<<item<<'\n';
+        for(const auto& [id,severity]:config.rule_severities)std::cout<<"rule_severity\t"<<id<<'\t'<<severity<<'\n';
+        for(const auto& s:config.suppressions)std::cout<<"suppression\t"<<s.rule_id<<'\t'<<tsv(s.file)<<'\t'<<s.line<<'\t'<<s.column<<'\t'<<tsv(s.reason)<<'\n';
         for(const auto& [file,id]:config.command_choices)std::cout<<"selected_command\t"<<file<<'\t'<<id<<'\n';return 0;
     }
     if(command=="commands") {
@@ -222,7 +249,7 @@ int run(const std::vector<std::string>& args) {
         codeguard::save_project_config(root,codeguard::from_utf8(database),config);std::cout<<"compile_commands="<<result.compile_commands<<'\n';return 0;
     }
     if (command == "query" && query.empty()) throw std::invalid_argument("--query is required");
-    if (!severity.empty() && severity!="error" && severity!="warning") throw std::invalid_argument("severity must be error or warning");
+    if (!severity.empty() && severity!="error" && severity!="warning" && severity!="info") throw std::invalid_argument("severity must be error, warning or info");
     if (command == "build") {
         build_options.control=std::make_shared<codeguard::ScanControl>(); InterruptScope scope(build_options.control);
         build_options.progress=[](const auto& phase){ std::cerr << "stage=" << phase << '\n'; };
@@ -260,11 +287,11 @@ int run(const std::vector<std::string>& args) {
         else {
             if (result.analysis.status == "not_requested") throw std::invalid_argument("saved scan has no Clang analysis; scan with --compile-commands first");
             std::cout << "analysis=" << result.analysis.status << '\n';
-            if (command == "issues") {
-                std::cout << "severity\trule\tfile\tline\tcolumn\tmessage\tevidence\tsuggestion\n";
-                for(const auto& issue:result.analysis.issues) if(severity.empty() || issue.severity==severity)
+            if (command == "issues"||command=="suppressed") {
+                std::cout << "severity\trule\tfile\tline\tcolumn\tmessage\tevidence\tsuggestion\treason\n";
+                for(const auto& issue:command=="suppressed"?result.analysis.suppressed_issues:result.analysis.issues) if(severity.empty() || issue.severity==severity)
                     std::cout << issue.severity << '\t' << issue.rule_id << '\t' << tsv(issue.file) << '\t' << issue.line << '\t' << issue.column << '\t'
-                        << tsv(issue.message) << '\t' << tsv(issue.evidence) << '\t' << tsv(issue.suggestion) << '\n';
+                        << tsv(issue.message) << '\t' << tsv(issue.evidence) << '\t' << tsv(issue.suggestion) << '\t'<<tsv(issue.suppression_reason)<<'\n';
             } else if (command == "symbols") {
                 for (const auto& symbol : codeguard::find_symbols(result.analysis, prefix))
                     std::cout << symbol.kind << '\t' << symbol.name << '\t' << symbol.file << ':' << symbol.line << ':' << symbol.column

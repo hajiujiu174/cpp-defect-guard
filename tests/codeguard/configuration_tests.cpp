@@ -79,7 +79,7 @@ void run(const std::string& name,const std::string& cli){
     }
     if(name=="config_migration"){
         f.write("main.c","int main(void){return 0;}\n");const auto saved=cg::import_project(f.root,f.database);
-        f.sql("DROP TABLE project_configuration; ALTER TABLE analysis DROP COLUMN configuration; ALTER TABLE build_run DROP COLUMN compile_commands; ALTER TABLE build_run DROP COLUMN configuration; PRAGMA user_version=3;");
+        f.sql("DROP TABLE suppressed_issue; DROP TABLE rule_diagnostic; DROP TABLE project_configuration; ALTER TABLE analysis DROP COLUMN configuration; ALTER TABLE build_run DROP COLUMN compile_commands; ALTER TABLE build_run DROP COLUMN configuration; PRAGMA user_version=3;");
         {cg::SqliteDatabase db(f.database,true);check(db.latest(saved.root).id==saved.id,"read old scan");check(!cg::load_project_config(f.root,f.database),"old profile defaults");}
         // A read-only load must not migrate: ALTER fails if the field already exists.
         f.sql("ALTER TABLE analysis ADD COLUMN configuration TEXT NOT NULL DEFAULT ''; ALTER TABLE analysis DROP COLUMN configuration;");

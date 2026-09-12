@@ -2,6 +2,8 @@
 
 更新日期：2026-09-13。本项面向 Windows，Core/CLI 使用纯 C++20，Qt 仅负责展示与操作。工程配置与扫描快照保存在源码目录外的 CodeGuard SQLite 数据库中，原方案书与源码不被配置编辑器改写。
 
+P1-2 后续增加：设置现有五页，分析页支持逐规则级别，抑制页支持修改理由及移除条目；当前配置写版本 2、兼容版本 1，数据库为 schema 5。操作与新版回归见 [规则引擎](rule-engine.md)。本页 P1-1 提交及测试计数保留原验收范围。
+
 ## Qt 导入流程
 
 1. 启动 Analysis 版，点击“导入工程并扫描”，选择工程根目录和源码目录外的分析数据库。
@@ -53,7 +55,8 @@ $database = '.\artifacts\configured-demo.sqlite3'
 | `--copy-include resources/out` | 可重复；补充默认忽略目录中的必需资源 |
 | `--copy-exclude experiments` | 可重复；从扫描清单和构建副本中同时排除项目相对目录 |
 | `--disable-rule CG004` | 可重复；停用指定规则，快照记录停用项 |
-| `--clear-list definitions/includes/excludes/rules/commands` | 显式清空对应列表；支持重复 |
+| `--rule-severity CG001=info` | 可重复；覆盖指定规则级别，支持 error/warning/info |
+| `--clear-list definitions/includes/excludes/rules/commands/severities/suppressions` | 显式清空对应列表；支持重复 |
 | `--select-command <完整 SHA256>` | 为该命令所属文件选择本次分析的编译配置 |
 
 指定某个列表参数时，第一次出现会替换该类已存列表，后续同名参数追加。未指定的列表保留。规则全部启用可用 `--clear-list rules`。编译器、类型与导出数据库开关采用专用字段，拒绝通过 `--cmake-define` 重复覆盖对应 `CMAKE_*` 字段。
@@ -95,4 +98,4 @@ SQLite schema 4 增加 `project_configuration`，并在 `analysis`、`build_run`
 
 下载的 Windows 运行包已校验 SHA-256，并在本机复跑打包后 GUI 的设置、生成参数、分析、构建测试和独立进程重启恢复。配置页正常/紧凑窗口的包内中文字体与布局均已检查，记录位于 `artifacts/p1-1-packaged-settings-qa`；包文件为 `artifacts/ci-run-34710000310/package/CodeGuard-Windows-x64.zip`。这个额外检查使用外部锁定工具链执行 CMake/CTest，运行包本身不包含工程编译工具链。
 
-P1-1 按上述范围完成。后续优先级为 P1-2：规则引擎模块化与可信度，不在本项提前实现规则抑制、级别重配或 AST 缓存。
+P1-1 按上述范围完成。规则抑制及级别重配由后续 P1-2 交付，AST 缓存仍属于 P2-1，具体状态以根目录 AGENTS.md 为准。

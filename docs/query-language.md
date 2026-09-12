@@ -4,6 +4,8 @@
 
 v0.3.0 增加 `issues` 与 `builds`，覆盖规则与构建测试记录。字段和完整工程闭环见 [Level 3 验收](level3-acceptance.md)。下文保留最初四类实体的语法说明与查询阶段验收；最新整体测试结果以 Level 3 文档为准。
 
+2026-09-13 P1-2 增加 `suppressed_issues`（`issues` 的全部字段加字符串 `reason`）及 `rule_diagnostics`（字符串 `message`）。`issues` 仅含活动问题，已抑制问题的证据、理由及未应用诊断可独立查询；详见 [规则引擎](rule-engine.md)。规则诊断也可在仅文件清单的快照中存在，解析状态不因抑制改变。
+
 用户查询由纯 C++ 的 Lexer、递归下降 Parser、Query AST、语义分析、执行计划和执行器处理。输入只用于查询当前 ScanResult 快照，不交给 SQLite 执行。CLI 从只读数据库连接恢复快照，Qt 查询当前已载入的快照，两端使用同一个 `execute_query` 接口。
 
 ## 使用方法

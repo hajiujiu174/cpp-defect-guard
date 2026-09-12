@@ -22,6 +22,8 @@ private:
     QPlainTextEdit *definitions_, *includes_, *excludes_;
     QTableWidget* choices_;
     std::vector<std::pair<std::string,QCheckBox*>> rules_;
+    std::map<std::string,QComboBox*> severities_;
+    QTableWidget* suppressions_;
     std::map<std::string,std::string> selections_;
     std::string choices_path_;
     void loadCommands();

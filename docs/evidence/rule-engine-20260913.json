@@ -1,0 +1,161 @@
+{
+  "schema": 1,
+  "date": "2026-09-13",
+  "stage": "P1-2",
+  "local_base_commit": "7792d5ad1d1a6230127ca21e07e2e28f4c8af5fd",
+  "local_worktree": "P1-2 uncommitted implementation; full suites followed by targeted CLI/Qt/policy checks after final edits",
+  "toolchain_lock_sha256": "eea718ec1b22b719053e52161ab6a0a3774be42fa7e2bc79daba8345feb45083",
+  "database_schema": 5,
+  "configuration_codec": {
+    "writes": 2,
+    "reads": [
+      1,
+      2
+    ]
+  },
+  "local_tests": [
+    {
+      "tests": 50,
+      "failures": 0,
+      "skipped": 1,
+      "passed": 49,
+      "path": "artifacts/p1-2-core-ci/core/tests.xml",
+      "sha256": "14fde01b0f45158fe63600fd3c601503d5ea314b87a3fcc9ddb112df9037241b"
+    },
+    {
+      "tests": 85,
+      "failures": 0,
+      "skipped": 1,
+      "passed": 84,
+      "path": "artifacts/p1-2-analysis-tests.xml",
+      "sha256": "984a79d751a5a25c45c11338c1e22bfb23ee96f444aa28874e2069bb6d4b511b"
+    },
+    {
+      "tests": 3,
+      "failures": 0,
+      "skipped": 0,
+      "passed": 3,
+      "path": "artifacts/p1-2-final-targeted.xml",
+      "sha256": "aa68403c3fb89016a6f167df90db6c4d9b70f8efdb1d38ad9d6a8dde7f27ab3e"
+    }
+  ],
+  "skip_reason": "Windows symlink privileges unavailable; skipped is not passed",
+  "evaluation": [
+    {
+      "rule": "CG001",
+      "scope": "labeled synthetic cases only; location detection",
+      "cases": 9,
+      "TP": 3,
+      "FP": 0,
+      "TN": 5,
+      "FN": 1,
+      "parse_failed": 0
+    },
+    {
+      "rule": "CG002",
+      "scope": "labeled synthetic cases only; location detection",
+      "cases": 9,
+      "TP": 4,
+      "FP": 0,
+      "TN": 4,
+      "FN": 1,
+      "parse_failed": 0
+    },
+    {
+      "rule": "CG003",
+      "scope": "labeled synthetic cases only; location detection",
+      "cases": 9,
+      "TP": 4,
+      "FP": 0,
+      "TN": 5,
+      "FN": 0,
+      "parse_failed": 0
+    },
+    {
+      "rule": "CG004",
+      "scope": "labeled synthetic cases only; location detection",
+      "cases": 9,
+      "TP": 4,
+      "FP": 0,
+      "TN": 4,
+      "FN": 1,
+      "parse_failed": 0
+    },
+    {
+      "rule": "CG005",
+      "scope": "labeled synthetic cases only; location detection",
+      "cases": 9,
+      "TP": 5,
+      "FP": 0,
+      "TN": 3,
+      "FN": 1,
+      "parse_failed": 0
+    }
+  ],
+  "scope": "45 labeled synthetic cases only; risk/syntax labels, not full real-project defect truth. One target per file; unique line/column sites merge template instance findings. Parse failures fail the evaluation.",
+  "known_false_negatives": [
+    "CG001_indirect.cpp",
+    "CG002_runtime_index.cpp",
+    "CG004_alias.cpp",
+    "CG005_alias.cpp"
+  ],
+  "corpus_sha256": {
+    "samples/rule-evaluation/CG001_bounded.cpp": "d0925f130096918e8b51add1096119683cd3ea93582e9c51ff5034d72406d83f",
+    "samples/rule-evaluation/CG001_direct.cpp": "c2b2dc2e73237c419e8cbd7d88cbf0d0d4e2b0e1c6e7feb2d16b69f879602b1d",
+    "samples/rule-evaluation/CG001_discarded.cpp": "9709584465839cc69a4984cf7ea1bd188d96b170e6739ed7dfb3d7354fe970e1",
+    "samples/rule-evaluation/CG001_indirect.cpp": "b523c4781040158d03ed0cdea9e699714e9dc721f6e4c34092a86441abae0f97",
+    "samples/rule-evaluation/CG001_macro.cpp": "67c193f66ee167016bdc29a2b77edcdaa3e6e52db5c8e4e984cd004b154c0286",
+    "samples/rule-evaluation/CG001_member.cpp": "4ffcb6f2f7a587e7d648265acfe166ae80fe58f0ee574020db108818ec7d672e",
+    "samples/rule-evaluation/CG001_template.cpp": "83458ac09cfb33b306fc289014ff6bd228ef522eddb7ade8b2f93564a771c42e",
+    "samples/rule-evaluation/CG001_unevaluated.cpp": "0113e0097eb17cead6ab590ea2fc58b67d068fb056e2c88bab02c38e3727fb30",
+    "samples/rule-evaluation/CG001_user_function.cpp": "02846195eba3f267b56be5953d5a8c4dedf1e397c27d1e9d939a30f47b67c19b",
+    "samples/rule-evaluation/CG002_index.cpp": "1a2a5bfbd7265be7ce2fb61a399792854f985150dc22d32d0b3912f0ce0c4b8d",
+    "samples/rule-evaluation/CG002_macro.cpp": "97fc56e928568927d6b12b1bb46defe023a4ac7fdd86e648495f0f5ff1052e36",
+    "samples/rule-evaluation/CG002_negative.cpp": "020347c92ffaf5d5ae04a5ca1a09863163e96cc24765e3e6f13cfb92df3ba030",
+    "samples/rule-evaluation/CG002_one_past.cpp": "5ed3353537db1fa432396fec95cca5d61dc1a2538232ef04dbca36864e2eb0cb",
+    "samples/rule-evaluation/CG002_runtime_index.cpp": "beb580746c97a49a13e890928305ba65e8112fd5416d099ccb95742d42d2c13a",
+    "samples/rule-evaluation/CG002_sizeof.cpp": "cbf811eb6cdca29b42c75c8c124bee9139cdd37f308ca942690776ccc5acb01d",
+    "samples/rule-evaluation/CG002_template.cpp": "292d748be327cda6ca5efbe8b35e05aee98f09e1a2ce2e1eb95c0d1f95f304be",
+    "samples/rule-evaluation/CG002_template_valid.cpp": "020848f1bb5b7ebe62da26005aa3d192672b27136d0d97f36d92a0a14c6cdb21",
+    "samples/rule-evaluation/CG002_valid.cpp": "28fe9924583a6477751832fd6ea78a81a95b0027ac4369f224a023a205b1b174",
+    "samples/rule-evaluation/CG003_comparison.cpp": "c598c899e483044c352093de781fc9d9244239e6b1d4bab78dd0b2dcde609f70",
+    "samples/rule-evaluation/CG003_for_step.cpp": "28af9296d2b1aa5e491fbbefca18847c0fefe26ed9263772f64d3f63baaf751d",
+    "samples/rule-evaluation/CG003_if.cpp": "f3827b8d7011e2ade7833c26f76b3414bf3568e9947e42df3900cf4ded4fe90d",
+    "samples/rule-evaluation/CG003_macro.cpp": "0fbe4579f2e30b4f80352578fbbe303cef31300cbceaa54c17aaf551a27d6378",
+    "samples/rule-evaluation/CG003_macro_intentional.cpp": "0d1409496ffaf72c50d4b25664b2d2fd4e849b5c99c7903b02863a4470914459",
+    "samples/rule-evaluation/CG003_nested_assignment.cpp": "6ccfcb3be5e5b6dca4515b63dadff51541722afc8570076901ee0318d7a8a5c9",
+    "samples/rule-evaluation/CG003_parenthesized.cpp": "649946981975c183b515156ac8dcff4a2e5015a95ab3282c0bcfeacb877ec8ab",
+    "samples/rule-evaluation/CG003_template.cpp": "e089704ace19a37badcbea70e09dfb357d0630d33a8d718c1a954ec3d225ac17",
+    "samples/rule-evaluation/CG003_while.cpp": "cfed9c3b0f58a40a53192c92633d2d1be3f990f4016c35d78796cc067f658608",
+    "samples/rule-evaluation/CG004_alias.cpp": "2a10e180842de538dd9cfe6b6876c1db3f43a9ab7925c1f466fb0312904341a5",
+    "samples/rule-evaluation/CG004_array.cpp": "da0ba30c3769aef1f9102cb47b406f98f4a76d99cf2c0555a8aa31b77be4a574",
+    "samples/rule-evaluation/CG004_caller_pointer.cpp": "020819d9954684c7fc84296738f6f527dc5ca85fa1996023c40442e0d1c07ce1",
+    "samples/rule-evaluation/CG004_heap.cpp": "311c392a89af9741b25add8a1da6395ed2857496d2d45c0a3f04accd9969b65d",
+    "samples/rule-evaluation/CG004_local.cpp": "387c5db95537d41527fb47a4ad6e50a5b112b8f3e528c3e675c2ae6153a3eb8d",
+    "samples/rule-evaluation/CG004_macro.cpp": "67449ec774d18d64421c919bc293d4d8e9e0ce1aafa551c02b38ae2f4b7ada59",
+    "samples/rule-evaluation/CG004_reference.cpp": "7d883a4fd8ec8272f18c27efeb9935a7db191e23bf9331d5d4008c33e129feda",
+    "samples/rule-evaluation/CG004_static.cpp": "2af0eafc7ee825d98793b6ac1587cc2e795b9f35c77511105ae53394f808dfaa",
+    "samples/rule-evaluation/CG004_template.cpp": "d15a87b98d331bd12f4de51f5b5ec09856803c8f7949d0b3adab4bb56354b7e6",
+    "samples/rule-evaluation/CG005_address_cancel.cpp": "7dfff6fdef92a329a641169bb92ad54e348a0a95081481acd149cebbf83ed867",
+    "samples/rule-evaluation/CG005_alias.cpp": "4064ce1dce2bc3ce14f2df996fce3065c4d30dc98e0a229309639b47489fc10a",
+    "samples/rule-evaluation/CG005_arrow.cpp": "32b19e04387e5a65eaa0753ca0a440c252a81e7b04bf8c66cc39607fa5c36bb3",
+    "samples/rule-evaluation/CG005_lambda.cpp": "647d921482ed3c5711f33a0ee2920df12c7e8b3deb497c4ce28bad20db563c09",
+    "samples/rule-evaluation/CG005_literal.cpp": "33a530782b88157c06085b4f4f0bb7744bae109d56ed49cd0e8dbece953f3532",
+    "samples/rule-evaluation/CG005_macro.cpp": "97a8bde1dd675256227f650e32115eab9c4dadd6693011c136c2fc41762a9752",
+    "samples/rule-evaluation/CG005_template.cpp": "1ac7c5a4af32f62dc4773c350f617ffe2477120c5acd11c81642234b1379fb8f",
+    "samples/rule-evaluation/CG005_unevaluated.cpp": "0f3d89bbaf34c6a728a03903c7d012e9f61c5c4d891665f5873b7e3f48fd950f",
+    "samples/rule-evaluation/CG005_valid.cpp": "052ce3cf5df187ca6db65214551e771b76cabaee6461ba559ccc561d21e4f1ee",
+    "samples/rule-evaluation/manifest.tsv": "cacd6e342e1ce03c16eb5fd674a6dc7a1bcdf3b3619ad6e339ad87c3c374fe1e"
+  },
+  "local_gui_review": {
+    "directory": "build/windows-ci-analysis-2/tests/codeguard/rule-test-58586717036200",
+    "images": [
+      "rules-settings.png",
+      "rules-settings-compact.png",
+      "rules-suppressed.png"
+    ],
+    "result": "reviewed normal/compact layout and Chinese glyphs; offscreen controls only"
+  },
+  "suppression_limit": "Binds rule/file/line/column and full source-file FNV change hash; compile arguments, toolchain and external headers are not bound. All template instances at the matching source position are affected.",
+  "remote_ci": null
+}

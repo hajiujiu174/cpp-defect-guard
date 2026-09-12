@@ -56,7 +56,10 @@ ProjectSettings::ProjectSettings(const codeguard::fs::path& root,const codeguard
     for(const auto& rule:codeguard::rule_catalog()){
         auto* check=new QCheckBox(q(rule.id+" · "+rule.title),this);check->setObjectName(q(rule.id));
         check->setChecked(std::find(config.disabled_rules.begin(),config.disabled_rules.end(),rule.id)==config.disabled_rules.end());
-        analysis->addRow(check);rules_.emplace_back(rule.id,check);
+        auto* severity=new QComboBox(this);severity->setObjectName(q("severity_"+rule.id));
+        severity->addItem(q("默认 ("+rule.severity+")"),QString());for(const auto& level:{"error","warning","info"})severity->addItem(level,level);
+        if(config.rule_severities.contains(rule.id))severity->setCurrentIndex(severity->findData(q(config.rule_severities.at(rule.id))));
+        analysis->addRow(check,severity);rules_.emplace_back(rule.id,check);severities_[rule.id]=severity;
     }
     note(analysis,QStringLiteral("规则开关作用于下一次扫描，旧快照保留当时的配置。缺少参数时只导入文件清单，不能据此判断没有缺陷。"));
     auto* build=page(QStringLiteral("构建与测试"));
@@ -79,8 +82,21 @@ ProjectSettings::ProjectSettings(const codeguard::fs::path& root,const codeguard
     note(command,QStringLiteral("同一文件有多个目标/宏配置时，请明确选择一条。未选择的文件保持歧义诊断。命令变化后旧选择报错，需重新选择。"));
     auto* reload=new QPushButton(QStringLiteral("载入当前数据库的命令"),this);reload->setObjectName("loadCommands");command->addRow(reload);
     choices_=new QTableWidget(0,2,this);choices_->setHorizontalHeaderLabels({QStringLiteral("源文件"),QStringLiteral("当前分析配置（悬停查看完整参数）")});
+    choices_->setObjectName("commandChoices");
     choices_->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);choices_->setMinimumHeight(300);command->addRow(choices_);
     connect(reload,&QPushButton::clicked,this,[&]{try{loadCommands();}catch(const std::exception& e){QMessageBox::warning(this,QStringLiteral("命令载入失败"),q(e.what()));}});
+    auto* suppression=page(QStringLiteral("抑制管理"));
+    note(suppression,QStringLiteral("在问题列表中右键选择“抑制此问题”，填写理由。每项绑定保存快照的源文件指纹；源码变化后失效并显示诊断。这里可修改理由或移除抑制，重新扫描后生效。"));
+    suppressions_=new QTableWidget(static_cast<int>(config.suppressions.size()),3,this);suppressions_->setObjectName("ruleSuppressions");
+    suppressions_->setHorizontalHeaderLabels({QStringLiteral("规则"),QStringLiteral("位置"),QStringLiteral("抑制理由（必填）")});
+    suppressions_->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Stretch);suppressions_->horizontalHeader()->setSectionResizeMode(2,QHeaderView::Stretch);suppressions_->setMinimumHeight(320);
+    for(std::size_t n=0;n<config.suppressions.size();++n){const auto& entry=config.suppressions[n];
+        auto* id=new QTableWidgetItem(q(entry.rule_id));id->setData(Qt::UserRole,static_cast<int>(n));id->setFlags(id->flags()&~Qt::ItemIsEditable);suppressions_->setItem(n,0,id);
+        auto* where=new QTableWidgetItem(q(entry.file+":"+std::to_string(entry.line)+":"+std::to_string(entry.column)));where->setFlags(where->flags()&~Qt::ItemIsEditable);where->setToolTip(q(entry.source_hash));suppressions_->setItem(n,1,where);
+        suppressions_->setItem(n,2,new QTableWidgetItem(q(entry.reason)));
+    }
+    suppression->addRow(suppressions_);auto* remove=new QPushButton(QStringLiteral("移除选中抑制"),this);remove->setObjectName("removeSuppression");suppression->addRow(remove);
+    connect(remove,&QPushButton::clicked,this,[&]{if(suppressions_->currentRow()>=0)suppressions_->removeRow(suppressions_->currentRow());});
     auto* save=new QDialogButtonBox(QDialogButtonBox::Save|QDialogButtonBox::Cancel,this);layout->addWidget(save);
     save->button(QDialogButtonBox::Save)->setText(QStringLiteral("保存"));save->button(QDialogButtonBox::Cancel)->setText(QStringLiteral("取消"));
     connect(save,&QDialogButtonBox::rejected,this,&QDialog::reject);
@@ -112,6 +128,8 @@ codeguard::ProjectConfig ProjectSettings::configuration() const {
     b.cmake=s(cmake_->text().trimmed());b.ctest=s(ctest_->text().trimmed());b.git=s(git_->text().trimmed());
     b.cmake_definitions=lines(definitions_);b.copy_includes=lines(includes_);b.copy_excludes=lines(excludes_);
     result.disabled_rules.clear();for(const auto& [id,check]:rules_)if(!check->isChecked())result.disabled_rules.push_back(id);
+    result.rule_severities.clear();for(const auto& [id,combo]:severities_)if(!combo->currentData().toString().isEmpty())result.rule_severities[id]=s(combo->currentData().toString());
+    result.suppressions.clear();for(int row=0;row<suppressions_->rowCount();++row){auto entry=original_.suppressions.at(suppressions_->item(row,0)->data(Qt::UserRole).toInt());entry.reason=s(suppressions_->item(row,2)->text());result.suppressions.push_back(std::move(entry));}
     result.command_choices=result.compile_commands==choices_path_?selections_:std::map<std::string,std::string>{};
     if(result.compile_commands==choices_path_)for(int row=0;row<choices_->rowCount();++row){
         const auto file=s(choices_->item(row,0)->text());const auto id=s(static_cast<QComboBox*>(choices_->cellWidget(row,1))->currentData().toString());

@@ -22,7 +22,7 @@ int main(int argc,char** argv){
         cg::ProjectConfig config;config.compile_commands=cg::utf8_path(root/"compile_commands.json");
         const auto commands=cg::inspect_compile_commands(config.compile_commands);
         ProjectSettings dialog(root,config);dialog.show();app.processEvents();
-        dialog.findChild<QPushButton*>("loadCommands")->click();auto* table=dialog.findChild<QTableWidget*>();
+        dialog.findChild<QPushButton*>("loadCommands")->click();auto* table=dialog.findChild<QTableWidget*>("commandChoices");
         check(table->rowCount()==1,"ambiguous source presented once");auto* combo=static_cast<QComboBox*>(table->cellWidget(0,1));
         check(combo->currentIndex()==0&&dialog.configuration().command_choices.empty(),"no automatic variant selection");
         combo->setCurrentIndex(combo->findData(QString::fromStdString(commands[1].fingerprint)));
@@ -33,7 +33,7 @@ int main(int argc,char** argv){
         check(selected.build.c_compiler=="clang"&&selected.build.cxx_compiler=="clang++","compiler controls captured");
         auto stale=selected;stale.command_choices.clear();stale.command_choices[cg::utf8_path(root/"removed.cpp")]=std::string(64,'a');
         ProjectSettings stale_dialog(root,stale);stale_dialog.findChild<QPushButton*>("loadCommands")->click();
-        auto* stale_table=stale_dialog.findChild<QTableWidget*>();check(stale_table->rowCount()==2,"missing file choice remains editable");
+        auto* stale_table=stale_dialog.findChild<QTableWidget*>("commandChoices");check(stale_table->rowCount()==2,"missing file choice remains editable");
         for(int row=0;row<stale_table->rowCount();++row)static_cast<QComboBox*>(stale_table->cellWidget(row,1))->setCurrentIndex(0);
         check(stale_dialog.configuration().command_choices.empty(),"clear missing or stale choice");
         std::cout<<"QT_CONFIG_CHOICES_OK\n";

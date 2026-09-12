@@ -7,6 +7,7 @@
 #include <QSettings>
 #include <QStandardPaths>
 #include <QInputDialog>
+#include <QAction>
 #include <QSpinBox>
 #include <QApplication>
 #include <QFileDialog>
@@ -165,6 +166,11 @@ int main(int argc, char** argv) {
     auto* cycles_table = make_table(QStringLiteral("循环"));
     auto* units_table = make_table(QStringLiteral("诊断"));
     auto* issues_table = make_table(QStringLiteral("问题")); issues_table->setObjectName("issuesTable");
+    auto* suppressed_table=make_table(QStringLiteral("已抑制"));suppressed_table->setObjectName("suppressedTable");
+    auto* rule_diagnostics=make_table(QStringLiteral("规则配置诊断"));rule_diagnostics->setObjectName("ruleDiagnostics");
+    auto* suppress_action=new QAction(QStringLiteral("抑制此问题（填写理由）"),issues_table);suppress_action->setObjectName("suppressIssue");
+    issues_table->addAction(suppress_action);issues_table->setContextMenuPolicy(Qt::ActionsContextMenu);
+    issues_table->setToolTip(QStringLiteral("右键可按当前源码快照抑制选中问题，理由与证据保留在数据库"));
     auto* build_panel = new QWidget(tabs); auto* build_layout = new QVBoxLayout(build_panel);
     auto* build_output = new QLineEdit(build_panel); build_output->setPlaceholderText(QStringLiteral("构建副本与日志目录，必须位于源码目录外"));
     auto* build_target = new QLineEdit(build_panel); build_target->setPlaceholderText(QStringLiteral("可选 CMake 目标，留空构建全部"));
@@ -350,7 +356,7 @@ int main(int argc, char** argv) {
     QObject::connect(tree, &QTreeWidget::itemClicked, [&](QTreeWidgetItem* item, int) {
         const auto path = item->data(0, Qt::UserRole).toString(); if (!path.isEmpty()) navigate(path, 1);
     });
-    for (auto* target : {table, symbols_table, metrics_table, edges_table, units_table, issues_table})
+    for (auto* target : {table, symbols_table, metrics_table, edges_table, units_table, issues_table,suppressed_table})
         QObject::connect(target, &QTableWidget::cellClicked, [&, target](int row, int) {
             const auto* item = target->item(row, 0);
             if (item && !item->data(Qt::UserRole).toString().isEmpty())
@@ -442,6 +448,7 @@ int main(int argc, char** argv) {
             .arg(text(result.analysis.status)).arg(result.analysis.covered_files.size()).arg(result.files.size()).arg(result.analysis.metrics.size()));
         label->setText(label->text()+QStringLiteral(" | 问题: %1 | 分析线程: %2 | 分析耗时: %3 ms")
             .arg(result.analysis.issues.size()).arg(result.analysis.workers).arg(result.analysis.elapsed_ms));
+        label->setText(label->text()+QStringLiteral(" | 已抑制: %1 | 规则配置诊断: %2").arg(result.analysis.suppressed_issues.size()).arg(result.analysis.rule_diagnostics.size()));
         if(!result.analysis.configuration.empty()){
             try{
                 const auto settings=codeguard::decode_config(result.analysis.configuration);QStringList disabled;
@@ -493,6 +500,12 @@ int main(int argc, char** argv) {
         for(const auto& issue:result.analysis.issues)issue_rows.push_back({text(issue.severity),text(issue.rule_id),text(issue.file),QString::number(issue.line),text(issue.message),text(issue.evidence),text(issue.suggestion)});
         fill(issues_table,{QStringLiteral("级别"),QStringLiteral("规则"),QStringLiteral("文件"),QStringLiteral("行"),QStringLiteral("说明"),QStringLiteral("证据"),QStringLiteral("建议")},issue_rows);
         for(std::size_t i=0;i<result.analysis.issues.size();++i)location(issues_table,static_cast<int>(i),text(result.analysis.issues[i].file),result.analysis.issues[i].line);
+        std::vector<QStringList> suppressed_rows;
+        for(const auto& issue:result.analysis.suppressed_issues)suppressed_rows.push_back({text(issue.severity),text(issue.rule_id),text(issue.file),QString::number(issue.line),text(issue.message),text(issue.evidence),text(issue.suppression_reason)});
+        fill(suppressed_table,{QStringLiteral("级别"),QStringLiteral("规则"),QStringLiteral("文件"),QStringLiteral("行"),QStringLiteral("说明"),QStringLiteral("证据"),QStringLiteral("抑制理由")},suppressed_rows);
+        for(std::size_t i=0;i<result.analysis.suppressed_issues.size();++i)location(suppressed_table,i,text(result.analysis.suppressed_issues[i].file),result.analysis.suppressed_issues[i].line);
+        std::vector<QStringList> policy_rows;for(const auto& message:result.analysis.rule_diagnostics)policy_rows.push_back({text(message)});
+        fill(rule_diagnostics,{QStringLiteral("未应用的抑制 / 配置诊断")},policy_rows);
         int row = 0;
         for (const auto& symbol : result.analysis.symbols) if (!symbol.external) location(symbols_table, row++, text(symbol.file), symbol.line);
         for (std::size_t i = 0; i < metrics.size(); ++i) {
@@ -511,6 +524,7 @@ int main(int argc, char** argv) {
             << " metrics=" << result.analysis.metrics.size() << std::endl;
     };
     auto set_running = [&](bool running) {
+        suppress_action->setEnabled(!running&&!build_task.busy());
         open->setEnabled(!running); reopen->setEnabled(!running);
         rescan->setEnabled(!running && (!config_root.isEmpty()||!current.root.empty()));
         project_settings->setEnabled(!running&&!build_task.busy()&&!config_root.isEmpty());
@@ -630,6 +644,17 @@ int main(int argc, char** argv) {
             task_message->setText(QStringLiteral("工程设置已保存 · 重新扫描后生效；生成参数将执行 CMake 配置"));remember();
         }catch(const std::exception& e){QMessageBox::warning(&window,QStringLiteral("配置未保存"),text(e.what()));}
     });
+    QObject::connect(suppress_action,&QAction::triggered,[&]{
+        if(task.busy()||build_task.busy()||current.root.empty())return;
+        const auto row=issues_table->currentRow();if(row<0||static_cast<std::size_t>(row)>=current.analysis.issues.size())return;
+        bool ok=false;const auto reason=QInputDialog::getMultiLineText(&window,QStringLiteral("抑制问题"),QStringLiteral("请填写复核理由；源码变化后该抑制将失效"),{},&ok);if(!ok)return;
+        try{
+            auto config=capture_config();const auto entry=codeguard::suppress_issue(current,current.analysis.issues[row],bytes(reason));
+            std::erase_if(config.suppressions,[&](const auto& s){return s.rule_id==entry.rule_id&&s.file==entry.file&&s.line==entry.line&&s.column==entry.column;});config.suppressions.push_back(entry);
+            codeguard::save_project_config(codeguard::from_utf8(current.root),codeguard::from_utf8(bytes(database)),config);apply_config(config);
+            task_message->setText(QStringLiteral("抑制已保存 · 重新扫描后生效，旧快照保留；可在工程设置中管理抑制"));
+        }catch(const std::exception& e){QMessageBox::warning(&window,QStringLiteral("未保存抑制"),text(e.what()));}
+    });
     QObject::connect(open, &QPushButton::clicked, [&]() {
         if (task.busy()||build_task.busy()) return;
         auto root = QFileDialog::getExistingDirectory(&window, QStringLiteral("选择 C/C++ 工程目录"));
@@ -690,9 +715,10 @@ int main(int argc, char** argv) {
             build_table->setCurrentCell(row,0);build_table->scrollToItem(build_table->item(row,0));
             build_log->setPlainText(text(step.name+" | "+step.result.status+" | exit="+std::to_string(step.result.exit_code)+"\nstdout:\n"+step.result.stdout_text+"\nstderr:\n"+step.result.stderr_text+
                 (step.result.output_truncated?"\n[output truncated]\n":"")+"\ncommand:\n"+step.command));
-        }catch(const std::exception&e){build_log->setPlainText(text(e.what()));}
+        }catch(const std::exception&e){QMessageBox::warning(&window,QStringLiteral("抑制未保存"),text(e.what()));}
     });
     build_task.updated=[&](const std::string& phase){
+        suppress_action->setEnabled(false);
         project_settings->setEnabled(false);generate->setEnabled(false);
         open->setEnabled(false);rescan->setEnabled(false);reopen->setEnabled(false);choose_commands->setEnabled(false);commands_path->setEnabled(false);thread_count->setEnabled(false);
         build_start->setEnabled(false);build_history->setEnabled(false);build_output->setEnabled(false);build_target->setEnabled(false);build_compiler->setEnabled(false);build_jobs->setEnabled(false);build_timeout->setEnabled(false);
@@ -926,12 +952,36 @@ int main(int argc, char** argv) {
     }
     // Deterministic UI acceptance: real controls, tasks and a separate restart process.
     if(!configuration_smoke.isEmpty()){
-        if(configuration_smoke!="import"&&configuration_smoke!="restore")return 1;
+        if(configuration_smoke!="import"&&configuration_smoke!="restore"&&configuration_smoke!="rules")return 1;
         auto* pulse=new QTimer(&window);pulse->setInterval(50);
         QObject::connect(pulse,&QTimer::timeout,[&,pulse,stage=0,ticks=0]() mutable {
             try{
                 if(++ticks>2000)throw std::runtime_error("configuration window acceptance timed out");
                 if(task.busy()||build_task.busy()||current.id<=0)return;
+                if(configuration_smoke=="rules"){
+                    auto require=[](bool ok,const char* message){if(!ok)throw std::runtime_error(message);};
+                    if(stage==0){
+                        require(current.analysis.issues.size()==1,"rule GUI initial issue missing");++stage;
+                        QTimer::singleShot(0,[&]{auto* dialog=window.findChild<QDialog*>("projectSettings");if(!dialog){app.exit(1);return;}
+                            auto* severity=dialog->findChild<QComboBox*>("severity_CG002");severity->setCurrentIndex(severity->findData("info"));dialog->accept();});
+                        pulse->stop();project_settings->click();pulse->start();rescan->click();return;
+                    }
+                    if(stage==1){
+                        require(current.analysis.issues.size()==1&&issues_table->item(0,0)->text()=="info","severity did not update UI");++stage;
+                        QTimer::singleShot(0,[&]{auto* dialog=window.findChild<QInputDialog*>();if(!dialog){app.exit(1);return;}dialog->setTextValue(QStringLiteral("已复核：演示用缺陷，保留测试"));dialog->accept();});
+                        issues_table->setCurrentCell(0,0);pulse->stop();suppress_action->trigger();pulse->start();rescan->click();return;
+                    }
+                    if(stage==2){
+                        require(current.analysis.issues.empty()&&suppressed_table->rowCount()==1&&suppressed_table->item(0,6)->text().contains(QStringLiteral("已复核")),"suppressed reason missing from UI");
+                        const auto dir=QFileInfo(database).absolutePath();tabs->setCurrentWidget(suppressed_table);window.grab().save(dir+"/rules-suppressed.png");
+                        ProjectSettings dialog(codeguard::from_utf8(current.root),capture_config(),&window);dialog.show();auto* pages=dialog.findChild<QTabWidget*>();pages->setCurrentIndex(pages->count()-1);app.processEvents();dialog.grab().save(dir+"/rules-settings.png");
+                        dialog.resize(700,560);app.processEvents();dialog.grab().save(dir+"/rules-settings-compact.png");
+                        dialog.findChild<QTableWidget*>("ruleSuppressions")->setCurrentCell(0,0);dialog.findChild<QPushButton*>("removeSuppression")->click();
+                        auto config=dialog.configuration();codeguard::save_project_config(codeguard::from_utf8(current.root),codeguard::from_utf8(bytes(database)),config);apply_config(config);++stage;rescan->click();return;
+                    }
+                    require(current.analysis.issues.size()==1&&current.analysis.suppressed_issues.empty(),"removing suppression did not restore finding");
+                    std::cout<<"GUI_RULE_POLICY_OK"<<std::endl;pulse->stop();app.exit(0);return;
+                }
                 if(configuration_smoke=="restore"){
                     if(project_config.threads!=2||project_config.build.target!="demo"||project_config.disabled_rules!=std::vector<std::string>{"CG004"}||commands_path->text().isEmpty()||build_target->text()!="demo")
                         throw std::runtime_error("restart did not restore project controls");

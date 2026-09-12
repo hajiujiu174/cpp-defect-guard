@@ -7,6 +7,7 @@
 #include <regex>
 #include <set>
 #include <cwctype>
+#include <tuple>
 
 namespace codeguard {
 ScanOptions configured_scan_options(const fs::path& root,const ProjectConfig& config) {
@@ -20,6 +21,7 @@ ScanOptions configured_scan_options(const fs::path& root,const ProjectConfig& co
         options.compile_commands=effective.compile_commands;options.command_choices=effective.command_choices;
     }
     options.threads=effective.threads;options.disabled_rules=effective.disabled_rules;options.ignored_paths=effective.build.copy_excludes;
+    options.rule_severities=effective.rule_severities;options.suppressions=effective.suppressions;
     options.configuration=encode_config(effective);return options;
 }
 bool project_path_inside(const fs::path& path, const fs::path& root) {
@@ -68,22 +70,36 @@ void validate_config(const ProjectConfig& c) {
         if(std::none_of(catalog.begin(),catalog.end(),[&](const auto& r){return r.id==id;}))throw std::invalid_argument("unknown rule: "+id);
     }
     for(const auto& [file,id]:c.command_choices)if(file.empty()||!std::regex_match(id,std::regex("[0-9a-f]{64}")))throw std::invalid_argument("invalid compile command selection");
+    for(const auto& [id,severity]:c.rule_severities){
+        (void)rule_info(id);if(severity!="error"&&severity!="warning"&&severity!="info")throw std::invalid_argument("rule severity must be error, warning or info");
+    }
+    if(c.suppressions.size()>10000)throw std::invalid_argument("too many suppressions");
+    std::set<std::tuple<std::string,std::string,int,int>> suppression_keys;
+    for(const auto& s:c.suppressions){
+        (void)rule_info(s.rule_id);validate_relative_directory(s.file);
+        if(utf8_path(from_utf8(s.file).lexically_normal())!=s.file)throw std::invalid_argument("suppression file must be a normalized project-relative path using /");
+        if(s.line<1||s.column<1||!std::regex_match(s.source_hash,std::regex("fnv1a64-v1:[0-9a-f]{16}")))throw std::invalid_argument("suppression needs a saved source hash and exact positive line/column");
+        if(s.reason.size()>2000||s.reason.find_first_not_of(" \t\r\n")==std::string::npos||s.reason.find('\0')!=std::string::npos)throw std::invalid_argument("suppression requires a non-empty reason up to 2000 UTF-8 bytes");
+        if(!suppression_keys.emplace(s.rule_id,s.file,s.line,s.column).second)throw std::invalid_argument("duplicate suppression location");
+    }
 }
 std::string encode_config(const ProjectConfig& c) {
     validate_config(c);std::ostringstream out;
-    out<<"CodeGuardProjectConfig 1\n"<<c.analysis_enabled<<' '<<c.auto_discover<<' '<<c.threads<<' '<<c.build.jobs<<' '<<c.build.timeout.count()<<'\n';
+    out<<"CodeGuardProjectConfig 2\n"<<c.analysis_enabled<<' '<<c.auto_discover<<' '<<c.threads<<' '<<c.build.jobs<<' '<<c.build.timeout.count()<<'\n';
     for(const auto& s:std::vector<std::string>{c.compile_commands,utf8_path(c.build.output_directory),c.build.cmake,c.build.ctest,c.build.git,c.build.generator,c.build.c_compiler,c.build.cxx_compiler,c.build.target,c.build.build_type})out<<std::quoted(s)<<'\n';
     for(const auto* list:{&c.build.cmake_definitions,&c.build.copy_includes,&c.build.copy_excludes,&c.disabled_rules}) {
         out<<list->size()<<'\n';for(const auto& s:*list)out<<std::quoted(s)<<'\n';
     }
     out<<c.command_choices.size()<<'\n';for(const auto& [file,id]:c.command_choices)out<<std::quoted(file)<<' '<<std::quoted(id)<<'\n';
+    out<<c.rule_severities.size()<<'\n';for(const auto& [id,severity]:c.rule_severities)out<<std::quoted(id)<<' '<<std::quoted(severity)<<'\n';
+    out<<c.suppressions.size()<<'\n';for(const auto& s:c.suppressions)out<<std::quoted(s.rule_id)<<' '<<std::quoted(s.file)<<' '<<s.line<<' '<<s.column<<' '<<std::quoted(s.source_hash)<<' '<<std::quoted(s.reason)<<'\n';
     const auto payload=out.str();if(payload.size()>1024*1024||payload.find('\0')!=std::string::npos)throw std::invalid_argument("project configuration is too large or contains NUL");
     return payload;
 }
 ProjectConfig decode_config(const std::string& payload) {
     if(payload.size()>1024*1024||payload.find('\0')!=std::string::npos)throw std::invalid_argument("invalid project configuration size or NUL");
     std::istringstream in(payload);std::string magic;int version=0;in>>magic>>version;
-    if(magic!="CodeGuardProjectConfig"||version!=1)throw std::invalid_argument("unsupported project configuration version; existing settings preserved");
+    if(magic!="CodeGuardProjectConfig"||(version!=1&&version!=2))throw std::invalid_argument("unsupported project configuration version; existing settings preserved");
     ProjectConfig c;int enabled=-1,discover=-1;std::int64_t timeout=0;
     in>>enabled>>discover>>c.threads>>c.build.jobs>>timeout;
     if((enabled!=0&&enabled!=1)||(discover!=0&&discover!=1))throw std::invalid_argument("invalid configuration switches");
@@ -94,6 +110,10 @@ ProjectConfig decode_config(const std::string& payload) {
     auto count=[&]{std::size_t n=10001;in>>n;if(!in||n>10000)throw std::invalid_argument("invalid configuration list");return n;};
     for(auto* list:{&c.build.cmake_definitions,&c.build.copy_includes,&c.build.copy_excludes,&c.disabled_rules})for(auto n=count();n;--n){std::string s;in>>std::quoted(s);list->push_back(s);}
     for(auto n=count();n;--n){std::string file,id;in>>std::quoted(file)>>std::quoted(id);if(!c.command_choices.emplace(file,id).second)throw std::invalid_argument("duplicate command selection");}
+    if(version>=2){
+        for(auto n=count();n;--n){std::string id,severity;in>>std::quoted(id)>>std::quoted(severity);if(!c.rule_severities.emplace(id,severity).second)throw std::invalid_argument("duplicate rule severity");}
+        for(auto n=count();n;--n){RuleSuppression s;in>>std::quoted(s.rule_id)>>std::quoted(s.file)>>s.line>>s.column>>std::quoted(s.source_hash)>>std::quoted(s.reason);c.suppressions.push_back(std::move(s));}
+    }
     if(!in)throw std::invalid_argument("truncated project configuration");in>>std::ws;
     if(!in.eof())throw std::invalid_argument("unexpected trailing configuration data");
     validate_config(c);return c;
