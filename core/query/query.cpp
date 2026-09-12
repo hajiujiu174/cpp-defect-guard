@@ -254,7 +254,7 @@ std::string query_value_text(const QueryValue& value) {
 QueryResult execute_query(const ScanResult& scan, const std::string& source) {
     const auto ast = parse_query(source);
     const auto plan = analyze(ast, source); // validate even on empty input
-    if (ast.table != "files" && ast.table != "builds" && scan.analysis.status == "not_requested")
+    if (ast.table != "files" && ast.table != "builds" && ast.table != "rule_diagnostics" && scan.analysis.status == "not_requested")
         throw QueryError(source, ast.table_offset, "table requires a Clang analysis snapshot");
     const auto data = materialize(scan, ast.table);
     QueryResult result; result.analysis_status = scan.analysis.status; result.scan_id = scan.id; result.scanned_rows = data.size();

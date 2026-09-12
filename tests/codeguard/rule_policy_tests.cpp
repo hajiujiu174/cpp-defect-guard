@@ -44,6 +44,9 @@ void policy(){
     {cg::SqliteDatabase write(f.db);write.save(failed);}
     check(!db.latest(original.root).analysis.rule_diagnostics.empty(),"policy diagnostics persist");
     check(cg::execute_query(db.latest(original.root),"SELECT message FROM rule_diagnostics").rows.size()==1,"diagnostics query");
+    auto inventory=original;inventory.analysis.issues.clear();inventory.analysis.status="not_requested";cg::apply_rule_policy(inventory,config);
+    check(cg::execute_query(inventory,"SELECT message FROM rule_diagnostics").rows.size()==1,"unapplied policy remains queryable when analysis is disabled");
+    rejects([&]{cg::execute_query(inventory,"SELECT rule_id FROM issues");},"inventory still cannot claim an analyzed empty issue list");
     for(const auto& rule:cg::rule_catalog())for(const auto& level:{"info","warning","error"}){
         auto sample=original;sample.analysis.issues.front().rule_id=rule.id;sample.analysis.issues.front().severity=rule.severity;
         cg::ProjectConfig settings;settings.rule_severities[rule.id]=level;
