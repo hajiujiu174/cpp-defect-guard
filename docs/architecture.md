@@ -31,7 +31,7 @@ src/defectguard/    → 原 Python 原型，兼容保留；尚未迁入新 Core
 
 SQLite schema 2 在 `project → scan → file` 上新增 `analysis / translation_unit / symbol / function_metric / graph_edge / coverage`。已知 schema 1 可事务式增量升级，历史文件快照不变；只读打开 schema 1 不做升级。SQL 参数均绑定；每次扫描与分析一起事务提交，失败回滚。独立 `application_id` 拒绝旧 Python runs 数据库及未知版本。CLI 查询命令使用只读连接。
 
-当前 schema 3 进一步新增 `issue / build_run / build_step`，保存规则证据与构建测试全过程；analysis 保存实际线程数和分析耗时。schema 2→3 为附加事务迁移。多 TU 线程池各自产生 DTO，协调线程确定性合并后，把完整快照交给单一数据库写线程提交；不进行多个 SQLite 连接的并发写入。工程管理经 `core/testing/engineering.cpp → ProcessRunner` 执行副本内 CMake/CTest，并只读获取 Git 信息，详见 [Level 3](level3-acceptance.md)。
+schema 3 阶段进一步新增 `issue / build_run / build_step`，保存规则证据与构建测试全过程；analysis 保存实际线程数和分析耗时。schema 2→3 为附加事务迁移。多 TU 线程池各自产生 DTO，协调线程确定性合并后，把完整快照交给单一数据库写线程提交；不进行多个 SQLite 连接的并发写入。工程管理经 `core/testing/engineering.cpp → ProcessRunner` 执行副本内 CMake/CTest，并只读获取 Git 信息，详见 [Level 3](level3-acceptance.md)。
 
 分析器逐 TU 隔离 Clang 上下文，成功单元才合并符号/指标/边；失败单元丢弃不可靠 AST，诊断单独入库。因此“文件清单完整、部分 TU 解析失败”可保存 `partial` 快照，而“文件枚举或分析期间源码变化”不会保存。`complete` 仅说明所有清单中的源文件 TU 成功，不表示孤立头文件也被分析。符号身份采用 USR，内部/无链接符号补充文件路径，声明合并优先定义；图保留定位信息并按端点去重计算结构。详细语义与限制见 [Clang 接入说明](codeguard-analysis.md)。
 

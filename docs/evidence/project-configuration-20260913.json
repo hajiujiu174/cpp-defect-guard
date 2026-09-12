@@ -1,0 +1,155 @@
+{
+  "date": "2026-09-13",
+  "code_commit": "6ab64d1",
+  "scope": "P1-1 local real project configuration checks; selected variants only; no full-repository accuracy claim",
+  "source_of_inputs": "config/real-projects.lock.json; local fixed source clones and P0 selection manifest",
+  "projects": [
+    {
+      "project": "tinyxml2",
+      "commit": "321ea883b7190d4e85cae5512a12e5eaa8f8731f",
+      "analysis": "partial",
+      "units": {
+        "missing_command": 1,
+        "success": 2
+      },
+      "issues": 0,
+      "selected_commands": [],
+      "original_tracked_files_unchanged": true,
+      "flow": "config -> prepare -> scan -> build/test"
+    },
+    {
+      "project": "fmt",
+      "commit": "123913715afeb8a437e6388b4473fcc4753e1c9a",
+      "analysis": "partial",
+      "units": {
+        "missing_command": 16,
+        "success": 30
+      },
+      "issues": 0,
+      "selected_commands": [
+        {
+          "file": "src\\format.cc",
+          "fingerprint": "1ad9882cd309e11b8be6ef64bbcb6220a1e6f8da5d27f8f370d933a76385f84e"
+        },
+        {
+          "file": "src\\os.cc",
+          "fingerprint": "9e53c23216fe647db21c1e04954a3237b5c7cc4b03b31102511644cb8c91850e"
+        },
+        {
+          "file": "test\\gtest-extra.cc",
+          "fingerprint": "162b9ad5b4bd4a0c3a911b79f2c2f78530468f01f68a404c4b83fb1e7dd27442"
+        },
+        {
+          "file": "test\\test-main.cc",
+          "fingerprint": "0b16e80157b408de8b3e9917880aed48bca53ee507e48e49eb9ad7365808a1d1"
+        },
+        {
+          "file": "test\\util.cc",
+          "fingerprint": "6956c4900699903b8fd29be110322a4f716e12502cc3ac477122f033a9c68e49"
+        }
+      ],
+      "original_tracked_files_unchanged": true,
+      "flow": "raw database -> native command choices -> scan; semantic rows equal P0 selected database"
+    }
+  ],
+  "artifacts": "artifacts/p1-1-real-config-2",
+  "verification_script": "artifacts/p1-1-real-config-check.py",
+  "windows_ci": {
+    "run": 34710000310,
+    "commit": "6ab64d1ce793092c7dec9e74fa173221d61c63be",
+    "core": {
+      "tests": 48,
+      "passed": 47,
+      "skipped": 1
+    },
+    "analysis_qt": {
+      "tests": 75,
+      "passed": 74,
+      "skipped": 1
+    },
+    "skip_reason": "Windows symlink privilege unavailable",
+    "projects": [
+      {
+        "project": "cjson",
+        "commit": "c859b25da02955fef659d658b8f324b5cde87be3",
+        "units": {
+          "success": 27,
+          "missing_command": 49
+        },
+        "issues": {
+          "CG001": 26
+        },
+        "ctest": {
+          "name": "(empty)",
+          "tests": "22",
+          "failures": "0",
+          "disabled": "0",
+          "skipped": "0",
+          "hostname": "",
+          "time": "0",
+          "timestamp": "2026-09-12T18:06:40"
+        },
+        "source_unchanged": true,
+        "thread_results_equal": true,
+        "issue_locations_match_review": true,
+        "accepted": true
+      },
+      {
+        "project": "tinyxml2",
+        "commit": "321ea883b7190d4e85cae5512a12e5eaa8f8731f",
+        "units": {
+          "missing_command": 1,
+          "success": 2
+        },
+        "issues": {},
+        "ctest": {
+          "name": "Win32-ninja",
+          "tests": "1",
+          "failures": "0",
+          "disabled": "0",
+          "skipped": "0",
+          "hostname": "runnervmbkp6f",
+          "time": "0",
+          "timestamp": "2026-09-12T18:06:46"
+        },
+        "source_unchanged": true,
+        "thread_results_equal": true,
+        "issue_locations_match_review": true,
+        "accepted": true
+      },
+      {
+        "project": "fmt",
+        "commit": "123913715afeb8a437e6388b4473fcc4753e1c9a",
+        "units": {
+          "missing_command": 16,
+          "success": 30
+        },
+        "issues": {},
+        "ctest": {
+          "name": "(empty)",
+          "tests": "21",
+          "failures": "0",
+          "disabled": "0",
+          "skipped": "0",
+          "hostname": "",
+          "time": "0",
+          "timestamp": "2026-09-12T18:09:11"
+        },
+        "source_unchanged": true,
+        "thread_results_equal": true,
+        "issue_locations_match_review": true,
+        "accepted": true
+      }
+    ],
+    "clean_runtime": {
+      "chinese_font": true,
+      "timestamp": "2026-09-12T18:09:56.4984364+00:00",
+      "package": "D:\\a\\cpp-defect-guard\\cpp-defect-guard\\artifacts\\unpacked\\CodeGuard-Windows-x64",
+      "packaged_resource_header": "D:/a/cpp-defect-guard/cpp-defect-guard/artifacts/unpacked/CodeGuard-Windows-x64/resources/clang/include/stddef.h",
+      "cli": true,
+      "clean_path": true,
+      "gui": true,
+      "clang": true
+    }
+  }
+}
