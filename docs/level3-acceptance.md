@@ -12,6 +12,8 @@
 
 ## 使用入口
 
+P1-3 新增版本报告见 [报告与版本对比](reports-and-comparison.md)：schema 6 保存分析溯源，Core/CLI/Qt 可导出指定历史批次并区分告警减少的原因。本页历史测试计数不替代该项新版验收。
+
 ```powershell
 # 构建并测试完整 Windows 版本
 .\scripts\run_codeguard.ps1 -Analysis -RunTests

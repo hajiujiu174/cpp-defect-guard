@@ -52,6 +52,8 @@ cpp-defect-guard/
 
 ## 后续实施顺序（P0 历史记录）
 
+P1-3 当前进展：历史批次读取、HTML/JSON 导出、CLI/Qt 报告选择以及问题版本对比已实现，schema 6 保留实际扫描范围、分析器和编译命令版本、TU 覆盖来源；当前验收进行中，见 [报告与版本对比](reports-and-comparison.md)。下段 P0 记录的“下一项”属于当时排期。
+
 规则、Issue 存储、多 TU 分析池、集中写入、ProcessRunner 及构建/测试/Git 业务服务已经实现。P0-1 Windows CI 与可复现构建已完成，历史记录见 [Windows CI](windows-ci.md)。P0-2 已通过固定 cJSON、TinyXML-2、fmt 的本地及远端验收，共 44 个上游 CTest 全部通过；26 条 API 提醒均已复核，未覆盖文件仍如实报告。本轮产品回归为 Core 43 通过、1 跳过，Clang/Qt 65 通过、1 跳过，独立运行包检查通过，详见 [真实工程验收](real-project-acceptance.md)。下一项为 P1-1 工程导入与配置管理。Linux 全功能环境暂缓，AI 新训练和自动修复在工程主线稳定后推进。
 
 本次查询验收与运行方式见 [查询语言说明](query-language.md)。

@@ -12,6 +12,8 @@
 
 ## Level 3 规则与工程闭环
 
+P1-3 已加入 C++ HTML/JSON 报告及扫描版本对比，CLI 使用 `scans` / `report`，Qt 顶部使用“报告与对比”。报告保留问题、覆盖、复杂度、构建测试及配置，区分抑制、解析失败和待复核的未再检出；操作及验收进度见 [报告与版本对比](docs/reports-and-comparison.md)。当前存储为 schema 6，旧快照可读且缺失溯源保持未知。
+
 v0.3.0 已补齐五类 Clang AST 规则、多 TU 线程池、单写线程批量事务、Windows/POSIX ProcessRunner、源码副本内 CMake/CTest、只读 Git 信息及构建历史。CLI/Qt 共用 Core，SQLite schema 3 保存 Issue 和 BuildTest 记录，查询语言新增 `issues` / `builds`。Qt 已提供问题定位、线程设置、后台构建测试、停止、历史与 Git 日志。
 
 ```powershell

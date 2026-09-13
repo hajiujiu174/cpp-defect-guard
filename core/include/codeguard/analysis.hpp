@@ -24,6 +24,8 @@ struct GraphEdge {
 struct TranslationUnitResult {
     std::string file, status, diagnostics;
     int indirect_calls = 0;
+    std::string command_fingerprint = {};
+    std::vector<std::string> covered_files = {}; // files contributed by this successful TU
 };
 struct AnalysisResult {
     std::string status = "not_requested";
@@ -39,6 +41,7 @@ struct AnalysisResult {
     unsigned workers = 0;
     std::int64_t elapsed_ms = 0;
     std::string configuration;
+    std::string analyzer_revision; // analyzer sources + linked Clang version; empty in old snapshots
 };
 bool clang_analysis_available();
 AnalysisResult analyze_project(const ScanResult& inventory, const std::string& compilation_database, const ScanContext& context = {}, unsigned threads = 0, const std::map<std::string,std::string>& choices = {},const std::vector<std::string>& disabled_rules = {});

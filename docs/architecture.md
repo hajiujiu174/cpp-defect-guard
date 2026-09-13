@@ -2,6 +2,8 @@
 
 ## 当前架构（新方案 V1.0）
 
+P1-3 更新：当前存储为 schema 6，增加扫描范围、分析器版本、每 TU 的命令指纹和覆盖来源；`core/report` 负责仅基于快照的比较和 HTML/JSON 输出。历史报告按批次加载全部关联构建，Qt 报告对话框后台读取/导出。旧库新字段保留未知，详见 [报告与版本对比](reports-and-comparison.md)。下段保留 P1-2 迁移说明。
+
 2026-09-13：当前存储版本为 schema 5，在 schema 4 的工程配置及溯源上增加已抑制问题和规则配置诊断。`core/project/configuration.cpp` 提供纯 C++ 配置校验、编码、发现与恢复；配置写版本 2，兼容读取版本 1。Qt 设置页及 CLI 复用该模型。下文 schema 2/3 说明保留迁移顺序，具体流程见 [配置管理](project-configuration.md) 和 [规则引擎](rule-engine.md)。
 
 ```text

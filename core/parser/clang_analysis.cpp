@@ -309,6 +309,7 @@ AnalysisResult analyze_project(const ScanResult& inventory, const std::string& d
     if (path.filename() != "compile_commands.json") throw std::invalid_argument("expected compile_commands.json or its directory");
     const auto commands=read_commands(utf8_path(path));
     AnalysisResult result; result.compile_commands = utf8_path(path);
+    result.analyzer_revision="sha256:" CODEGUARD_ANALYZER_REVISION ";clang:"+getClangFullVersion();
     const auto packaged_resources=from_utf8(executable_directory())/"resources"/"clang";
     const auto resource_directory=fs::is_regular_file(packaged_resources/"include"/"stddef.h") ? utf8_path(packaged_resources) : std::string(CODEGUARD_RESOURCE_DIR);
     std::map<std::string, std::string> files;
@@ -368,8 +369,10 @@ AnalysisResult analyze_project(const ScanResult& inventory, const std::string& d
         } else if (!selected) {
             unit.status = "ambiguous_command"; unit.diagnostics = "Multiple build configurations; select a command in project settings or provide a single-configuration compilation database.";
         } else if (!safe_arguments(selected->CommandLine)) {
+            unit.command_fingerprint=command_id(*selected);
             unit.status = "rejected_command"; unit.diagnostics = "Plugin, response-file, module or side-effect compiler option is not supported in read-only analysis.";
         } else {
+            unit.command_fingerprint=command_id(*selected);
             Collector output{files, selected->Directory,disabled_rules}; Factory factory(output); Diagnostics diagnostic;
             OneCommand command(*selected);
             // A private VFS working directory avoids mutating the GUI process CWD.
@@ -386,6 +389,7 @@ AnalysisResult analyze_project(const ScanResult& inventory, const std::string& d
             if (code == 0) {
                 unit.indirect_calls = output.indirect;
                 output.covered.insert(file.path);
+                unit.covered_files.assign(output.covered.begin(),output.covered.end());
                 part.covered = std::move(output.covered);
                 part.symbols = std::move(output.symbols); part.metrics = std::move(output.metrics);
                 part.edges = std::move(output.result.edges); part.issues = std::move(output.result.issues);

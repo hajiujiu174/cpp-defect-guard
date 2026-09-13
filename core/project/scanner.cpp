@@ -78,6 +78,15 @@ ScanResult scan_project(const fs::path& input, const ScanOptions& options) {
     std::set<std::string> ignored;
     for (const auto& name : options.ignored_directories) ignored.insert(lower(name));
     const std::set<std::string> extensions{ ".c", ".cc", ".cpp", ".cxx", ".h", ".hh", ".hpp", ".hxx" };
+    // Keep the actual scope, including CLI --ignore additions, with the snapshot.
+    // Length-prefixed fields avoid ambiguity for paths containing delimiters.
+    result.inventory_policy="CodeGuardInventoryPolicy 1\n";
+    auto append_scope=[&](const std::string& value){result.inventory_policy+=std::to_string(value.size())+":"+value+"\n";};
+    for(const auto& name:ignored)append_scope(name);
+    result.inventory_policy+="relative_exclusions\n";
+    std::set<std::string> paths;
+    for(const auto& path:options.ignored_paths)paths.insert(utf8_path(from_utf8(path).lexically_normal()));
+    for(const auto& path:paths)append_scope(path);
     // Explicit stack permits one unreadable directory to fail without aborting siblings.
     std::vector<fs::path> pending{root};
     while (!pending.empty()) {

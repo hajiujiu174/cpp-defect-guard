@@ -24,6 +24,8 @@
 
 ## Level 3 完整：课程交付目标
 
+P1-3 报告与版本对比已实现，正在验收：HTML/JSON、扫描历史及全部关联构建、CLI/Qt 导出、抑制/规则变化/解析失败等区别，见 [专项说明](reports-and-comparison.md)。后续 P2-1 仍需完成既有查询/历史后台化和取消、正确失效的 TU 缓存。
+
 1. 已实现自研查询 Lexer → Parser → AST → 语义分析 → 执行计划 → 执行器；覆盖 WHERE 优先级、括号、类型检查、多字段排序与 LIMIT。CLI / Qt 共用八类快照实体查询（含 issues/builds/suppressed_issues/rule_diagnostics），不把用户查询拼入 SQLite。当前内存执行、GUI 显示最多 2000 行；后续按真实规模补充性能实验与异步查询，见 [查询语言](query-language.md)。
 2. 已实现有界任务队列、多 TU 线程池、单写线程批量事务；提供 1/2/4/8 线程实测脚本，结果按原始数据记录。任务独立 Clang 文件系统，支持取消、进度、异常传播与提交前回滚。
 3. 已实现 Windows/POSIX ProcessRunner，参数数组、stdout/stderr、超时/取消与进程组清理；接入副本内 CMake/CTest 和受控 Git 读取。

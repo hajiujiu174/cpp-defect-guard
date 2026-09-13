@@ -1,5 +1,6 @@
 #include "codeguard/application.hpp"
 #include "codeguard/query.hpp"
+#include "report_commands.hpp"
 #include <iostream>
 #include <stdexcept>
 #include <algorithm>
@@ -82,6 +83,8 @@ int run(const std::vector<std::string>& args) {
         std::cout << "CodeGuard - C++ project inventory and optional Clang analysis\n"
                      "codeguard-cli scan PROJECT --database DATABASE [--compile-commands DIRECTORY_OR_JSON] [--ignore DIRECTORY]...\n"
                      "codeguard-cli status PROJECT --database DATABASE\n"
+                     "codeguard-cli scans PROJECT --database DATABASE [--before ID] [--limit 1..500]\n"
+                     "codeguard-cli report PROJECT --database DATABASE --output NEW_DIRECTORY [--scan ID] [--baseline OLDER_ID]\n"
                      "codeguard-cli symbols PROJECT --database DATABASE [--prefix NAME]\n"
                      "codeguard-cli metrics PROJECT --database DATABASE\n"
                      "codeguard-cli graph PROJECT --database DATABASE --kind call|include\n"
@@ -108,6 +111,7 @@ int run(const std::vector<std::string>& args) {
         return 0;
     }
     const auto command = args[0];
+    if(const auto result=report_command(args))return *result;
     if(command=="discover") {
         if(args.size()!=2)throw std::invalid_argument("discover requires PROJECT");
         const auto paths=codeguard::discover_compilation_databases(codeguard::from_utf8(args[1]));

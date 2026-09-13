@@ -1,0 +1,60 @@
+{
+  "date": "2026-09-13",
+  "stage": "P1-3",
+  "status": "local validation complete; remote CI pending",
+  "local_base_commit": "cf3faa0f2d1bfee8d92eee358749c7e074918d76",
+  "local_worktree": "P1-3 uncommitted implementation",
+  "database_schema": 6,
+  "report_format": {
+    "name": "CodeGuardReport",
+    "version": 1
+  },
+  "toolchain_lock_sha256": "eea718ec1b22b719053e52161ab6a0a3774be42fa7e2bc79daba8345feb45083",
+  "local_tests": {
+    "core": {
+      "tests": 55,
+      "failures": 0,
+      "skipped": 1,
+      "passed": 54,
+      "path": "artifacts/p1-3-core-tests.xml",
+      "sha256": "678a2984432376fbee1d963c446d68ee292256254c067c7adcdf50436e70ce4b"
+    },
+    "analysis": {
+      "tests": 92,
+      "failures": 0,
+      "skipped": 1,
+      "passed": 91,
+      "path": "artifacts/p1-3-analysis-tests.xml",
+      "sha256": "5b6816b8acb28a7aab9a0de8d51e233d0db4f4a383896534036b88bb4fe36eeb"
+    }
+  },
+  "archived_real_project_export": {
+    "project": "cjson",
+    "source_available": false,
+    "input_schema": 5,
+    "input_database": "artifacts/ci-run-34712210281/real-projects/cjson/threads-4.sqlite3",
+    "input_database_sha256": "07211e99aecd0a004950072a42ef0c525a3f425570bca35ec5a6870e09c360ee",
+    "database_unchanged": true,
+    "analysis_status": "partial",
+    "issues": 26,
+    "tests_total": 22,
+    "all_build_logs_loaded": true,
+    "unknown_provenance_retained": true,
+    "output": "artifacts/p1-3-archived-cjson",
+    "report_json_sha256": "74158c3d75f33875ae64530c3a7cdb808bc258c159c31afcfa858351338bb8aa"
+  },
+  "browser_review": {
+    "desktop": true,
+    "narrow_390px": true,
+    "page_overflow_px": 0,
+    "scripts": 0,
+    "markup_in_source_escaped": true,
+    "details_expansion": true,
+    "images": [
+      "output/playwright/report-desktop.png",
+      "output/playwright/report-mobile.png"
+    ]
+  },
+  "comparison_scope": "Saved source file hashes, actual inventory scope, selected compile command contents, analyzer version and per-TU contributed coverage. External header contents/full toolchain environment not snapshotted. not_detected means candidate for review, not proven correct repair.",
+  "remote_ci": null
+}

@@ -90,7 +90,7 @@ PRAGMA application_id=1128744018;
 PRAGMA user_version=1;
 COMMIT;
 )SQL");
-    } else if (id != application_id || (version < 1 || version > 5)) {
+    } else if (id != application_id || (version < 1 || version > 6)) {
         throw std::runtime_error("not a supported CodeGuard inventory database; use a separate new database");
     }
     state->version = static_cast<int>(scalar(state->db, "PRAGMA user_version"));
@@ -164,6 +164,18 @@ PRAGMA user_version=5;
 COMMIT;
 )SQL");state->version=5;
     }
+    if(state->version==5&&!read_only){
+        execute(state->db,R"SQL(
+BEGIN IMMEDIATE;
+ALTER TABLE scan ADD COLUMN inventory_policy TEXT NOT NULL DEFAULT '';
+ALTER TABLE analysis ADD COLUMN analyzer_revision TEXT NOT NULL DEFAULT '';
+ALTER TABLE translation_unit ADD COLUMN command_fingerprint TEXT NOT NULL DEFAULT '';
+CREATE TABLE unit_coverage(scan_id INTEGER NOT NULL REFERENCES scan(id),unit_file TEXT NOT NULL,file TEXT NOT NULL,
+ PRIMARY KEY(scan_id,unit_file,file));
+PRAGMA user_version=6;
+COMMIT;
+)SQL");state->version=6;
+    }
     impl_ = state.release();
 }
 SqliteDatabase::~SqliteDatabase() { delete impl_; }
@@ -182,10 +194,32 @@ void SqliteDatabase::save_configuration(const std::string& root,const ProjectCon
 }
 
 ScanResult SqliteDatabase::latest(const std::string& root) {
+    return load_snapshot(root,0,false);
+}
+ScanResult SqliteDatabase::snapshot(const std::string& root,std::int64_t scan_id,bool include_build_logs) {
+    if(scan_id<=0)throw std::invalid_argument("scan ID must be positive");
+    auto result=load_snapshot(root,scan_id,include_build_logs);
+    if(!result.id)throw std::invalid_argument("scan does not belong to the selected saved project");
+    return result;
+}
+std::vector<ScanSummary> SqliteDatabase::scans(const std::string& root,std::int64_t before_id,unsigned limit) {
+    if(before_id<0||limit==0||limit>500)throw std::invalid_argument("history needs a nonnegative cursor and a limit from 1 to 500");
+    std::string sql="SELECT s.id,s.scanned_at,";
+    sql+=impl_->version>=2?"COALESCE((SELECT status FROM analysis WHERE scan_id=s.id),'not_requested'),":"'not_requested',";
+    sql+="(SELECT COUNT(*) FROM file WHERE scan_id=s.id),";
+    sql+=impl_->version>=3?"(SELECT COUNT(*) FROM issue WHERE scan_id=s.id),":"0,";
+    sql+=impl_->version>=5?"(SELECT COUNT(*) FROM suppressed_issue WHERE scan_id=s.id) ":"0 ";
+    sql+="FROM scan s JOIN project p ON p.id=s.project_id WHERE p.root=? AND (?=0 OR s.id<?) ORDER BY s.id DESC LIMIT ?";
+    Statement query(impl_->db,sql.c_str());query.bind(1,root);query.bind(2,before_id);query.bind(3,before_id);query.bind(4,limit);
+    std::vector<ScanSummary> result;
+    while(query.next())result.push_back({query.number(0),query.text(1),query.text(2),query.number(3),query.number(4),query.number(5)});
+    return result;
+}
+ScanResult SqliteDatabase::load_snapshot(const std::string& root,std::int64_t scan_id,bool include_build_logs) {
     ScanResult result;
     result.root = root;
-    Statement scan(impl_->db, "SELECT s.id,s.scanned_at,s.added,s.changed,s.unchanged,s.removed FROM scan s JOIN project p ON p.id=s.project_id WHERE p.root=? ORDER BY s.id DESC LIMIT 1");
-    scan.bind(1, root);
+    Statement scan(impl_->db, "SELECT s.id,s.scanned_at,s.added,s.changed,s.unchanged,s.removed FROM scan s JOIN project p ON p.id=s.project_id WHERE p.root=? AND (?=0 OR s.id=?) ORDER BY s.id DESC LIMIT 1");
+    scan.bind(1, root);scan.bind(2,scan_id);scan.bind(3,scan_id);
     if (!scan.next()) return result;
     result.id = scan.number(0);
     result.scanned_at = scan.text(1);
@@ -193,6 +227,10 @@ ScanResult SqliteDatabase::latest(const std::string& root) {
     result.changed = scan.number(3);
     result.unchanged = scan.number(4);
     result.removed = scan.number(5);
+    if(impl_->version>=6){
+        Statement policy(impl_->db,"SELECT inventory_policy FROM scan WHERE id=?");policy.bind(1,result.id);
+        if(policy.next())result.inventory_policy=policy.text(0);
+    }
     Statement files(impl_->db, "SELECT path,language,hash,size,mtime,lines FROM file WHERE scan_id=? ORDER BY path");
     files.bind(1, result.id);
     while (files.next()) {
@@ -220,6 +258,16 @@ ScanResult SqliteDatabase::latest(const std::string& root) {
         Statement units(impl_->db, "SELECT file,status,diagnostics,indirect_calls FROM translation_unit WHERE scan_id=? ORDER BY file");
         units.bind(1, result.id);
         while (units.next()) output.units.push_back({units.text(0), units.text(1), units.text(2), static_cast<int>(units.number(3))});
+        if(impl_->version>=6){
+            Statement revision(impl_->db,"SELECT analyzer_revision FROM analysis WHERE scan_id=?");revision.bind(1,result.id);
+            if(revision.next())output.analyzer_revision=revision.text(0);
+            for(auto& unit:output.units){
+                Statement command(impl_->db,"SELECT command_fingerprint FROM translation_unit WHERE scan_id=? AND file=?");command.bind(1,result.id);command.bind(2,unit.file);
+                if(command.next())unit.command_fingerprint=command.text(0);
+                Statement covered(impl_->db,"SELECT file FROM unit_coverage WHERE scan_id=? AND unit_file=? ORDER BY file");covered.bind(1,result.id);covered.bind(2,unit.file);
+                while(covered.next())unit.covered_files.push_back(covered.text(0));
+            }
+        }
         Statement symbols(impl_->db, "SELECT usr,kind,name,file,line,col,is_definition,external FROM symbol WHERE scan_id=? ORDER BY usr");
         symbols.bind(1, result.id);
         while (symbols.next()) output.symbols.push_back({symbols.text(0), symbols.text(1), symbols.text(2), symbols.text(3),
@@ -244,7 +292,10 @@ ScanResult SqliteDatabase::latest(const std::string& root) {
                 static_cast<int>(issues.number(4)),issues.text(5),issues.text(6),issues.text(7),issues.text(8),issues.text(9)});
         }
     }
-    if (impl_->version >= 3) for (auto& run : builds(root)) if (run.scan_id == result.id) result.build_runs.push_back(std::move(run));
+    if (impl_->version >= 3) {
+        if(scan_id){result.build_runs=load_builds(root,include_build_logs,0,result.id,-1);result.build_logs_loaded=include_build_logs;}
+        else for(auto& run:builds(root))if(run.scan_id==result.id)result.build_runs.push_back(std::move(run));
+    }
     return result;
 }
 std::vector<ProjectSummary> SqliteDatabase::projects() {
@@ -277,6 +328,7 @@ void SqliteDatabase::save(ScanResult& result, const ScanContext& context) {
         scan.bind(5, static_cast<std::int64_t>(result.removed));
         scan.bind(6, result.root); scan.next();
         const auto id = sqlite3_last_insert_rowid(db);
+        Statement scope(db,"UPDATE scan SET inventory_policy=? WHERE id=?");scope.bind(1,result.inventory_policy);scope.bind(2,id);scope.next();
         for (const auto& file : result.files) {
             context.check();
             Statement insert(db, "INSERT INTO file(scan_id,path,language,hash,size,mtime,lines) VALUES(?,?,?,?,?,?,?)");
@@ -286,14 +338,17 @@ void SqliteDatabase::save(ScanResult& result, const ScanContext& context) {
             insert.next();
         }
         const auto& data = result.analysis;
-        Statement analysis(db, "INSERT INTO analysis(scan_id,status,compile_commands,workers,elapsed_ms,configuration) VALUES(?,?,?,?,?,?)");
+        Statement analysis(db, "INSERT INTO analysis(scan_id,status,compile_commands,workers,elapsed_ms,configuration,analyzer_revision) VALUES(?,?,?,?,?,?,?)");
         analysis.bind(1, id); analysis.bind(2, data.status); analysis.bind(3, data.compile_commands);
-        analysis.bind(4, data.workers); analysis.bind(5, data.elapsed_ms); analysis.bind(6,data.configuration); analysis.next();
+        analysis.bind(4, data.workers); analysis.bind(5, data.elapsed_ms); analysis.bind(6,data.configuration);analysis.bind(7,data.analyzer_revision); analysis.next();
         for (const auto& unit : data.units) {
             context.check();
-            Statement row(db, "INSERT INTO translation_unit VALUES(?,?,?,?,?)");
+            Statement row(db, "INSERT INTO translation_unit(scan_id,file,status,diagnostics,indirect_calls,command_fingerprint) VALUES(?,?,?,?,?,?)");
             row.bind(1, id); row.bind(2, unit.file); row.bind(3, unit.status); row.bind(4, unit.diagnostics);
-            row.bind(5, unit.indirect_calls); row.next();
+            row.bind(5, unit.indirect_calls);row.bind(6,unit.command_fingerprint); row.next();
+            for(const auto& file:unit.covered_files){
+                context.check();Statement covered(db,"INSERT INTO unit_coverage VALUES(?,?,?)");covered.bind(1,id);covered.bind(2,unit.file);covered.bind(3,file);covered.next();
+            }
         }
         for (const auto& symbol : data.symbols) {
             context.check();
@@ -361,10 +416,14 @@ void SqliteDatabase::save_build(BuildRun& run) {
     } catch (...) { if (!sqlite3_get_autocommit(db)) sqlite3_exec(db,"ROLLBACK",nullptr,nullptr,nullptr); throw; }
 }
 std::vector<BuildRun> SqliteDatabase::builds(const std::string& root, bool include_logs, std::int64_t only_id) {
+    return load_builds(root,include_logs,only_id,0,50);
+}
+std::vector<BuildRun> SqliteDatabase::load_builds(const std::string& root,bool include_logs,std::int64_t only_id,std::int64_t scan_id,int limit) {
     std::vector<BuildRun> result;
     if (impl_->version < 3) return result;
-    Statement query(impl_->db,"SELECT id,scan_id,root,started_at,status,workspace,target,git_revision,CASE WHEN ? THEN git_log ELSE '' END,source_unchanged FROM build_run WHERE root=? AND (?=0 OR id=?) ORDER BY id DESC LIMIT 50");
+    Statement query(impl_->db,"SELECT id,scan_id,root,started_at,status,workspace,target,git_revision,CASE WHEN ? THEN git_log ELSE '' END,source_unchanged FROM build_run WHERE root=? AND (?=0 OR id=?) AND (?=0 OR scan_id=?) ORDER BY id DESC LIMIT ?");
     query.bind(1,include_logs ? 1 : 0);query.bind(2,root);query.bind(3,only_id);query.bind(4,only_id);
+    query.bind(5,scan_id);query.bind(6,scan_id);query.bind(7,limit);
     while (query.next()) {
         BuildRun run; run.id=query.number(0); run.scan_id=query.number(1); run.root=query.text(2); run.started_at=query.text(3);
         run.status=query.text(4); run.workspace=query.text(5); run.target=query.text(6); run.git_revision=query.text(7); run.git_log=query.text(8); run.source_unchanged=query.number(9)!=0;

@@ -4,6 +4,7 @@
 #include "scan_task.hpp"
 #include "build_task.hpp"
 #include "project_settings.hpp"
+#include "report_dialog.hpp"
 #include <QSettings>
 #include <QStandardPaths>
 #include <QInputDialog>
@@ -114,7 +115,8 @@ int main(int argc, char** argv) {
     open->setObjectName("primary");
     auto* rescan = new QPushButton(QStringLiteral("重新扫描"), container); rescan->setEnabled(false);
     auto* reopen = new QPushButton(QStringLiteral("打开分析数据库"), container);
-    top->addWidget(open); top->addWidget(rescan); top->addWidget(reopen);
+    auto* report=new QPushButton(QStringLiteral("报告与对比"),container);report->setObjectName("openReports");report->setEnabled(false);
+    top->addWidget(open); top->addWidget(rescan); top->addWidget(reopen);top->addWidget(report);
     auto* choose_commands = new QPushButton(QStringLiteral("选择编译数据库"), container);
     choose_commands->setEnabled(codeguard::clang_analysis_available());
     auto* commands_path = new QLineEdit(container);
@@ -524,6 +526,7 @@ int main(int argc, char** argv) {
             << " metrics=" << result.analysis.metrics.size() << std::endl;
     };
     auto set_running = [&](bool running) {
+        report->setEnabled(!running&&!build_task.busy()&&current.id>0);
         suppress_action->setEnabled(!running&&!build_task.busy());
         open->setEnabled(!running); reopen->setEnabled(!running);
         rescan->setEnabled(!running && (!config_root.isEmpty()||!current.root.empty()));
@@ -635,6 +638,10 @@ int main(int argc, char** argv) {
         return task.start(codeguard::from_utf8(bytes(root)), codeguard::from_utf8(bytes(database)), options);
         } catch (...) {restore_selection();throw;}
     };
+    QObject::connect(report,&QPushButton::clicked,[&]{
+        if(task.busy()||build_task.busy()||current.id<=0)return;
+        ReportDialog dialog(current.root,codeguard::from_utf8(bytes(database)),&window);dialog.exec();
+    });
     QObject::connect(project_settings,&QPushButton::clicked,[&]{
         if(task.busy()||build_task.busy()||config_root.isEmpty())return;
         try{
@@ -680,6 +687,7 @@ int main(int argc, char** argv) {
             display(db.latest(projects.front().root));
             database = selected;
             view_database = selected;
+            report->setEnabled(true); // Saved reports remain available if source/config recovery fails.
             if(build_output->text().isEmpty())build_output->setText(QFileInfo(selected).absolutePath()+"/codeguard-builds");
             commands_path->setText(text(current.analysis.compile_commands));
             load_config(text(current.root));remember();set_running(false);
@@ -718,6 +726,7 @@ int main(int argc, char** argv) {
         }catch(const std::exception&e){QMessageBox::warning(&window,QStringLiteral("抑制未保存"),text(e.what()));}
     });
     build_task.updated=[&](const std::string& phase){
+        report->setEnabled(false);
         suppress_action->setEnabled(false);
         project_settings->setEnabled(false);generate->setEnabled(false);
         open->setEnabled(false);rescan->setEnabled(false);reopen->setEnabled(false);choose_commands->setEnabled(false);commands_path->setEnabled(false);thread_count->setEnabled(false);
@@ -946,18 +955,42 @@ int main(int argc, char** argv) {
             if(root.isEmpty()||saved_db.isEmpty())return;
             codeguard::SqliteDatabase db(codeguard::from_utf8(bytes(saved_db)),true);const auto saved=db.latest(bytes(root));
             if(!saved.id)throw std::runtime_error("会话中的工程快照不存在，请重新导入工程");
-            database=saved_db;load_config(root);display(saved);view_database=database;set_running(false);
+            database=saved_db;display(saved);view_database=database;report->setEnabled(true);load_config(root);set_running(false);
             task_message->setText(QStringLiteral("已恢复上次工程与配置 · 当前显示历史快照，重新扫描可更新结果"));
         }catch(const std::exception& e){task_message->setText(QStringLiteral("会话恢复失败：")+text(e.what()));}});
     }
     // Deterministic UI acceptance: real controls, tasks and a separate restart process.
     if(!configuration_smoke.isEmpty()){
-        if(configuration_smoke!="import"&&configuration_smoke!="restore"&&configuration_smoke!="rules")return 1;
+        if(configuration_smoke!="import"&&configuration_smoke!="restore"&&configuration_smoke!="rules"&&configuration_smoke!="reports")return 1;
         auto* pulse=new QTimer(&window);pulse->setInterval(50);
         QObject::connect(pulse,&QTimer::timeout,[&,pulse,stage=0,ticks=0]() mutable {
             try{
                 if(++ticks>2000)throw std::runtime_error("configuration window acceptance timed out");
                 if(task.busy()||build_task.busy()||current.id<=0)return;
+                if(configuration_smoke=="reports"){
+                    if(stage==0){++stage;rescan->click();return;}
+                    if(stage==1){
+                        if(!report->isEnabled())throw std::runtime_error("report action unavailable after scan");
+                        auto* dialog=new ReportDialog(current.root,codeguard::from_utf8(bytes(database)),&window);dialog->show();++stage;return;
+                    }
+                    auto* dialog=window.findChild<QDialog*>("reportDialog");
+                    if(!dialog)throw std::runtime_error("report dialog missing");
+                    auto* selected=dialog->findChild<QComboBox*>("reportScan");auto* baseline=dialog->findChild<QComboBox*>("reportBaseline");auto* generateReport=dialog->findChild<QPushButton*>("reportGenerate");
+                    if(stage==2){
+                        if(!generateReport->isEnabled())return;
+                        if(selected->count()<2)throw std::runtime_error("report history did not load");
+                        baseline->setCurrentIndex(2);dialog->findChild<QLineEdit*>("reportOutput")->setText(QFileInfo(database).absolutePath()+"/gui-report");
+                        ++stage;generateReport->click();return;
+                    }
+                    if(dialog->property("reportExported").toString().isEmpty()){
+                        if(generateReport->isEnabled())throw std::runtime_error(bytes(dialog->findChild<QLabel*>("reportStatus")->text()));return;
+                    }
+                    const auto dir=QFileInfo(database).absolutePath();app.processEvents();
+                    if(!dialog->grab().save(dir+"/report-dialog.png"))throw std::runtime_error("report dialog screenshot failed");
+                    dialog->resize(700,460);app.processEvents();if(!dialog->grab().save(dir+"/report-dialog-compact.png"))throw std::runtime_error("compact report screenshot failed");
+                    if(!QFileInfo::exists(dir+"/gui-report/report.html")||!QFileInfo::exists(dir+"/gui-report/report.json"))throw std::runtime_error("report files missing");
+                    dialog->reject();std::cout<<"GUI_REPORT_OK"<<std::endl;pulse->stop();app.exit(0);return;
+                }
                 if(configuration_smoke=="rules"){
                     auto require=[](bool ok,const char* message){if(!ok)throw std::runtime_error(message);};
                     if(stage==0){

@@ -59,10 +59,10 @@ void policy(){
 void migration(){
     Fixture f;f.write("main.cpp","int value;\n");const auto saved=cg::import_project(f.root,f.db);
     sqlite3* raw=nullptr;check(sqlite3_open(cg::utf8_path(f.db).c_str(),&raw)==SQLITE_OK,"open migration fixture");
-    check(sqlite3_exec(raw,"DROP TABLE suppressed_issue;DROP TABLE rule_diagnostic;PRAGMA user_version=4;",nullptr,nullptr,nullptr)==SQLITE_OK,"make schema 4");sqlite3_close(raw);
+    check(sqlite3_exec(raw,"DROP TABLE unit_coverage;ALTER TABLE scan DROP COLUMN inventory_policy;ALTER TABLE analysis DROP COLUMN analyzer_revision;ALTER TABLE translation_unit DROP COLUMN command_fingerprint;DROP TABLE suppressed_issue;DROP TABLE rule_diagnostic;PRAGMA user_version=4;",nullptr,nullptr,nullptr)==SQLITE_OK,"make schema 4");sqlite3_close(raw);
     {cg::SqliteDatabase db(f.db,true);check(db.latest(saved.root).files.size()==1,"schema 4 remains readable");}
-    {cg::SqliteDatabase db(f.db);check(db.latest(saved.root).id==saved.id,"schema 5 preserves snapshot");}
-    check(sqlite3_open(cg::utf8_path(f.db).c_str(),&raw)==SQLITE_OK,"reopen schema");sqlite3_stmt* stmt=nullptr;sqlite3_prepare_v2(raw,"PRAGMA user_version",-1,&stmt,nullptr);sqlite3_step(stmt);check(sqlite3_column_int(stmt,0)==5,"migration version");sqlite3_finalize(stmt);sqlite3_close(raw);
+    {cg::SqliteDatabase db(f.db);check(db.latest(saved.root).id==saved.id,"migration preserves snapshot");}
+    check(sqlite3_open(cg::utf8_path(f.db).c_str(),&raw)==SQLITE_OK,"reopen schema");sqlite3_stmt* stmt=nullptr;sqlite3_prepare_v2(raw,"PRAGMA user_version",-1,&stmt,nullptr);sqlite3_step(stmt);check(sqlite3_column_int(stmt,0)==6,"migration version");sqlite3_finalize(stmt);sqlite3_close(raw);
 }
 void evaluation(const std::string& rule,const fs::path& corpus){
     Fixture f;std::ifstream manifest(corpus/"manifest.tsv");check(bool(manifest),"read labeled corpus");std::string line;std::getline(manifest,line);

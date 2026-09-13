@@ -16,4 +16,26 @@ foreach(rule engine unbounded_call array_bounds assignment_condition local_lifet
 endforeach()
 target_include_directories(codeguard-core SYSTEM PRIVATE ${LLVM_INCLUDE_DIRS} ${CLANG_INCLUDE_DIRS})
 target_compile_definitions(codeguard-core PRIVATE CODEGUARD_RESOURCE_DIR="${CODEGUARD_RESOURCE_DIR}")
+
+# Version the analyzer implementation independently of unrelated documentation,
+# UI edits, checkout paths and line-ending conversion. Reconfigure on edits.
+file(GLOB analyzer_inputs CONFIGURE_DEPENDS
+    "${PROJECT_SOURCE_DIR}/core/analyzer/clang_rules/*.cpp"
+    "${PROJECT_SOURCE_DIR}/core/analyzer/clang_rules/*.hpp")
+list(APPEND analyzer_inputs "${CMAKE_CURRENT_SOURCE_DIR}/clang_analysis.cpp"
+    "${PROJECT_SOURCE_DIR}/core/include/codeguard/analysis.hpp"
+    "${PROJECT_SOURCE_DIR}/core/include/codeguard/rules.hpp"
+    "${PROJECT_SOURCE_DIR}/core/analyzer/rules.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt")
+list(SORT analyzer_inputs)
+set(analyzer_content "${LLVM_PACKAGE_VERSION};${PROJECT_VERSION}")
+foreach(input IN LISTS analyzer_inputs)
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${input}")
+    file(READ "${input}" source)
+    string(REPLACE "\r\n" "\n" source "${source}")
+    string(SHA256 source_hash "${source}")
+    string(APPEND analyzer_content ";${source_hash}")
+endforeach()
+string(SHA256 analyzer_revision "${analyzer_content}")
+target_compile_definitions(codeguard-core PRIVATE CODEGUARD_ANALYZER_REVISION="${analyzer_revision}")
 target_link_libraries(codeguard-core PRIVATE clangAST clangASTMatchers clangAnalysis clangIndex clangFrontend clangTooling)

@@ -20,6 +20,8 @@ add_library(codeguard-core STATIC
     core/project/configuration.cpp
     core/graph/graph.cpp
     core/query/query.cpp
+    core/report/comparison.cpp
+    core/report/export.cpp
     core/analyzer/rules.cpp
     core/process/process.cpp
     core/testing/engineering.cpp
@@ -37,7 +39,7 @@ if(MSVC)
 else()
     target_compile_options(codeguard-core PRIVATE -Wall -Wextra -Wpedantic)
 endif()
-add_executable(codeguard-cli cli/main.cpp)
+add_executable(codeguard-cli cli/main.cpp cli/report_commands.cpp)
 target_link_libraries(codeguard-cli PRIVATE codeguard-core)
 if(MINGW)
     target_link_options(codeguard-cli PRIVATE -municode)

@@ -32,12 +32,19 @@ struct ScanResult {
     std::vector<Diagnostic> diagnostics;
     AnalysisResult analysis;
     std::vector<BuildRun> build_runs; // saved runs for this scan; populated on read
+    bool build_logs_loaded = false; // read projection, not a persisted build outcome
     std::uint64_t added = 0, changed = 0, unchanged = 0, removed = 0;
+    std::string inventory_policy; // actual scanner scope; empty in old snapshots
     std::uint64_t total_lines() const;
 };
 struct ProjectSummary {
     std::string root;
     std::string last_scan;
+};
+struct ScanSummary {
+    std::int64_t id = 0;
+    std::string scanned_at, analysis_status;
+    std::int64_t file_count = 0, issue_count = 0, suppressed_count = 0;
 };
 struct ScanOptions {
     ScanContext context;
@@ -76,6 +83,11 @@ public:
     SqliteDatabase(const SqliteDatabase&) = delete;
     SqliteDatabase& operator=(const SqliteDatabase&) = delete;
     ScanResult latest(const std::string& root) override;
+    // Historical reads use the saved root string and do not require source files
+    // to exist. Exact snapshots include all builds associated with that scan.
+    ScanResult snapshot(const std::string& root, std::int64_t scan_id, bool include_build_logs = false);
+    // Descending keyset pagination. A zero cursor starts at the newest scan.
+    std::vector<ScanSummary> scans(const std::string& root, std::int64_t before_id = 0, unsigned limit = 50);
     std::vector<ProjectSummary> projects() override;
     void save(ScanResult& result, const ScanContext& context = {}) override;
     void save_build(BuildRun& run) override;
@@ -83,6 +95,9 @@ public:
     std::optional<ProjectConfig> configuration(const std::string& root);
     void save_configuration(const std::string& root,const ProjectConfig& config);
 private:
+    ScanResult load_snapshot(const std::string& root, std::int64_t scan_id, bool include_build_logs);
+    std::vector<BuildRun> load_builds(const std::string& root, bool include_logs, std::int64_t only_id,
+                                    std::int64_t scan_id, int limit);
     struct Impl;
     Impl* impl_;
 };
