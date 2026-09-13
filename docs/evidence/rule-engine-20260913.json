@@ -37,6 +37,14 @@
       "passed": 3,
       "path": "artifacts/p1-2-final-targeted.xml",
       "sha256": "aa68403c3fb89016a6f167df90db6c4d9b70f8efdb1d38ad9d6a8dde7f27ab3e"
+    },
+    {
+      "tests": 2,
+      "failures": 0,
+      "skipped": 0,
+      "passed": 2,
+      "path": "artifacts/p1-2-query-core.xml",
+      "sha256": "acd1a82187b72c0a92315396b03c155bb6127540baf6ec6a756a5105fbf0ec73"
     }
   ],
   "skip_reason": "Windows symlink privileges unavailable; skipped is not passed",
@@ -157,5 +165,141 @@
     "result": "reviewed normal/compact layout and Chinese glyphs; offscreen controls only"
   },
   "suppression_limit": "Binds rule/file/line/column and full source-file FNV change hash; compile arguments, toolchain and external headers are not bound. All template instances at the matching source position are affected.",
-  "remote_ci": null
+  "remote_ci": {
+    "run_id": 34712210281,
+    "url": "https://github.com/hajiujiu174/cpp-defect-guard/actions/runs/34712210281",
+    "tested_commit": "664aa9f478242e1c1cb5d2d7f9f738b4d45e8e02",
+    "conclusion": "success",
+    "tests": {
+      "core": {
+        "tests": 50,
+        "failures": 0,
+        "skipped": 1,
+        "passed": 49,
+        "path": "artifacts/ci-run-34712210281/diagnostics/artifacts/windows-ci/core/tests.xml",
+        "sha256": "9250bfb75fdcc6f1006f8f369315629d515df36f23e6476193f0345f7f87146d"
+      },
+      "analysis": {
+        "tests": 85,
+        "failures": 0,
+        "skipped": 1,
+        "passed": 84,
+        "path": "artifacts/ci-run-34712210281/diagnostics/artifacts/windows-ci/analysis/tests.xml",
+        "sha256": "e1dae7250dd9bd0770cee05f67df7142556f6473bf8531144be11b8693bfad8c"
+      }
+    },
+    "evaluation_matches_local": true,
+    "real_projects": [
+      {
+        "project": "cjson",
+        "commit": "c859b25da02955fef659d658b8f324b5cde87be3",
+        "analysis_status": "partial",
+        "units": {
+          "success": 27,
+          "missing_command": 49
+        },
+        "issues": {
+          "CG001": 26
+        },
+        "ctest": {
+          "name": "(empty)",
+          "tests": "22",
+          "failures": "0",
+          "disabled": "0",
+          "skipped": "0",
+          "hostname": "",
+          "time": "0",
+          "timestamp": "2026-09-12T18:51:40"
+        },
+        "source_unchanged": true,
+        "thread_results_equal": true,
+        "issue_locations_match_review": true,
+        "accepted": true
+      },
+      {
+        "project": "tinyxml2",
+        "commit": "321ea883b7190d4e85cae5512a12e5eaa8f8731f",
+        "analysis_status": "partial",
+        "units": {
+          "missing_command": 1,
+          "success": 2
+        },
+        "issues": {},
+        "ctest": {
+          "name": "Win32-ninja",
+          "tests": "1",
+          "failures": "0",
+          "disabled": "0",
+          "skipped": "0",
+          "hostname": "runnervmbkp6f",
+          "time": "0",
+          "timestamp": "2026-09-12T18:51:48"
+        },
+        "source_unchanged": true,
+        "thread_results_equal": true,
+        "issue_locations_match_review": true,
+        "accepted": true
+      },
+      {
+        "project": "fmt",
+        "commit": "123913715afeb8a437e6388b4473fcc4753e1c9a",
+        "analysis_status": "partial",
+        "units": {
+          "missing_command": 16,
+          "success": 30
+        },
+        "issues": {},
+        "ctest": {
+          "name": "(empty)",
+          "tests": "21",
+          "failures": "0",
+          "disabled": "0",
+          "skipped": "0",
+          "hostname": "",
+          "time": "0",
+          "timestamp": "2026-09-12T18:55:31"
+        },
+        "source_unchanged": true,
+        "thread_results_equal": true,
+        "issue_locations_match_review": true,
+        "accepted": true
+      }
+    ],
+    "clean_runtime": {
+      "packaged_resource_header": "D:/a/cpp-defect-guard/cpp-defect-guard/artifacts/unpacked/CodeGuard-Windows-x64/resources/clang/include/stddef.h",
+      "package": "D:\\a\\cpp-defect-guard\\cpp-defect-guard\\artifacts\\unpacked\\CodeGuard-Windows-x64",
+      "clang": true,
+      "clean_path": true,
+      "timestamp": "2026-09-12T18:56:09.3360769+00:00",
+      "cli": true,
+      "chinese_font": true,
+      "gui": true
+    },
+    "package_sha256": "dd8255467032c1f93dd8ca69c2a0ec0498fe712e8eb189c65ba49aefe632576d",
+    "download_directory": "artifacts/ci-run-34712210281",
+    "original_artifact_retention_days": 14
+  },
+  "corpus_hash_format": "SHA-256 over LF-normalized bytes (Git blob content); CRLF checkout changes are excluded",
+  "packaged_rule_workflow": {
+    "result": {
+      "rule_workflow": true,
+      "chinese_font": true,
+      "offscreen": true,
+      "package": "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\ci-run-34712210281\\unpacked\\CodeGuard-Windows-x64",
+      "clean_path": true,
+      "timestamp": "2026-09-13T02:59:36.4722887+08:00"
+    },
+    "database_verified": {
+      "schema": 5,
+      "snapshots": 4,
+      "historical_suppressed_issues": 1,
+      "latest_active_issues": 1
+    },
+    "screenshots": {
+      "rules-settings-compact.png": "8c189d8dd0017341b0ba1fd57897b38274ec6c81eeb59791ed7030254ab55d2a",
+      "rules-settings.png": "55095edd8d18a441601e3701b77f4c99b52c4642a8a35ca336d1b012966e2ab1",
+      "rules-suppressed.png": "f43ac41ea8f557963554285d425772a992b7e07d61877e2b88e8d28a4b30396e"
+    },
+    "visual_review": "Chinese text, reason, source navigation, normal and compact suppression settings reviewed"
+  }
 }

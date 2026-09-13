@@ -58,4 +58,12 @@ SQLite schema 5 在 schema 4 上附加 `suppressed_issue` 和 `rule_diagnostic`�
 
 本机 Clang/Qt 全量回归 85 项：84 通过、1 跳过；Core 干净构建 50 项：49 通过、1 跳过，均跳过 Windows 符号链接权限项。新增测试覆盖配置版本 1 读取、schema 4→5 迁移、理由与证据往返、每条规则三个级别的保存/恢复、真实 CLI 流程、全部规则关闭后的覆盖、真实解析失败及 Qt 控件流程。普通/紧凑抑制页和问题导航截图已检查；自动 offscreen 控件测试不代表所有实体桌面环境。
 
-最终远端 CI、真实工程和运行包结果将在本页及 [证据 JSON](evidence/rule-engine-20260913.json) 中登记，以被测提交为准。P1-2 完成后按优先级进入 P1-3 报告与版本对比。
+最终代码提交 `664aa9f478242e1c1cb5d2d7f9f738b4d45e8e02` 的 [Windows CI 34712210281](https://github.com/hajiujiu174/cpp-defect-guard/actions/runs/34712210281) 全部成功：Core 50 项为 49 通过/1 跳过，Clang/Qt 85 项为 84 通过/1 跳过，跳过项均为符号链接权限测试。远端五条规则评测计数与上表一致。最后的规则诊断查询修正也由该次完整 CI 覆盖。
+
+固定 cJSON、TinyXML-2、fmt 的 22/1/21 个上游 CTest 全部通过，27/2/30 个有效 TU 全部成功；请求 1/4 线程结果一致，原始受跟踪源码未修改。cJSON 的 26 条 CG001 与 P0-2 已复核位置一致，其余两库仍无规则提醒。三库分别保留 49/1/16 个缺失编译命令的 TU，仓库整体依然是 `partial`，无告警不代表没有缺陷。
+
+第二台全新 Windows runner 的 CLI、Clang、Qt、内建头文件、隔离 PATH 及包内中文字体检查全部通过。下载的 ZIP 已核验 SHA-256，并在本机隔离 PATH 中复跑设置级别、抑制、重新扫描及撤销流程；数据库核对保留四份快照、一个历史抑制问题以及恢复后的活动问题。普通/紧凑设置页、理由和源码定位截图已查看。构建 runner 未打包程序的截图因缺少系统中文字体仍有缺字，运行包字体及截图正常；主窗口宽表支持水平滚动，并非所有列都能在窄结果栏同时显示。
+
+原始下载在 `artifacts/ci-run-34712210281`，运行包为其中的 `package/CodeGuard-Windows-x64.zip`，本机新增 GUI 验收在 `artifacts/p1-2-packaged-rules-qa`。被测提交、测试 XML 哈希、语料哈希、各项目数据和运行包校验值长期保存在 [证据 JSON](evidence/rule-engine-20260913.json)；GitHub 原始产物保留 14 天。语料哈希按 LF 规范化字节计算，以兼容 Windows CRLF 检出。
+
+P1-2 按上述范围完成，下一项为 P1-3 报告与版本对比。
