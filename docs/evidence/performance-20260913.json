@@ -1,7 +1,7 @@
 {
   "date": "2026-09-13",
   "stage": "P2-1",
-  "status": "local_passed_ci_pending",
+  "status": "completed",
   "local_tests": {
     "core": {
       "total": 56,
@@ -334,11 +334,404 @@
   },
   "benchmark_path": "artifacts/p2-1-cache-final-benchmark-20260913",
   "cache_default": "off",
-  "ci": null,
+  "ci": {
+    "run_id": 34764255192,
+    "url": "https://github.com/hajiujiu174/cpp-defect-guard/actions/runs/34764255192",
+    "head_sha": "daca9e86185572ceeb422029e3262e18d0ecb443",
+    "conclusion": "success",
+    "build_test_package": "success",
+    "fresh_runner_runtime": "success",
+    "tests": {
+      "core": {
+        "total": 56,
+        "failures": 0,
+        "skipped": 1,
+        "sha256": "810cbabeebc29a0c3298fab3f502495867c8c004783f72deaf50dc1ae0992467"
+      },
+      "analysis": {
+        "total": 102,
+        "failures": 0,
+        "skipped": 1,
+        "sha256": "c1697b1db315cdbba137d1c7325204f2cf8bf728a7a652448b55e05886f13007"
+      }
+    },
+    "real_projects": [
+      {
+        "project": "cjson",
+        "commit": "c859b25da02955fef659d658b8f324b5cde87be3",
+        "passed": true,
+        "ctest": {
+          "name": "(empty)",
+          "tests": "22",
+          "failures": "0",
+          "disabled": "0",
+          "skipped": "0",
+          "hostname": "",
+          "time": "0",
+          "timestamp": "2026-09-13T15:05:24"
+        },
+        "unit_status_counts": {
+          "success": 27,
+          "missing_command": 49
+        },
+        "issue_counts": {
+          "CG001": 26
+        },
+        "reviewed_issue_locations_match": true,
+        "cache": {
+          "hits": 27,
+          "misses": 0,
+          "bypassed": 49,
+          "errors": 0
+        },
+        "cache_full_equivalence": true,
+        "threads_equivalence": true,
+        "analysis_ms": {
+          "scan-4": 1012,
+          "cache-cold": 1929,
+          "cache-warm": 529
+        }
+      },
+      {
+        "project": "tinyxml2",
+        "commit": "321ea883b7190d4e85cae5512a12e5eaa8f8731f",
+        "passed": true,
+        "ctest": {
+          "name": "Win32-ninja",
+          "tests": "1",
+          "failures": "0",
+          "disabled": "0",
+          "skipped": "0",
+          "hostname": "runnervmbkp6f",
+          "time": "0",
+          "timestamp": "2026-09-13T15:05:33"
+        },
+        "unit_status_counts": {
+          "missing_command": 1,
+          "success": 2
+        },
+        "issue_counts": {},
+        "reviewed_issue_locations_match": true,
+        "cache": {
+          "hits": 2,
+          "misses": 0,
+          "bypassed": 1,
+          "errors": 0
+        },
+        "cache_full_equivalence": true,
+        "threads_equivalence": true,
+        "analysis_ms": {
+          "scan-4": 976,
+          "cache-cold": 1582,
+          "cache-warm": 293
+        }
+      },
+      {
+        "project": "fmt",
+        "commit": "123913715afeb8a437e6388b4473fcc4753e1c9a",
+        "passed": true,
+        "ctest": {
+          "name": "(empty)",
+          "tests": "21",
+          "failures": "0",
+          "disabled": "0",
+          "skipped": "0",
+          "hostname": "",
+          "time": "0",
+          "timestamp": "2026-09-13T15:10:15"
+        },
+        "unit_status_counts": {
+          "missing_command": 16,
+          "success": 30
+        },
+        "issue_counts": {},
+        "reviewed_issue_locations_match": true,
+        "cache": {
+          "hits": 30,
+          "misses": 0,
+          "bypassed": 16,
+          "errors": 0
+        },
+        "cache_full_equivalence": true,
+        "threads_equivalence": true,
+        "analysis_ms": {
+          "scan-4": 34711,
+          "cache-cold": 52638,
+          "cache-warm": 9869
+        }
+      }
+    ],
+    "qt_read_outputs": {
+      "codeguard.qt_read_query": "QUERY_READ_OK rows=250000 elapsed_ms=207 ticks=50 max_ui_gap_ms=10",
+      "codeguard.qt_read_history": "HISTORY_READ_OK files=12000 ticks=23 max_ui_gap_ms=5",
+      "codeguard.qt_read_report": "REPORT_READ_OK ticks=48 max_ui_gap_ms=38"
+    },
+    "runtime": {
+      "clang": true,
+      "package": "D:\\a\\cpp-defect-guard\\cpp-defect-guard\\artifacts\\unpacked\\CodeGuard-Windows-x64",
+      "cli": true,
+      "timestamp": "2026-09-13T15:10:56.7168228+00:00",
+      "packaged_resource_header": "D:/a/cpp-defect-guard/cpp-defect-guard/artifacts/unpacked/CodeGuard-Windows-x64/resources/clang/include/stddef.h",
+      "chinese_font": true,
+      "clean_path": true,
+      "gui": true
+    },
+    "package_sha256": "06a50eb82cebc9cea0ccecd756c45a0d1c484660ce6a60e5c975d1cc87361947"
+  },
   "limitations": [
     "Only Windows validated.",
     "Cache performance depends on the proportion of AST work; fresh preprocessing is required.",
     "Whole project tree and non-query tables still populate synchronously.",
     "Cache telemetry is not persisted into historical schema 6."
-  ]
+  ],
+  "local_real_projects": {
+    "path": "artifacts/p2-1-real-projects-20260913",
+    "results": [
+      {
+        "project": "cjson",
+        "upstream_commit": "c859b25da02955fef659d658b8f324b5cde87be3",
+        "automated_acceptance_passed": true,
+        "active_translation_units": 27,
+        "unit_status_counts": {
+          "success": 27,
+          "missing_command": 49
+        },
+        "ctest": {
+          "name": "(empty)",
+          "tests": "22",
+          "failures": "0",
+          "disabled": "0",
+          "skipped": "0",
+          "hostname": "",
+          "time": "1",
+          "timestamp": "2026-09-13T23:00:04"
+        },
+        "issue_counts": {
+          "CG001": 26
+        },
+        "reviewed_issue_locations_match": true,
+        "equivalent_1_and_4_threads": true,
+        "cache": {
+          "cold": {
+            "command": [
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\windows-ci-analysis-2\\codeguard-cli.exe",
+              "scan",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p2-1-real-projects-20260913\\cjson\\source",
+              "--database",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p2-1-real-projects-20260913\\cjson\\cache.sqlite3",
+              "--compile-commands",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p2-1-real-projects-20260913\\cjson\\selected",
+              "--threads",
+              "4",
+              "--cache",
+              "on"
+            ],
+            "exit_code": 2,
+            "timed_out": false,
+            "wall_ms": 2028,
+            "peak_working_set_bytes_sampled": 57315328,
+            "memory_scope": "parent process only, sampled every 20ms; scan includes its worker threads"
+          },
+          "warm": {
+            "command": [
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\windows-ci-analysis-2\\codeguard-cli.exe",
+              "scan",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p2-1-real-projects-20260913\\cjson\\source",
+              "--database",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p2-1-real-projects-20260913\\cjson\\cache.sqlite3",
+              "--compile-commands",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p2-1-real-projects-20260913\\cjson\\selected",
+              "--threads",
+              "4",
+              "--cache",
+              "on"
+            ],
+            "exit_code": 2,
+            "timed_out": false,
+            "wall_ms": 841,
+            "peak_working_set_bytes_sampled": 45723648,
+            "memory_scope": "parent process only, sampled every 20ms; scan includes its worker threads"
+          },
+          "warm_counts": {
+            "hits": 27,
+            "misses": 0,
+            "bypassed": 49,
+            "errors": 0
+          },
+          "equivalent_to_full": true
+        },
+        "analysis_ms": {
+          "scan-4": 1034,
+          "cache-cold": 1743,
+          "cache-warm": 540
+        }
+      },
+      {
+        "project": "tinyxml2",
+        "upstream_commit": "321ea883b7190d4e85cae5512a12e5eaa8f8731f",
+        "automated_acceptance_passed": true,
+        "active_translation_units": 2,
+        "unit_status_counts": {
+          "missing_command": 1,
+          "success": 2
+        },
+        "ctest": {
+          "name": "Win32-ninja",
+          "tests": "1",
+          "failures": "0",
+          "disabled": "0",
+          "skipped": "0",
+          "hostname": "Chara",
+          "time": "0",
+          "timestamp": "2026-09-13T23:00:21"
+        },
+        "issue_counts": {},
+        "reviewed_issue_locations_match": true,
+        "equivalent_1_and_4_threads": true,
+        "cache": {
+          "cold": {
+            "command": [
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\windows-ci-analysis-2\\codeguard-cli.exe",
+              "scan",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p2-1-real-projects-20260913\\tinyxml2\\source",
+              "--database",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p2-1-real-projects-20260913\\tinyxml2\\cache.sqlite3",
+              "--compile-commands",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p2-1-real-projects-20260913\\tinyxml2\\selected",
+              "--threads",
+              "4",
+              "--cache",
+              "on"
+            ],
+            "exit_code": 2,
+            "timed_out": false,
+            "wall_ms": 1724,
+            "peak_working_set_bytes_sampled": 76500992,
+            "memory_scope": "parent process only, sampled every 20ms; scan includes its worker threads"
+          },
+          "warm": {
+            "command": [
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\windows-ci-analysis-2\\codeguard-cli.exe",
+              "scan",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p2-1-real-projects-20260913\\tinyxml2\\source",
+              "--database",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p2-1-real-projects-20260913\\tinyxml2\\cache.sqlite3",
+              "--compile-commands",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p2-1-real-projects-20260913\\tinyxml2\\selected",
+              "--threads",
+              "4",
+              "--cache",
+              "on"
+            ],
+            "exit_code": 2,
+            "timed_out": false,
+            "wall_ms": 557,
+            "peak_working_set_bytes_sampled": 44810240,
+            "memory_scope": "parent process only, sampled every 20ms; scan includes its worker threads"
+          },
+          "warm_counts": {
+            "hits": 2,
+            "misses": 0,
+            "bypassed": 1,
+            "errors": 0
+          },
+          "equivalent_to_full": true
+        },
+        "analysis_ms": {
+          "scan-4": 777,
+          "cache-cold": 1482,
+          "cache-warm": 329
+        }
+      },
+      {
+        "project": "fmt",
+        "upstream_commit": "123913715afeb8a437e6388b4473fcc4753e1c9a",
+        "automated_acceptance_passed": true,
+        "active_translation_units": 30,
+        "unit_status_counts": {
+          "missing_command": 16,
+          "success": 30
+        },
+        "ctest": {
+          "name": "(empty)",
+          "tests": "21",
+          "failures": "0",
+          "disabled": "0",
+          "skipped": "0",
+          "hostname": "",
+          "time": "13",
+          "timestamp": "2026-09-13T23:02:53"
+        },
+        "issue_counts": {},
+        "reviewed_issue_locations_match": true,
+        "equivalent_1_and_4_threads": true,
+        "cache": {
+          "cold": {
+            "command": [
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\windows-ci-analysis-2\\codeguard-cli.exe",
+              "scan",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p2-1-real-projects-20260913\\fmt\\source",
+              "--database",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p2-1-real-projects-20260913\\fmt\\cache.sqlite3",
+              "--compile-commands",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p2-1-real-projects-20260913\\fmt\\selected",
+              "--threads",
+              "4",
+              "--cache",
+              "on"
+            ],
+            "exit_code": 2,
+            "timed_out": false,
+            "wall_ms": 29217,
+            "peak_working_set_bytes_sampled": 585523200,
+            "memory_scope": "parent process only, sampled every 20ms; scan includes its worker threads"
+          },
+          "warm": {
+            "command": [
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\windows-ci-analysis-2\\codeguard-cli.exe",
+              "scan",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p2-1-real-projects-20260913\\fmt\\source",
+              "--database",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p2-1-real-projects-20260913\\fmt\\cache.sqlite3",
+              "--compile-commands",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p2-1-real-projects-20260913\\fmt\\selected",
+              "--threads",
+              "4",
+              "--cache",
+              "on"
+            ],
+            "exit_code": 2,
+            "timed_out": false,
+            "wall_ms": 7723,
+            "peak_working_set_bytes_sampled": 530694144,
+            "memory_scope": "parent process only, sampled every 20ms; scan includes its worker threads"
+          },
+          "warm_counts": {
+            "hits": 30,
+            "misses": 0,
+            "bypassed": 16,
+            "errors": 0
+          },
+          "equivalent_to_full": true
+        },
+        "analysis_ms": {
+          "scan-4": 14928,
+          "cache-cold": 27894,
+          "cache-warm": 6224
+        }
+      }
+    ]
+  },
+  "packaged_local_qa": {
+    "chinese_font": true,
+    "gui_reports": true,
+    "clean_path": true,
+    "cache_hit": true,
+    "package": "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\ci-run-34764255192\\unpacked\\CodeGuard-Windows-x64",
+    "external_header_invalidation": true,
+    "incremental_full_equivalent": true,
+    "timestamp": "2026-09-13T23:14:21.9891494+08:00"
+  },
+  "analyzer_revision": "sha256:0dbdf5682fa741a3eb835e049f86241ad58813a6358401912f08791f27154744;clang:clang version 22.1.8 (https://github.com/msys2/MINGW-packages 6e4e79c2f86eeb534e324e583f2057dc9fd5ecab)",
+  "local_ci_analyzer_revision_equal": true
 }

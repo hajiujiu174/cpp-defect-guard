@@ -52,7 +52,7 @@ cpp-defect-guard/
 
 ## 后续实施顺序（P0 历史记录）
 
-P1-3 已完成：历史批次读取、HTML/JSON 导出、CLI/Qt 报告选择以及问题版本对比，schema 6 保留实际扫描范围、分析器和编译命令版本、TU 覆盖来源。提交 `46c2a74` 的 CI `34760641933` 全部成功：Core 54 通过/1 跳过，Clang/Qt 91 通过/1 跳过，真实工程及独立运行包验收通过；旧/新真实数据只读报告及包内 GUI 已核验，见 [报告与版本对比](reports-and-comparison.md)。P2-1 已接入后台查询/历史取消和可选 TU 缓存，最终 Windows 验收进行中，见 [性能与交互](performance-and-interaction.md)。下段 P0 记录的“下一项”属于当时排期。
+P1-3 已完成：历史批次读取、HTML/JSON 导出、CLI/Qt 报告选择以及问题版本对比，schema 6 保留实际扫描范围、分析器和编译命令版本、TU 覆盖来源。提交 `46c2a74` 的 CI `34760641933` 全部成功：Core 54 通过/1 跳过，Clang/Qt 91 通过/1 跳过，真实工程及独立运行包验收通过；旧/新真实数据只读报告及包内 GUI 已核验，见 [报告与版本对比](reports-and-comparison.md)。P2-1 已完成后台查询/历史取消和可选 TU 缓存，提交 `daca9e8` 的 CI `34764255192` 成功：Core 55 通过/1 跳过、Clang/Qt 101 通过/1 跳过，三个真实库缓存/全量等价、44 个上游测试及独立运行包通过；下一项 P2-2，见 [性能与交互](performance-and-interaction.md)。下段 P0 记录的“下一项”属于当时排期。
 
 规则、Issue 存储、多 TU 分析池、集中写入、ProcessRunner 及构建/测试/Git 业务服务已经实现。P0-1 Windows CI 与可复现构建已完成，历史记录见 [Windows CI](windows-ci.md)。P0-2 已通过固定 cJSON、TinyXML-2、fmt 的本地及远端验收，共 44 个上游 CTest 全部通过；26 条 API 提醒均已复核，未覆盖文件仍如实报告。本轮产品回归为 Core 43 通过、1 跳过，Clang/Qt 65 通过、1 跳过，独立运行包检查通过，详见 [真实工程验收](real-project-acceptance.md)。下一项为 P1-1 工程导入与配置管理。Linux 全功能环境暂缓，AI 新训练和自动修复在工程主线稳定后推进。
 
