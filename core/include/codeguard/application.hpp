@@ -48,6 +48,7 @@ struct ScanSummary {
 };
 struct ScanOptions {
     ScanContext context;
+    bool use_cache = false; // Opt-in: fresh preprocessing can outweigh AST savings
     std::string scan_phase = "scanning";
     std::string compile_commands; // opt-in; empty means inventory only
     unsigned threads = 0; // 0=hardware concurrency (capped at 8); explicit 1..64

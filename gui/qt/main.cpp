@@ -5,6 +5,11 @@
 #include "build_task.hpp"
 #include "project_settings.hpp"
 #include "report_dialog.hpp"
+#include "read_task.hpp"
+#include "query_model.hpp"
+#include "history_read.hpp"
+#include <QTableView>
+#include <QCheckBox>
 #include <QSettings>
 #include <QStandardPaths>
 #include <QInputDialog>
@@ -211,8 +216,14 @@ int main(int argc, char** argv) {
     query_plan->setFixedHeight(65); query_plan->setPlaceholderText(QStringLiteral("查询执行计划")); query_plan->hide();
     auto* query_explain = new QPushButton(QStringLiteral("查看执行计划"), query_panel); query_explain->setCheckable(true);
     QObject::connect(query_explain, &QPushButton::toggled, query_plan, &QWidget::setVisible);
-    auto* query_actions = new QHBoxLayout; query_actions->addWidget(query_run, 1); query_actions->addWidget(query_explain);
-    auto* query_table = new QTableWidget(query_panel); query_table->setObjectName("queryResults");
+    auto* query_cancel = new QPushButton(QStringLiteral("取消查询"), query_panel);
+    query_cancel->setObjectName("queryCancel"); query_cancel->setEnabled(false);
+    auto* query_actions = new QHBoxLayout; query_actions->addWidget(query_run, 1); query_actions->addWidget(query_cancel); query_actions->addWidget(query_explain);
+    auto* query_table = new QTableView(query_panel); query_table->setObjectName("queryResults");
+    auto* query_model = new QueryModel(query_table); query_table->setModel(query_model);
+    query_table->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
+    query_table->horizontalHeader()->setDefaultSectionSize(180);
+    query_table->horizontalHeader()->setStretchLastSection(true);
     query_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
     query_table->setAlternatingRowColors(true);
     query_layout->addWidget(query_help); query_layout->addWidget(query_input); query_layout->addLayout(query_actions);
@@ -224,6 +235,9 @@ int main(int argc, char** argv) {
     splitter->setSizes({190, 690, 560}); splitter->setStretchFactor(1, 1); splitter->setStretchFactor(2, 1);
     auto* configuration = new QHBoxLayout;
     configuration->addWidget(choose_commands); configuration->addWidget(commands_path);configuration->addWidget(thread_count);
+    auto* use_cache = new QCheckBox(QStringLiteral("复用 AST 缓存"),container);
+    use_cache->setObjectName("useAstCache");use_cache->setChecked(false);use_cache->setEnabled(codeguard::clang_analysis_available());
+    use_cache->setToolTip(QStringLiteral("每次重新预处理并校验依赖，命中后复用 AST 结果；关闭可进行全量对照"));configuration->addWidget(use_cache);
     auto* project_settings=new QPushButton(QStringLiteral("工程设置"),container);project_settings->setObjectName("projectSettingsButton");project_settings->setEnabled(false);
     auto* generate=new QPushButton(QStringLiteral("生成参数并分析"),container);generate->setObjectName("generateCommands");generate->setEnabled(false);
     configuration->addWidget(project_settings);configuration->addWidget(generate);
@@ -232,7 +246,9 @@ int main(int argc, char** argv) {
     task_message->setTextFormat(Qt::PlainText);
     auto* progress = new QProgressBar(container); progress->setRange(0, 100); progress->setValue(0); progress->setMaximumWidth(250);
     auto* cancel = new QPushButton(QStringLiteral("取消扫描"), container); cancel->setEnabled(false);
-    task_row->addWidget(task_message, 1); task_row->addWidget(progress); task_row->addWidget(cancel);
+    auto* history_cancel = new QPushButton(QStringLiteral("取消读取"), container);
+    history_cancel->setObjectName("historyCancel"); history_cancel->setEnabled(false);
+    task_row->addWidget(task_message, 1); task_row->addWidget(progress); task_row->addWidget(cancel); task_row->addWidget(history_cancel);
     layout->addLayout(top); layout->addLayout(configuration); layout->addLayout(task_row); layout->addWidget(label); layout->addWidget(splitter, 1);
     window.setCentralWidget(container);
     window.statusBar()->showMessage(QStringLiteral("就绪 · 源码只读 · 尚未导入工程"));
@@ -244,7 +260,11 @@ int main(int argc, char** argv) {
     QString session_file, config_root, config_database, configuration_smoke;
     codeguard::ProjectConfig project_config;
     bool generating=false;
-    codeguard::ScanResult current;
+    std::shared_ptr<const codeguard::ScanResult> current = std::make_shared<codeguard::ScanResult>();
+    ReadTask<codeguard::QueryResult> query_task;
+    std::shared_ptr<const codeguard::ScanResult> queried_snapshot;
+    ReadTask<HistoryRead> history_task;
+    std::shared_ptr<const codeguard::ScanResult> history_snapshot;
     ScanTask task;
     BuildTask build_task;
     std::vector<codeguard::BuildRun> build_runs;
@@ -276,8 +296,8 @@ int main(int argc, char** argv) {
     const auto initial_commands=commands_path->text();
     if(session_file.isEmpty()&&smoke_project.isEmpty())session_file=QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)+"/session.ini";
     auto remember=[&]{
-        if(session_file.isEmpty()||current.root.empty())return;
-        QSettings session(session_file,QSettings::IniFormat);session.setValue("database",database);session.setValue("project",text(current.root));session.sync();
+        if(session_file.isEmpty()||current->root.empty())return;
+        QSettings session(session_file,QSettings::IniFormat);session.setValue("database",database);session.setValue("project",text(current->root));session.setValue("useAstCache",use_cache->isChecked());session.sync();
         if(session.status()!=QSettings::NoError)task_message->setText(QStringLiteral("工程已保存，但无法写入会话文件：")+session_file);
     };
     auto apply_config=[&](const codeguard::ProjectConfig& config){
@@ -311,7 +331,7 @@ int main(int argc, char** argv) {
         return !database.isEmpty();
     };
     QObject::connect(choose_commands, &QPushButton::clicked, [&]() {
-        if (task.busy()||build_task.busy()) return;
+        if (task.busy()||build_task.busy()||history_task.busy()) return;
         const auto path = QFileDialog::getOpenFileName(&window, QStringLiteral("选择编译数据库"), {}, "Compilation database (compile_commands.json)");
         if (!path.isEmpty()) {commands_path->setText(path);project_config.analysis_enabled=true;project_config.auto_discover=false;}
     });
@@ -329,9 +349,9 @@ int main(int argc, char** argv) {
     QObject::connect(tabs, &QTabWidget::currentChanged, [&]() { filter->setVisible(qobject_cast<QTableWidget*>(tabs->currentWidget()) != nullptr); apply_filter(); });
     auto navigate = [&](const QString& relative, int line) {
         try {
-            const auto record = std::find_if(current.files.begin(), current.files.end(), [&](const auto& file) { return text(file.path) == relative; });
-            if (record == current.files.end()) throw std::runtime_error("Location is outside the project inventory");
-            const QDir root(QFileInfo(text(current.root)).canonicalFilePath());
+            const auto record = std::find_if(current->files.begin(), current->files.end(), [&](const auto& file) { return text(file.path) == relative; });
+            if (record == current->files.end()) throw std::runtime_error("Location is outside the project inventory");
+            const QDir root(QFileInfo(text(current->root)).canonicalFilePath());
             const auto path = QFileInfo(root.filePath(relative)).canonicalFilePath();
             const auto local = root.relativeFilePath(path);
             if (path.isEmpty() || local == ".." || local.startsWith("../") || QDir::isAbsolutePath(local))
@@ -377,42 +397,53 @@ int main(int argc, char** argv) {
         target->horizontalHeader()->setStretchLastSection(true);
     };
     QObject::connect(query_run, &QPushButton::clicked, [&]() {
-        query_table->clear(); query_table->setRowCount(0); query_table->setColumnCount(0); query_plan->clear();
-        try {
-            const auto answer = codeguard::execute_query(current, bytes(query_input->toPlainText()));
-            QStringList columns; for (const auto& column : answer.columns) columns.push_back(text(column));
-            std::vector<QStringList> rows;
-            const auto shown = std::min<std::size_t>(answer.rows.size(), 2000);
-            for (std::size_t i = 0; i < shown; ++i) {
-                QStringList row; for (const auto& value : answer.rows[i]) row.push_back(text(codeguard::query_value_text(value)));
-                rows.push_back(row);
-            }
-            fill(query_table, columns, rows); query_plan->setPlainText(text(answer.plan));
+        if (query_task.busy() || current->id <= 0) return;
+        query_model->replace(); query_plan->clear();
+        queried_snapshot = current;
+        query_task.start([snapshot = queried_snapshot, source = bytes(query_input->toPlainText())](const codeguard::ScanContext& context) {
+            return codeguard::execute_query(*snapshot, source, context);
+        });
+        query_run->setEnabled(false); query_cancel->setEnabled(true);
+        query_status->setText(QStringLiteral("正在后台查询 · 可继续查看源码或取消查询…"));
+    });
+    QObject::connect(query_cancel, &QPushButton::clicked, [&] {
+        if (query_task.cancel()) { query_cancel->setEnabled(false); query_status->setText(QStringLiteral("正在取消查询…")); }
+    });
+    query_task.finished = [&](ReadOutcome<codeguard::QueryResult> outcome) {
+        query_run->setEnabled(current->id > 0); query_cancel->setEnabled(false);
+        if (queried_snapshot == current && !close_pending) {
+          if (outcome.result) {
+            auto& answer = *outcome.result; query_plan->setPlainText(text(answer.plan));
             query_status->setText(QStringLiteral("扫描批次 %1 · 分析状态 %2\n读取 %3 行，匹配 %4 行，返回 %5 行，显示 %6 行%7")
                 .arg(answer.scan_id).arg(text(answer.analysis_status)).arg(answer.scanned_rows).arg(answer.matched_rows)
-                .arg(answer.rows.size()).arg(shown).arg(shown < answer.rows.size() ? QStringLiteral("（界面上限 2000；请用 LIMIT 缩小结果）") : QString{}));
-            if (!current.diagnostics.empty()) query_status->setText(query_status->text() + QStringLiteral("\n快照包含扫描诊断，请同时查看诊断页。"));
-        } catch (const std::exception& error) {
-            query_status->setText(QStringLiteral("查询失败：") + text(error.what()));
+                .arg(answer.rows.size()).arg(std::min<std::size_t>(answer.rows.size(), INT_MAX)).arg(QStringLiteral("（按需显示单元格）")));
+            if (!current->diagnostics.empty()) query_status->setText(query_status->text() + QStringLiteral("\n快照包含扫描诊断，请同时查看诊断页。"));
+            query_model->replace(std::move(answer));
+          } else query_status->setText(outcome.cancelled ? QStringLiteral("查询已取消") : QStringLiteral("查询失败：") + text(outcome.error));
         }
-    });
-    QObject::connect(query_table, &QTableWidget::cellDoubleClicked, [&](int row, int) {
+        queried_snapshot.reset();
+        if (close_pending) QTimer::singleShot(0, &window, &QWidget::close);
+    };
+    QObject::connect(query_table, &QTableView::doubleClicked, [&](const QModelIndex& index) {
         QString file; int line = 1;
-        for (int col = 0; col < query_table->columnCount(); ++col) {
-            const auto name = query_table->horizontalHeaderItem(col)->text();
-            if (name == "file") file = query_table->item(row, col)->text();
-            if (name == "line") line = query_table->item(row, col)->text().toInt();
+        for (int col = 0; col < query_model->columnCount(); ++col) {
+            const auto name = query_model->headerData(col, Qt::Horizontal).toString();
+            const auto value = query_model->data(query_model->index(index.row(), col)).toString();
+            if (name == "file") file = value;
+            if (name == "line") line = value.toInt();
         }
         if (!file.isEmpty()) navigate(file, line);
     });
-    auto display = [&](const codeguard::ScanResult& result) {
+    auto display = [&](std::shared_ptr<const codeguard::ScanResult> snapshot) {
+        const auto& result = *snapshot;
         QElapsedTimer render_clock; render_clock.start();
-        current = result; rescan->setEnabled(true); tree->clear(); opened_file.clear(); filter->clear();
+        query_task.cancel();
+        current = std::move(snapshot); rescan->setEnabled(true); tree->clear(); opened_file.clear(); filter->clear();
         build_runs.clear();build_table->clear();build_table->setRowCount(0);build_log->clear();git_log->clear();
         build_start->setEnabled(!build_task.busy());build_history->setEnabled(true);
         build_status->setText(QStringLiteral("可构建当前扫描快照；执行前核对源码，结果关联扫描批次 %1").arg(result.id));
         if(build_output->text().isEmpty()&&!database.isEmpty())build_output->setText(QFileInfo(database).absolutePath()+"/codeguard-builds");
-        query_run->setEnabled(true); query_table->clear(); query_table->setRowCount(0); query_table->setColumnCount(0);
+        query_run->setEnabled(!query_task.busy()); query_model->replace();
         query_plan->clear(); query_status->setText(QStringLiteral("快照已更新，请执行查询。双击含 file / line 的结果可定位源码。"));
         editor->clear(); source_path->setText(QStringLiteral("请选择工程文件"));
         std::map<QString, QTreeWidgetItem*> directories;
@@ -451,6 +482,7 @@ int main(int argc, char** argv) {
         label->setText(label->text()+QStringLiteral(" | 问题: %1 | 分析线程: %2 | 分析耗时: %3 ms")
             .arg(result.analysis.issues.size()).arg(result.analysis.workers).arg(result.analysis.elapsed_ms));
         label->setText(label->text()+QStringLiteral(" | 已抑制: %1 | 规则配置诊断: %2").arg(result.analysis.suppressed_issues.size()).arg(result.analysis.rule_diagnostics.size()));
+        if(result.analysis.cache){const auto& cache=*result.analysis.cache;label->setText(label->text()+QStringLiteral("\n本次 AST 缓存：命中 %1 / 未命中 %2 / 跳过 %3 / 读写异常 %4").arg(cache.hits).arg(cache.misses).arg(cache.bypassed).arg(cache.errors));}
         if(!result.analysis.configuration.empty()){
             try{
                 const auto settings=codeguard::decode_config(result.analysis.configuration);QStringList disabled;
@@ -526,17 +558,20 @@ int main(int argc, char** argv) {
             << " metrics=" << result.analysis.metrics.size() << std::endl;
     };
     auto set_running = [&](bool running) {
-        report->setEnabled(!running&&!build_task.busy()&&current.id>0);
+        running = running || history_task.busy();
+        report->setEnabled(!running&&!build_task.busy()&&current->id>0);
         suppress_action->setEnabled(!running&&!build_task.busy());
         open->setEnabled(!running); reopen->setEnabled(!running);
-        rescan->setEnabled(!running && (!config_root.isEmpty()||!current.root.empty()));
+        rescan->setEnabled(!running && (!config_root.isEmpty()||!current->root.empty()));
         project_settings->setEnabled(!running&&!build_task.busy()&&!config_root.isEmpty());
-        generate->setEnabled(!running&&!build_task.busy()&&current.id>0&&codeguard::clang_analysis_available());
+        generate->setEnabled(!running&&!build_task.busy()&&current->id>0&&codeguard::clang_analysis_available());
         choose_commands->setEnabled(!running && codeguard::clang_analysis_available());
         commands_path->setEnabled(!running && codeguard::clang_analysis_available());
-        cancel->setEnabled(running);
+        cancel->setEnabled(task.busy());
+        history_cancel->setEnabled(history_task.busy());
         thread_count->setEnabled(!running&&!build_task.busy());
-        build_start->setEnabled(!running&&!build_task.busy()&&current.id>0);build_history->setEnabled(!running&&!build_task.busy()&&current.id>0);
+        use_cache->setEnabled(!running&&!build_task.busy()&&codeguard::clang_analysis_available());
+        build_start->setEnabled(!running&&!build_task.busy()&&current->id>0);build_history->setEnabled(!running&&!build_task.busy()&&current->id>0);
     };
     task.updated = [&](TaskState state, const codeguard::ScanProgress& value) {
         if (!smoke_project.isEmpty() && state == TaskState::running && value.phase.empty()) {
@@ -545,6 +580,7 @@ int main(int argc, char** argv) {
         set_running(true);
         const std::map<std::string, QString> phases{{"preparing", QStringLiteral("准备工程")}, {"scanning", QStringLiteral("扫描文件")},
             {"analysis_setup", QStringLiteral("载入编译参数")}, {"analyzing", QStringLiteral("Clang 解析")},
+            {"cache_validating", QStringLiteral("校验 AST 缓存与依赖")},
             {"verifying", QStringLiteral("核对源码一致性")}, {"saving", QStringLiteral("写入事务")}, {"before_commit", QStringLiteral("准备提交")}};
         if (state == TaskState::cancelling) {
             task_message->setText(QStringLiteral("正在取消 · 等待当前文件 / 翻译单元结束，旧结果保持不变")); cancel->setEnabled(false);
@@ -571,11 +607,11 @@ int main(int argc, char** argv) {
         }
         set_running(false); progress->setRange(0, 100);
         if (outcome.result) {
-            display(*outcome.result); view_database = database; progress->setValue(100);
+            display(std::make_shared<codeguard::ScanResult>(*outcome.result)); view_database = database; progress->setValue(100);
             task_message->setText(outcome.state == TaskState::completed ? QStringLiteral("已完成 · 新快照已保存")
                 : QStringLiteral("部分完成 · 成功结果与诊断已保存，请查看诊断页"));
             if(smoke_project.isEmpty()){
-                if(current.analysis.status=="not_requested"&&project_config.analysis_enabled)
+                if(current->analysis.status=="not_requested"&&project_config.analysis_enabled)
                     task_message->setText(QStringLiteral("文件清单已保存 · 缺少编译参数：在工程设置中选择数据库，或点击“生成参数并分析”（CMake 工程）"));
                 remember();set_running(false);
             }
@@ -584,10 +620,10 @@ int main(int argc, char** argv) {
             task_message->setText(outcome.state == TaskState::cancelled ? QStringLiteral("已取消 · 未提交新快照，旧结果保持不变")
                 : QStringLiteral("失败 · 未保存新快照，旧结果保持不变"));
             task_message->setToolTip(text(outcome.error));
-            if (!current.root.empty()) {
+            if (!current->root.empty()) {
                 database = view_database;
-                if(smoke_project.isEmpty()){try{load_config(text(current.root));}catch(const std::exception& e){task_message->setToolTip(text(e.what()));}}
-                else commands_path->setText(text(current.analysis.compile_commands));
+                if(smoke_project.isEmpty()){try{load_config(text(current->root));}catch(const std::exception& e){task_message->setToolTip(text(e.what()));}}
+                else commands_path->setText(text(current->analysis.compile_commands));
             }
         }
         if (!smoke_project.isEmpty()) {
@@ -604,15 +640,15 @@ int main(int argc, char** argv) {
         if (!task.cancel() && task.busy()) task_message->setText(QStringLiteral("正在提交或结束任务，无法再取消；请等待结果"));
     });
     window.allowClose = [&]() {
-        if (!task.busy()&&!build_task.busy()) return true;
-        close_pending = true; task.cancel();build_task.cancel();
+        if (!task.busy()&&!build_task.busy()&&!query_task.busy()&&!history_task.busy()) return true;
+        close_pending = true; task.cancel();build_task.cancel();query_task.cancel();history_task.cancel();
         task_message->setText(QStringLiteral("等待后台任务安全结束后关闭窗口…"));
         return false;
     };
     auto scan = [&](const QString& root) {
-        if (task.busy()||build_task.busy()) return false;
+        if (task.busy()||build_task.busy()||history_task.busy()) return false;
         auto restore_selection=[&]{
-            if(!current.root.empty()) {database=view_database;load_config(text(current.root));}
+            if(!current->root.empty()) {database=view_database;load_config(text(current->root));}
             set_running(false);
         };
         try {
@@ -635,12 +671,13 @@ int main(int argc, char** argv) {
             codeguard::save_project_config(codeguard::from_utf8(bytes(root)),codeguard::from_utf8(bytes(database)),config);
         }
         task_message->setToolTip({});
+        options.use_cache=use_cache->isChecked();
         return task.start(codeguard::from_utf8(bytes(root)), codeguard::from_utf8(bytes(database)), options);
         } catch (...) {restore_selection();throw;}
     };
     QObject::connect(report,&QPushButton::clicked,[&]{
-        if(task.busy()||build_task.busy()||current.id<=0)return;
-        ReportDialog dialog(current.root,codeguard::from_utf8(bytes(database)),&window);dialog.exec();
+        if(task.busy()||build_task.busy()||history_task.busy()||current->id<=0)return;
+        ReportDialog dialog(current->root,codeguard::from_utf8(bytes(database)),&window);dialog.exec();
     });
     QObject::connect(project_settings,&QPushButton::clicked,[&]{
         if(task.busy()||build_task.busy()||config_root.isEmpty())return;
@@ -652,48 +689,45 @@ int main(int argc, char** argv) {
         }catch(const std::exception& e){QMessageBox::warning(&window,QStringLiteral("配置未保存"),text(e.what()));}
     });
     QObject::connect(suppress_action,&QAction::triggered,[&]{
-        if(task.busy()||build_task.busy()||current.root.empty())return;
-        const auto row=issues_table->currentRow();if(row<0||static_cast<std::size_t>(row)>=current.analysis.issues.size())return;
+        if(task.busy()||build_task.busy()||history_task.busy()||current->root.empty())return;
+        const auto row=issues_table->currentRow();if(row<0||static_cast<std::size_t>(row)>=current->analysis.issues.size())return;
         bool ok=false;const auto reason=QInputDialog::getMultiLineText(&window,QStringLiteral("抑制问题"),QStringLiteral("请填写复核理由；源码变化后该抑制将失效"),{},&ok);if(!ok)return;
         try{
-            auto config=capture_config();const auto entry=codeguard::suppress_issue(current,current.analysis.issues[row],bytes(reason));
+            auto config=capture_config();const auto entry=codeguard::suppress_issue(*current,current->analysis.issues[row],bytes(reason));
             std::erase_if(config.suppressions,[&](const auto& s){return s.rule_id==entry.rule_id&&s.file==entry.file&&s.line==entry.line&&s.column==entry.column;});config.suppressions.push_back(entry);
-            codeguard::save_project_config(codeguard::from_utf8(current.root),codeguard::from_utf8(bytes(database)),config);apply_config(config);
+            codeguard::save_project_config(codeguard::from_utf8(current->root),codeguard::from_utf8(bytes(database)),config);apply_config(config);
             task_message->setText(QStringLiteral("抑制已保存 · 重新扫描后生效，旧快照保留；可在工程设置中管理抑制"));
         }catch(const std::exception& e){QMessageBox::warning(&window,QStringLiteral("未保存抑制"),text(e.what()));}
     });
     QObject::connect(open, &QPushButton::clicked, [&]() {
-        if (task.busy()||build_task.busy()) return;
+        if (task.busy()||build_task.busy()||history_task.busy()) return;
         auto root = QFileDialog::getExistingDirectory(&window, QStringLiteral("选择 C/C++ 工程目录"));
         if (root.isEmpty() || !choose_database()) return;
         try { scan(root); }
         catch (const std::exception& exception) { QMessageBox::warning(&window, QStringLiteral("扫描未完成"), text(exception.what())); }
     });
     QObject::connect(rescan, &QPushButton::clicked, [&]() {
-        if (task.busy()||build_task.busy()) return;
-        if ((current.root.empty()&&config_root.isEmpty()) || !choose_database()) return;
-        const auto root = config_root.isEmpty()?text(current.root):config_root;
+        if (task.busy()||build_task.busy()||history_task.busy()) return;
+        if ((current->root.empty()&&config_root.isEmpty()) || !choose_database()) return;
+        const auto root = config_root.isEmpty()?text(current->root):config_root;
         try { scan(root); }
         catch (const std::exception& exception) { QMessageBox::warning(&window, QStringLiteral("扫描未完成"), text(exception.what())); }
     });
+    auto open_history = [&](const QString& selected, const QString& root = QString{}) {
+        if (task.busy() || build_task.busy() || history_task.busy()) return;
+        history_task.start([db = bytes(selected), saved_root = bytes(root)](const codeguard::ScanContext& context) {
+            return read_project(db, saved_root, context);
+        });
+        set_running(false); task_message->setText(QStringLiteral("正在后台载入工程、历史快照与配置…"));
+    };
+    QObject::connect(history_cancel, &QPushButton::clicked, [&] {
+        if (history_task.cancel()) { history_cancel->setEnabled(false); task_message->setText(QStringLiteral("正在取消读取…")); }
+    });
     QObject::connect(reopen, &QPushButton::clicked, [&]() {
-        if (task.busy()||build_task.busy()) return;
+        if (task.busy()||build_task.busy()||history_task.busy()) return;
         const auto selected = QFileDialog::getOpenFileName(&window, QStringLiteral("打开已有分析数据库，载入其中最近工程"), database, "SQLite (*.sqlite3)");
         if (selected.isEmpty()) return;
-        try {
-            codeguard::SqliteDatabase db(codeguard::from_utf8(bytes(selected)), true);
-            const auto projects = db.projects();
-            if (projects.empty()) throw std::runtime_error("No saved projects");
-            display(db.latest(projects.front().root));
-            database = selected;
-            view_database = selected;
-            report->setEnabled(true); // Saved reports remain available if source/config recovery fails.
-            if(build_output->text().isEmpty())build_output->setText(QFileInfo(selected).absolutePath()+"/codeguard-builds");
-            commands_path->setText(text(current.analysis.compile_commands));
-            load_config(text(current.root));remember();set_running(false);
-            task_message->setText(QStringLiteral("已载入历史快照 · 未启动新扫描")); task_message->setToolTip({});
-            progress->setRange(0, 100); progress->setValue(100);
-        } catch (const std::exception& exception) { QMessageBox::warning(&window, QStringLiteral("打开失败"), text(exception.what())); }
+        open_history(selected);
     });
     auto show_builds = [&](std::vector<codeguard::BuildRun> runs) {
         build_runs=std::move(runs);std::vector<QStringList> rows;
@@ -708,27 +742,73 @@ int main(int argc, char** argv) {
         }
     };
     auto refresh_builds = [&]() {
-        codeguard::SqliteDatabase db(codeguard::from_utf8(bytes(database)),true);
-        current.build_runs.clear();auto history=db.builds(current.root);
-        for(const auto& run:history)if(run.scan_id==current.id)current.build_runs.push_back(run);
-        show_builds(std::move(history));
+        if (history_task.busy() || close_pending) return;
+        history_snapshot = current;
+        history_task.start([dbpath = bytes(database), snapshot = history_snapshot](const codeguard::ScanContext& context) {
+            codeguard::SqliteDatabase db(codeguard::from_utf8(dbpath), true, context);
+            HistoryRead result; result.kind = HistoryRead::Kind::builds; result.runs = db.builds(snapshot->root);
+            result.snapshot = std::make_shared<codeguard::ScanResult>(*snapshot); result.snapshot->build_runs.clear();
+            for (const auto& run : result.runs) if (run.scan_id == snapshot->id) result.snapshot->build_runs.push_back(run);
+            return result;
+        });
+        set_running(false); task_message->setText(QStringLiteral("正在后台读取构建历史…"));
     };
     QObject::connect(build_table,&QTableWidget::cellClicked,[&](int row,int){
+        if (history_task.busy() || task.busy() || build_task.busy() || close_pending) return;
         try{
             const auto* item=build_table->item(row,0);if(!item)return;
-            auto& run=build_runs.at(item->data(Qt::UserRole).toInt());const auto step_index=item->data(Qt::UserRole+1).toInt();
-            codeguard::SqliteDatabase db(codeguard::from_utf8(bytes(database)),true);auto records=db.builds(current.root,true,run.id);
-            if(records.empty())throw std::runtime_error("Build record missing");run=std::move(records.front());
-            const auto& step=run.steps.at(step_index);git_log->setPlainText(text(run.git_log));
-            build_table->setCurrentCell(row,0);build_table->scrollToItem(build_table->item(row,0));
-            build_log->setPlainText(text(step.name+" | "+step.result.status+" | exit="+std::to_string(step.result.exit_code)+"\nstdout:\n"+step.result.stdout_text+"\nstderr:\n"+step.result.stderr_text+
-                (step.result.output_truncated?"\n[output truncated]\n":"")+"\ncommand:\n"+step.command));
-        }catch(const std::exception&e){QMessageBox::warning(&window,QStringLiteral("抑制未保存"),text(e.what()));}
+            const auto id=build_runs.at(item->data(Qt::UserRole).toInt()).id;const auto step_index=item->data(Qt::UserRole+1).toInt();
+            history_snapshot = current;
+            history_task.start([dbpath = bytes(database), root = current->root, id, step_index, row](const codeguard::ScanContext& context) {
+                codeguard::SqliteDatabase db(codeguard::from_utf8(dbpath), true, context);
+                HistoryRead result; result.kind = HistoryRead::Kind::log; result.row = row; result.step = step_index;
+                result.runs = db.builds(root, true, id);
+                if (result.runs.empty()) throw std::runtime_error("Build record missing");
+                return result;
+            });
+            set_running(false); task_message->setText(QStringLiteral("正在后台读取构建日志…"));
+        }catch(const std::exception&e){build_status->setText(QStringLiteral("日志读取失败：")+text(e.what()));}
     });
+    history_task.finished = [&](ReadOutcome<HistoryRead> outcome) {
+        set_running(false);
+        if (!close_pending) {
+          if (!outcome.result) task_message->setText(outcome.cancelled ? QStringLiteral("读取已取消 · 已显示的结果保留") : QStringLiteral("读取失败：") + text(outcome.error));
+          else {
+            auto& result = *outcome.result;
+            if (result.kind == HistoryRead::Kind::project) {
+                database = text(result.database); view_database = database;
+                display(result.snapshot); config_root.clear(); config_database.clear();
+                if (result.configuration) {
+                    auto config = std::move(*result.configuration);
+                    if (config.build.output_directory.empty()) config.build.output_directory = codeguard::from_utf8(bytes(QFileInfo(database).absolutePath()+"/codeguard-builds"));
+                    config_root = text(current->root); config_database = database; apply_config(config);
+                } else apply_config(codeguard::ProjectConfig{});
+                remember(); set_running(false);
+                task_message->setText(result.configuration_error.empty() ? QStringLiteral("已载入历史快照与配置 · 未启动新扫描") : QStringLiteral("历史快照已载入；配置无法恢复：") + text(result.configuration_error));
+                progress->setRange(0,100); progress->setValue(100);
+            } else if (history_snapshot == current) {
+                if (result.kind == HistoryRead::Kind::builds) {
+                    query_task.cancel(); current = std::move(result.snapshot);
+                    query_model->replace(); query_plan->clear(); query_status->setText(QStringLiteral("构建历史已更新，请重新查询。"));
+                    show_builds(std::move(result.runs));
+                } else {
+                    const auto& run = result.runs.front(); const auto& step = run.steps.at(result.step);
+                    git_log->setPlainText(text(run.git_log)); build_table->setCurrentCell(result.row,0);
+                    build_log->setPlainText(text(step.name+" | "+step.result.status+" | exit="+std::to_string(step.result.exit_code)+"\nstdout:\n"+step.result.stdout_text+"\nstderr:\n"+step.result.stderr_text+
+                        (step.result.output_truncated?"\n[output truncated]\n":"")+"\ncommand:\n"+step.command));
+                }
+                task_message->setText(QStringLiteral("历史读取完成"));
+            }
+          }
+        }
+        history_snapshot.reset();
+        if (close_pending) QTimer::singleShot(0, &window, &QWidget::close);
+    };
     build_task.updated=[&](const std::string& phase){
         report->setEnabled(false);
         suppress_action->setEnabled(false);
         project_settings->setEnabled(false);generate->setEnabled(false);
+        use_cache->setEnabled(false);
         open->setEnabled(false);rescan->setEnabled(false);reopen->setEnabled(false);choose_commands->setEnabled(false);commands_path->setEnabled(false);thread_count->setEnabled(false);
         build_start->setEnabled(false);build_history->setEnabled(false);build_output->setEnabled(false);build_target->setEnabled(false);build_compiler->setEnabled(false);build_jobs->setEnabled(false);build_timeout->setEnabled(false);
         build_status->setText(QStringLiteral("后台构建测试：%1 · 在源码副本中执行").arg(text(phase)));
@@ -736,39 +816,47 @@ int main(int argc, char** argv) {
     build_task.finished=[&](const BuildOutcome& outcome){
         set_running(false);build_stop->setEnabled(false);build_output->setEnabled(true);build_target->setEnabled(true);build_compiler->setEnabled(true);build_jobs->setEnabled(true);build_timeout->setEnabled(true);
         if(outcome.result){
-            try{refresh_builds();if(build_table->rowCount())build_table->cellClicked(0,0);}catch(const std::exception&e){build_log->setPlainText(text(e.what()));}
+            if (!generating) refresh_builds();
         }else build_status->setText(QStringLiteral("构建管理失败：")+text(outcome.error));
         const bool follow_analysis=generating;generating=false;
         if(follow_analysis&&!close_pending){
             if(outcome.result&&outcome.result->status=="configured"){
                 try{
                     auto config=capture_config();config.compile_commands=outcome.result->compile_commands;config.analysis_enabled=true;config.auto_discover=false;config.command_choices.clear();
-                    codeguard::save_project_config(codeguard::from_utf8(current.root),codeguard::from_utf8(bytes(database)),config);apply_config(config);scan(text(current.root));
+                    codeguard::save_project_config(codeguard::from_utf8(current->root),codeguard::from_utf8(bytes(database)),config);apply_config(config);scan(text(current->root));
                 }catch(const std::exception& e){task_message->setText(QStringLiteral("参数已生成，分析未启动：")+text(e.what()));}
             }else task_message->setText(QStringLiteral("参数生成未完成 · 查看构建测试页的阶段日志，修正工程设置后重试"));
         }
         if(close_pending)QTimer::singleShot(0,&window,&QWidget::close);
     };
     auto start_build = [&]() {
-        if(task.busy()||build_task.busy()||current.id<=0)return false;
+        if(task.busy()||build_task.busy()||history_task.busy()||current->id<=0)return false;
         codeguard::BuildOptions options=project_config.build;options.output_directory=codeguard::from_utf8(bytes(build_output->text()));options.target=bytes(build_target->text());
         options.cxx_compiler=bytes(build_compiler->text());options.jobs=static_cast<unsigned>(build_jobs->value());options.timeout=std::chrono::seconds(build_timeout->value());
-        if(smoke_project.isEmpty()){auto config=capture_config();codeguard::save_project_config(codeguard::from_utf8(current.root),codeguard::from_utf8(bytes(database)),config);project_config=config;}
+        if(smoke_project.isEmpty()){auto config=capture_config();codeguard::save_project_config(codeguard::from_utf8(current->root),codeguard::from_utf8(bytes(database)),config);project_config=config;}
         build_log->clear();git_log->clear();build_stop->setEnabled(true);tabs->setCurrentWidget(build_panel);
-        return build_task.start(codeguard::from_utf8(current.root),codeguard::from_utf8(bytes(database)),options);
+        return build_task.start(codeguard::from_utf8(current->root),codeguard::from_utf8(bytes(database)),options);
     };
     QObject::connect(build_start,&QPushButton::clicked,[&]{try{start_build();}catch(const std::exception&e){build_status->setText(text(e.what()));}});
     QObject::connect(generate,&QPushButton::clicked,[&]{
-        if(task.busy()||build_task.busy()||current.id<=0)return;
+        if(task.busy()||build_task.busy()||history_task.busy()||current->id<=0)return;
         try{
-            auto config=capture_config();codeguard::save_project_config(codeguard::from_utf8(current.root),codeguard::from_utf8(bytes(database)),config);project_config=config;
+            auto config=capture_config();codeguard::save_project_config(codeguard::from_utf8(current->root),codeguard::from_utf8(bytes(database)),config);project_config=config;
             auto options=config.build;options.configure_only=true;generating=true;build_stop->setEnabled(true);tabs->setCurrentWidget(build_panel);
-            if(!build_task.start(codeguard::from_utf8(current.root),codeguard::from_utf8(bytes(database)),options))generating=false;
+            if(!build_task.start(codeguard::from_utf8(current->root),codeguard::from_utf8(bytes(database)),options))generating=false;
         }catch(const std::exception& e){generating=false;task_message->setText(QStringLiteral("无法生成参数：")+text(e.what()));}
     });
     QObject::connect(build_stop,&QPushButton::clicked,[&]{if(build_task.cancel()){build_stop->setEnabled(false);build_status->setText(QStringLiteral("正在停止进程并保存日志…"));}});
     QObject::connect(build_history,&QPushButton::clicked,[&]{if(task.busy()||build_task.busy())return;try{refresh_builds();if(build_table->rowCount())build_table->cellClicked(0,0);}catch(const std::exception&e){build_status->setText(text(e.what()));}});
     window.show();
+    // Only smoke acceptance uses a nested loop; product actions never wait here.
+    auto wait_read = [&](const std::function<bool()>& busy) {
+        QEventLoop loop; QTimer pulse, timeout; pulse.setInterval(5); timeout.setSingleShot(true);
+        QObject::connect(&pulse, &QTimer::timeout, &loop, [&] { if (!busy()) loop.quit(); });
+        QObject::connect(&timeout, &QTimer::timeout, &loop, &QEventLoop::quit);
+        pulse.start(); timeout.start(10000); if (busy()) loop.exec();
+        if (busy()) throw std::runtime_error("background read acceptance timed out");
+    };
     if (qEnvironmentVariableIsSet("CODEGUARD_REQUIRE_BUNDLED_FONT")) {
         const QFontMetrics metrics(open->font());
         for (const auto ch : QStringLiteral("导入工程扫描选择编译数据库查询线程构建测试源码只读")) {
@@ -791,7 +879,7 @@ int main(int argc, char** argv) {
                     tabs->setCurrentWidget(metrics_table);
                 }
                 // Exercise the same signals/slots as tree and result clicks, without screen coordinates.
-                display(saved);
+                display(std::make_shared<codeguard::ScanResult>(saved));
                 if (!editor->isReadOnly() || tree->topLevelItemCount() != 1)
                     throw std::runtime_error("read-only editor / project tree missing");
                 if (!saved.files.empty()) {
@@ -823,23 +911,30 @@ int main(int argc, char** argv) {
                 const auto compact = screenshot.parent_path() / "gui-smoke-compact.png";
                 if (!window.grab().save(text(codeguard::utf8_path(compact)))) throw std::runtime_error("cannot save compact screenshot");
                 tabs->setCurrentWidget(query_panel);
-                query_input->setPlainText("SELECT file, lines FROM files ORDER BY lines DESC LIMIT 1;"); query_run->click();
-                if (query_table->rowCount() != (saved.files.empty() ? 0 : 1) || query_plan->toPlainText().isEmpty())
+                query_input->setPlainText("SELECT file, lines FROM files ORDER BY lines DESC LIMIT 1;"); query_run->click(); wait_read([&] { return query_task.busy(); });
+                if (query_model->rowCount() != (saved.files.empty() ? 0 : 1) || query_plan->toPlainText().isEmpty())
                     throw std::runtime_error("query widget results mismatch");
                 if (!saved.analysis.metrics.empty()) {
-                    query_input->setPlainText("SELECT name, file, line, complexity FROM functions WHERE complexity >= 0 ORDER BY complexity DESC LIMIT 3;"); query_run->click();
-                    if (query_table->rowCount() == 0) throw std::runtime_error("function query returned no rows");
-                    query_table->cellDoubleClicked(0, 0);
-                    if (opened_file != query_table->item(0, 1)->text() || editor->textCursor().blockNumber() + 1 != query_table->item(0, 2)->text().toInt())
+                    query_input->setPlainText("SELECT name, file, line, complexity FROM functions WHERE complexity >= 0 ORDER BY complexity DESC LIMIT 3;"); query_run->click(); wait_read([&] { return query_task.busy(); });
+                    if (query_model->rowCount() == 0) throw std::runtime_error("function query returned no rows");
+                    query_table->doubleClicked(query_model->index(0, 0));
+                    if (opened_file != query_model->data(query_model->index(0, 1)).toString() || editor->textCursor().blockNumber() + 1 != query_model->data(query_model->index(0, 2)).toString().toInt())
                         throw std::runtime_error("query source navigation failed");
                 }
                 app.processEvents();
                 if (!window.grab().save(text(codeguard::utf8_path(screenshot.parent_path() / "gui-query-compact.png")))) throw std::runtime_error("query screenshot failed");
                 window.resize(1480, 860); app.processEvents();
                 if (!window.grab().save(text(codeguard::utf8_path(screenshot.parent_path() / "gui-query.png")))) throw std::runtime_error("query screenshot failed");
-                query_input->setPlainText("SELECT missing FROM files;"); query_run->click();
-                if (query_table->rowCount() != 0 || !query_status->text().startsWith(QStringLiteral("查询失败：")))
+                query_input->setPlainText("SELECT missing FROM files;"); query_run->click(); wait_read([&] { return query_task.busy(); });
+                if (query_model->rowCount() != 0 || !query_status->text().startsWith(QStringLiteral("查询失败：")))
                     throw std::runtime_error("invalid query did not clear old results");
+                query_input->setPlainText("SELECT * FROM files ORDER BY lines DESC;"); query_run->click(); query_cancel->click();
+                wait_read([&] { return query_task.busy(); });
+                if (query_model->rowCount() || query_status->text()!=QStringLiteral("查询已取消") || !query_run->isEnabled() || query_cancel->isEnabled())
+                    throw std::runtime_error("query cancel controls did not recover");
+                query_run->click(); display(std::make_shared<codeguard::ScanResult>(saved)); wait_read([&] { return query_task.busy(); });
+                if (query_model->rowCount() || !query_status->text().startsWith(QStringLiteral("快照已更新")))
+                    throw std::runtime_error("stale query overwrote a replacement snapshot");
                 tabs->setCurrentWidget(metrics_table);
                 if(engineering_smoke){
                     if(saved.analysis.issues.size()!=5||issues_table->rowCount()!=5)throw std::runtime_error("five rules missing from GUI");
@@ -856,12 +951,13 @@ int main(int argc, char** argv) {
                     build_task.finished=[&,original_finish](const BuildOutcome& outcome){
                         original_finish(outcome);
                         try{
+                            wait_read([&] { return history_task.busy(); });
                             if(!outcome.result)throw std::runtime_error("GUI build failed: "+outcome.error);
                             const auto& run=*outcome.result;
                             if(engineering_stage==0){
                                 if(run.status!="passed"||run.steps.back().tests_total!=1||build_table->rowCount()<4||!build_start->isEnabled())throw std::runtime_error("GUI build/test result mismatch");
-                                if(codeguard::execute_query(current,"SELECT stage FROM builds WHERE status = 'passed'").rows.size()<4)throw std::runtime_error("GUI build query stale");
-                                tabs->setCurrentWidget(build_panel);build_table->cellClicked(3,0);app.processEvents();
+                                if(codeguard::execute_query(*current,"SELECT stage FROM builds WHERE status = 'passed'").rows.size()<4)throw std::runtime_error("GUI build query stale");
+                                tabs->setCurrentWidget(build_panel);build_table->cellClicked(3,0);wait_read([&] { return history_task.busy(); });app.processEvents();
                                 const auto dir=codeguard::from_utf8(bytes(database)).parent_path();
                                 window.grab().save(text(codeguard::utf8_path(dir/"gui-build.png")));
                                 window.resize(1080,680);app.processEvents();window.grab().save(text(codeguard::utf8_path(dir/"gui-build-compact.png")));
@@ -883,7 +979,7 @@ int main(int argc, char** argv) {
                 verify_background = [&, saved, source_before, file_before](const TaskOutcome& outcome) {
                     try {
                         codeguard::SqliteDatabase db(codeguard::from_utf8(bytes(database)), true);
-                        if (outcome.state != TaskState::cancelled || outcome.result || task.busy() || current.id != saved.id ||
+                        if (outcome.state != TaskState::cancelled || outcome.result || task.busy() || current->id != saved.id ||
                             db.latest(saved.root).id != saved.id || table->rowCount() != static_cast<int>(saved.files.size()) ||
                             editor->toPlainText() != source_before || opened_file != file_before || filter->text() != "___keep_filter___" ||
                             !open->isEnabled() || !rescan->isEnabled() || !reopen->isEnabled() || cancel->isEnabled() ||
@@ -952,11 +1048,9 @@ int main(int argc, char** argv) {
     } else if(!session_file.isEmpty()&&database.isEmpty()) {
         QTimer::singleShot(0,[&]{try{
             QSettings session(session_file,QSettings::IniFormat);const auto saved_db=session.value("database").toString();const auto root=session.value("project").toString();
+            use_cache->setChecked(session.value("useAstCache",false).toBool());
             if(root.isEmpty()||saved_db.isEmpty())return;
-            codeguard::SqliteDatabase db(codeguard::from_utf8(bytes(saved_db)),true);const auto saved=db.latest(bytes(root));
-            if(!saved.id)throw std::runtime_error("会话中的工程快照不存在，请重新导入工程");
-            database=saved_db;display(saved);view_database=database;report->setEnabled(true);load_config(root);set_running(false);
-            task_message->setText(QStringLiteral("已恢复上次工程与配置 · 当前显示历史快照，重新扫描可更新结果"));
+            open_history(saved_db, root);
         }catch(const std::exception& e){task_message->setText(QStringLiteral("会话恢复失败：")+text(e.what()));}});
     }
     // Deterministic UI acceptance: real controls, tasks and a separate restart process.
@@ -966,12 +1060,12 @@ int main(int argc, char** argv) {
         QObject::connect(pulse,&QTimer::timeout,[&,pulse,stage=0,ticks=0]() mutable {
             try{
                 if(++ticks>2000)throw std::runtime_error("configuration window acceptance timed out");
-                if(task.busy()||build_task.busy()||current.id<=0)return;
+                if(task.busy()||build_task.busy()||history_task.busy()||current->id<=0)return;
                 if(configuration_smoke=="reports"){
                     if(stage==0){++stage;rescan->click();return;}
                     if(stage==1){
                         if(!report->isEnabled())throw std::runtime_error("report action unavailable after scan");
-                        auto* dialog=new ReportDialog(current.root,codeguard::from_utf8(bytes(database)),&window);dialog->show();++stage;return;
+                        auto* dialog=new ReportDialog(current->root,codeguard::from_utf8(bytes(database)),&window);dialog->show();++stage;return;
                     }
                     auto* dialog=window.findChild<QDialog*>("reportDialog");
                     if(!dialog)throw std::runtime_error("report dialog missing");
@@ -994,32 +1088,32 @@ int main(int argc, char** argv) {
                 if(configuration_smoke=="rules"){
                     auto require=[](bool ok,const char* message){if(!ok)throw std::runtime_error(message);};
                     if(stage==0){
-                        require(current.analysis.issues.size()==1,"rule GUI initial issue missing");++stage;
+                        require(current->analysis.issues.size()==1,"rule GUI initial issue missing");++stage;
                         QTimer::singleShot(0,[&]{auto* dialog=window.findChild<QDialog*>("projectSettings");if(!dialog){app.exit(1);return;}
                             auto* severity=dialog->findChild<QComboBox*>("severity_CG002");severity->setCurrentIndex(severity->findData("info"));dialog->accept();});
                         pulse->stop();project_settings->click();pulse->start();rescan->click();return;
                     }
                     if(stage==1){
-                        require(current.analysis.issues.size()==1&&issues_table->item(0,0)->text()=="info","severity did not update UI");++stage;
+                        require(current->analysis.issues.size()==1&&issues_table->item(0,0)->text()=="info","severity did not update UI");++stage;
                         QTimer::singleShot(0,[&]{auto* dialog=window.findChild<QInputDialog*>();if(!dialog){app.exit(1);return;}dialog->setTextValue(QStringLiteral("已复核：演示用缺陷，保留测试"));dialog->accept();});
                         issues_table->setCurrentCell(0,0);pulse->stop();suppress_action->trigger();pulse->start();rescan->click();return;
                     }
                     if(stage==2){
-                        require(current.analysis.issues.empty()&&suppressed_table->rowCount()==1&&suppressed_table->item(0,6)->text().contains(QStringLiteral("已复核")),"suppressed reason missing from UI");
+                        require(current->analysis.issues.empty()&&suppressed_table->rowCount()==1&&suppressed_table->item(0,6)->text().contains(QStringLiteral("已复核")),"suppressed reason missing from UI");
                         const auto dir=QFileInfo(database).absolutePath();tabs->setCurrentWidget(suppressed_table);window.grab().save(dir+"/rules-suppressed.png");
-                        ProjectSettings dialog(codeguard::from_utf8(current.root),capture_config(),&window);dialog.show();auto* pages=dialog.findChild<QTabWidget*>();pages->setCurrentIndex(pages->count()-1);app.processEvents();dialog.grab().save(dir+"/rules-settings.png");
+                        ProjectSettings dialog(codeguard::from_utf8(current->root),capture_config(),&window);dialog.show();auto* pages=dialog.findChild<QTabWidget*>();pages->setCurrentIndex(pages->count()-1);app.processEvents();dialog.grab().save(dir+"/rules-settings.png");
                         dialog.resize(700,560);app.processEvents();dialog.grab().save(dir+"/rules-settings-compact.png");
                         dialog.findChild<QTableWidget*>("ruleSuppressions")->setCurrentCell(0,0);dialog.findChild<QPushButton*>("removeSuppression")->click();
-                        auto config=dialog.configuration();codeguard::save_project_config(codeguard::from_utf8(current.root),codeguard::from_utf8(bytes(database)),config);apply_config(config);++stage;rescan->click();return;
+                        auto config=dialog.configuration();codeguard::save_project_config(codeguard::from_utf8(current->root),codeguard::from_utf8(bytes(database)),config);apply_config(config);++stage;rescan->click();return;
                     }
-                    require(current.analysis.issues.size()==1&&current.analysis.suppressed_issues.empty(),"removing suppression did not restore finding");
+                    require(current->analysis.issues.size()==1&&current->analysis.suppressed_issues.empty(),"removing suppression did not restore finding");
                     std::cout<<"GUI_RULE_POLICY_OK"<<std::endl;pulse->stop();app.exit(0);return;
                 }
                 if(configuration_smoke=="restore"){
                     if(project_config.threads!=2||project_config.build.target!="demo"||project_config.disabled_rules!=std::vector<std::string>{"CG004"}||commands_path->text().isEmpty()||build_target->text()!="demo")
                         throw std::runtime_error("restart did not restore project controls");
-                    if(current.analysis.units.size()!=1||current.build_runs.empty()||current.build_runs.front().status!="passed")throw std::runtime_error("restart did not load saved scan and build");
-                    std::cout<<"GUI_CONFIG_RESTORE_OK scan="<<current.id<<std::endl;pulse->stop();app.exit(0);return;
+                    if(current->analysis.units.size()!=1||current->build_runs.empty()||current->build_runs.front().status!="passed")throw std::runtime_error("restart did not load saved scan and build");
+                    std::cout<<"GUI_CONFIG_RESTORE_OK scan="<<current->id<<std::endl;pulse->stop();app.exit(0);return;
                 }
                 if(stage==0){
                     ++stage;
@@ -1037,18 +1131,18 @@ int main(int argc, char** argv) {
                 }
                 if(stage==1){++stage;generate->click();if(!build_task.busy())throw std::runtime_error("generate control did not start task");return;}
                 if(stage==2){
-                    if(current.analysis.status!="complete"||current.analysis.units.size()!=1||project_config.compile_commands.empty())throw std::runtime_error("generate did not analyze original project");
+                    if(current->analysis.status!="complete"||current->analysis.units.size()!=1||project_config.compile_commands.empty())throw std::runtime_error("generate did not analyze original project");
                     ++stage;build_start->click();if(!build_task.busy())throw std::runtime_error("build control did not start task");return;
                 }
                 if(stage==3){
                     if(build_runs.empty()||build_runs.front().status!="passed"||build_runs.front().steps.back().tests_total!=1)throw std::runtime_error("configured GUI build/test failed");
                     const auto dir=QFileInfo(database).absolutePath();
                     if(!window.grab().save(dir+"/configuration-workspace.png"))throw std::runtime_error("configuration screenshot failed");
-                    ProjectSettings dialog(codeguard::from_utf8(current.root),capture_config(),&window);dialog.show();app.processEvents();
+                    ProjectSettings dialog(codeguard::from_utf8(current->root),capture_config(),&window);dialog.show();app.processEvents();
                     auto* pages=dialog.findChild<QTabWidget*>();
                     for(int i=0;i<pages->count();++i){pages->setCurrentIndex(i);app.processEvents();if(!dialog.grab().save(dir+QString("/configuration-page-%1.png").arg(i)))throw std::runtime_error("settings screenshot failed");}
                     dialog.resize(700,560);pages->setCurrentIndex(2);app.processEvents();dialog.grab().save(dir+"/configuration-compact.png");
-                    remember();std::cout<<"GUI_CONFIG_IMPORT_OK scan="<<current.id<<std::endl;pulse->stop();app.exit(0);
+                    remember();std::cout<<"GUI_CONFIG_IMPORT_OK scan="<<current->id<<std::endl;pulse->stop();app.exit(0);
                 }
             }catch(const std::exception& e){std::cerr<<e.what()<<std::endl;pulse->stop();app.exit(1);}
         });pulse->start();

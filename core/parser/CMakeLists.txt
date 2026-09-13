@@ -23,6 +23,7 @@ file(GLOB analyzer_inputs CONFIGURE_DEPENDS
     "${PROJECT_SOURCE_DIR}/core/analyzer/clang_rules/*.cpp"
     "${PROJECT_SOURCE_DIR}/core/analyzer/clang_rules/*.hpp")
 list(APPEND analyzer_inputs "${CMAKE_CURRENT_SOURCE_DIR}/clang_analysis.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/analysis_cache.hpp"
     "${PROJECT_SOURCE_DIR}/core/include/codeguard/analysis.hpp"
     "${PROJECT_SOURCE_DIR}/core/include/codeguard/rules.hpp"
     "${PROJECT_SOURCE_DIR}/core/analyzer/rules.cpp"

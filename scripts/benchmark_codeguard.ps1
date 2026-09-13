@@ -25,7 +25,7 @@ foreach($repeat in 1..$Repeats){
         $database=Join-Path $out "threads-$threads-repeat-$repeat.sqlite3"
         $info=[Diagnostics.ProcessStartInfo]::new();$info.FileName=$cli;$info.WorkingDirectory=$repo
         $info.UseShellExecute=$false;$info.CreateNoWindow=$true;$info.RedirectStandardOutput=$true;$info.RedirectStandardError=$true
-        foreach($arg in @('scan',$source,'--database',$database,'--compile-commands',$commandFile,'--threads',"$threads")){$info.ArgumentList.Add($arg)}
+        foreach($arg in @('scan',$source,'--database',$database,'--compile-commands',$commandFile,'--threads',"$threads",'--cache','off')){$info.ArgumentList.Add($arg)}
         $process=[Diagnostics.Process]::new();$process.StartInfo=$info
         $watch=[Diagnostics.Stopwatch]::StartNew();[void]$process.Start()
         $stdout=$process.StandardOutput.ReadToEndAsync();$stderr=$process.StandardError.ReadToEndAsync()

@@ -14,6 +14,8 @@
 
 P1-3 已加入 C++ HTML/JSON 报告及扫描版本对比，CLI 使用 `scans` / `report`，Qt 顶部使用“报告与对比”。报告保留问题、覆盖、复杂度、构建测试及配置，区分抑制、解析失败和待复核的未再检出；操作及验收进度见 [报告与版本对比](docs/reports-and-comparison.md)。当前存储为 schema 6，旧快照可读且缺失溯源保持未知。
 
+P2-1 已加入后台查询、历史/日志读取与取消，查询结果用表模型按需显示；AST 缓存可由 CLI `--cache on` 或 Qt 勾选开启，默认关闭。缓存每次重新预处理校验完整依赖；首次使用有额外成本，操作、边界及验收进度见 [性能与交互](docs/performance-and-interaction.md)。
+
 v0.3.0 已补齐五类 Clang AST 规则、多 TU 线程池、单写线程批量事务、Windows/POSIX ProcessRunner、源码副本内 CMake/CTest、只读 Git 信息及构建历史。CLI/Qt 共用 Core，SQLite schema 3 保存 Issue 和 BuildTest 记录，查询语言新增 `issues` / `builds`。Qt 已提供问题定位、线程设置、后台构建测试、停止、历史与 Git 日志。
 
 ```powershell
@@ -34,7 +36,7 @@ v0.3.0 已补齐五类 Clang AST 规则、多 TU 线程池、单写线程批量�
   --query "SELECT name, file, complexity FROM functions WHERE complexity >= 2 ORDER BY complexity DESC LIMIT 20;"
 ```
 
-查询语法、字段、边界和验收见 [查询语言说明](docs/query-language.md)。最新范围见 [方向调整与当前进度](docs/codeguard-status.md)。Windows CI 和固定真实工程验收已完成，规则改进收尾后进入报告与版本对比；Linux Qt/Clang 验收暂缓。
+查询语法、字段、边界和验收见 [查询语言说明](docs/query-language.md)。最新范围见 [方向调整与当前进度](docs/codeguard-status.md)。Windows CI 和固定真实工程验收已完成，规则与报告对比已完成，当前推进大工程性能与交互；Linux Qt/Clang 验收暂缓。
 
 ## Clang 符号、复杂度与项目关系图
 

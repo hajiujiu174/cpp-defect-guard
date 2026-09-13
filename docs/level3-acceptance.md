@@ -10,6 +10,8 @@
 
 同日 P1-2 进展：五条 AST 检查已移入独立规则模块，增加级别设置、带理由抑制、宏证据回退和已确定的 constexpr 丢弃分支处理。当前 schema 5 保存已抑制问题及策略诊断，查询增加 `suppressed_issues`/`rule_diagnostics`；45 个标注样例及当前验收见 [规则引擎](rule-engine.md)。下文规则算法的原有局限继续适用，宏证据“可能为空”由显式 AST 节点占位取代。
 
+P2-1 后续进展：查询和历史读取已接入后台取消及过期结果保护，新增默认关闭的 TU AST 缓存；每次重新预处理核对依赖。当前验收进度和适用范围见 [性能与交互](performance-and-interaction.md)。
+
 ## 使用入口
 
 P1-3 新增版本报告见 [报告与版本对比](reports-and-comparison.md)：schema 6 保存分析溯源，Core/CLI/Qt 可导出指定历史批次并区分告警减少的原因。本页历史测试计数不替代该项新版验收。

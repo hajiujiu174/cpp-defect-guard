@@ -60,7 +60,8 @@ ScanResult import_project(const fs::path& input, const fs::path& database, const
     if (!result.diagnostics.empty()) return result;
     result.removed = old.size();
     if (!options.compile_commands.empty()) {
-        result.analysis = analyze_project(result, options.compile_commands, options.context, options.threads, options.command_choices,options.disabled_rules);
+        result.analysis = analyze_project(result, options.compile_commands, options.context, options.threads, options.command_choices,options.disabled_rules,
+            options.use_cache ? utf8_path(target)+".tu-cache" : "");
         // Do not attach analysis to a different source snapshot if files changed meanwhile.
         auto verification = options; verification.scan_phase = "verifying";
         const auto after = scan_project(root, verification);

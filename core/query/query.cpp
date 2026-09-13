@@ -159,31 +159,35 @@ std::int64_t signed_size(std::uintmax_t value) {
     return static_cast<std::int64_t>(value);
 }
 using Row = std::vector<QueryValue>;
-std::vector<Row> materialize(const ScanResult& scan, const std::string& table) {
+std::vector<Row> materialize(const ScanResult& scan, const std::string& table, const ScanContext& context) {
     std::vector<Row> rows;
+    auto append = [&](Row row) {
+        if (rows.size() % 256 == 0) context.report("query_materialize", {}, rows.size());
+        rows.push_back(std::move(row));
+    };
     if(table=="suppressed_issues") {
-        for(const auto& i:scan.analysis.suppressed_issues)rows.push_back({i.rule_id,i.severity,i.file,std::int64_t{i.line},std::int64_t{i.column},i.message,i.evidence,i.suggestion,i.symbol_id,i.detector,i.suppression_reason});
+        for(const auto& i:scan.analysis.suppressed_issues)append({i.rule_id,i.severity,i.file,std::int64_t{i.line},std::int64_t{i.column},i.message,i.evidence,i.suggestion,i.symbol_id,i.detector,i.suppression_reason});
     }else if(table=="rule_diagnostics"){
-        for(const auto& message:scan.analysis.rule_diagnostics)rows.push_back({message});
+        for(const auto& message:scan.analysis.rule_diagnostics)append({message});
     }else if (table == "issues") {
-        for (const auto& i : scan.analysis.issues) rows.push_back({i.rule_id,i.severity,i.file,std::int64_t{i.line},std::int64_t{i.column},i.message,i.evidence,i.suggestion,i.symbol_id,i.detector});
+        for (const auto& i : scan.analysis.issues) append({i.rule_id,i.severity,i.file,std::int64_t{i.line},std::int64_t{i.column},i.message,i.evidence,i.suggestion,i.symbol_id,i.detector});
     } else if (table == "builds") {
-        for (const auto& run : scan.build_runs) for (const auto& step : run.steps) rows.push_back({run.id,run.scan_id,step.name,step.result.status,
+        for (const auto& run : scan.build_runs) for (const auto& step : run.steps) append({run.id,run.scan_id,step.name,step.result.status,
             std::int64_t{step.result.exit_code},step.result.duration_ms,std::int64_t{step.tests_total},std::int64_t{step.tests_failed},std::int64_t{step.tests_skipped},run.target});
     } else if (table == "files") {
-        for (const auto& f : scan.files) rows.push_back({f.path, f.language, signed_size(f.lines), signed_size(f.size), f.mtime, f.hash});
+        for (const auto& f : scan.files) append({f.path, f.language, signed_size(f.lines), signed_size(f.size), f.mtime, f.hash});
     } else if (table == "symbols") {
-        for (const auto& s : scan.analysis.symbols) rows.push_back({s.name,s.file,std::int64_t{s.line},std::int64_t{s.column},s.kind,std::int64_t{s.definition},std::int64_t{s.external},s.id});
+        for (const auto& s : scan.analysis.symbols) append({s.name,s.file,std::int64_t{s.line},std::int64_t{s.column},s.kind,std::int64_t{s.definition},std::int64_t{s.external},s.id});
     } else if (table == "edges") {
-        for (const auto& e : scan.analysis.edges) rows.push_back({e.kind,e.source,e.target,e.file,std::int64_t{e.line},std::int64_t{e.column}});
+        for (const auto& e : scan.analysis.edges) append({e.kind,e.source,e.target,e.file,std::int64_t{e.line},std::int64_t{e.column}});
     } else {
         std::map<std::string, const Symbol*> symbols;
-        for (const auto& s : scan.analysis.symbols) symbols[s.id] = &s;
+        for (const auto& s : scan.analysis.symbols) { context.check(); symbols[s.id] = &s; }
         for (const auto& m : scan.analysis.metrics) {
             const auto found = symbols.find(m.symbol_id);
             if (found == symbols.end()) throw std::runtime_error("metric refers to a missing symbol");
             const auto& s = *found->second;
-            rows.push_back({s.name,s.file,std::int64_t{s.line},std::int64_t{m.complexity},std::int64_t{m.lines},std::int64_t{m.parameters},s.id});
+            append({s.name,s.file,std::int64_t{s.line},std::int64_t{m.complexity},std::int64_t{m.lines},std::int64_t{m.parameters},s.id});
         }
     }
     return rows;
@@ -251,18 +255,24 @@ std::string query_value_text(const QueryValue& value) {
     if (const auto* number = std::get_if<std::int64_t>(&value)) return std::to_string(*number);
     return std::get<std::string>(value);
 }
-QueryResult execute_query(const ScanResult& scan, const std::string& source) {
+QueryResult execute_query(const ScanResult& scan, const std::string& source, const ScanContext& context) {
+    context.check();
     const auto ast = parse_query(source);
     const auto plan = analyze(ast, source); // validate even on empty input
     if (ast.table != "files" && ast.table != "builds" && ast.table != "rule_diagnostics" && scan.analysis.status == "not_requested")
         throw QueryError(source, ast.table_offset, "table requires a Clang analysis snapshot");
-    const auto data = materialize(scan, ast.table);
+    const auto data = materialize(scan, ast.table, context);
     QueryResult result; result.analysis_status = scan.analysis.status; result.scan_id = scan.id; result.scanned_rows = data.size();
     for (const auto index : plan.projection) result.columns.push_back(plan.schema[index].name);
     std::vector<std::size_t> selected;
-    for (std::size_t i = 0; i < data.size(); ++i) if (matches(data[i], ast, plan, ast.predicate)) selected.push_back(i);
+    for (std::size_t i = 0; i < data.size(); ++i) {
+        if (i % 256 == 0) context.report("query_filter", {}, i, data.size());
+        if (matches(data[i], ast, plan, ast.predicate)) selected.push_back(i);
+    }
     result.matched_rows = selected.size();
+    context.report("query_sort", {}, 0, selected.size());
     if (!ast.order.empty()) std::stable_sort(selected.begin(), selected.end(), [&](auto a, auto b) {
+        context.check();
         for (std::size_t i = 0; i < ast.order.size(); ++i) {
             const auto& left = data[a][plan.order_fields[i]]; const auto& right = data[b][plan.order_fields[i]];
             if (left != right) return ast.order[i].descending ? left > right : left < right;
@@ -271,6 +281,7 @@ QueryResult execute_query(const ScanResult& scan, const std::string& source) {
     });
     if (ast.limit >= 0 && static_cast<std::uint64_t>(ast.limit) < selected.size()) selected.resize(static_cast<std::size_t>(ast.limit));
     for (const auto i : selected) {
+        if (result.rows.size() % 256 == 0) context.report("query_project", {}, result.rows.size(), selected.size());
         Row row; for (const auto index : plan.projection) row.push_back(data[i][index]);
         result.rows.push_back(std::move(row));
     }
@@ -286,6 +297,7 @@ QueryResult execute_query(const ScanResult& scan, const std::string& source) {
     description << " -> Project(";
     for (std::size_t i = 0; i < result.columns.size(); ++i) { if (i) description << ", "; description << result.columns[i]; }
     description << ')'; result.plan = description.str();
+    context.check();
     return result;
 }
 } // namespace codeguard

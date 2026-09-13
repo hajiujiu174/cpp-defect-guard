@@ -74,6 +74,17 @@ int main(int argc, char** argv) {
             bool failed = false;
             try { execute_query(s,"SELECT * FROM files"); } catch (const std::runtime_error&) { failed = true; }
             check(failed,"unsigned data range checked");
+        } else if (test == "cancel") {
+            for (int i=0;i<4096;++i) s.files.push_back({std::to_string(i),"C++","h",1,0,static_cast<unsigned>(i)});
+            for (const auto* phase : {"query_materialize","query_filter","query_sort","query_project"}) {
+                ScanContext context; context.control=std::make_shared<ScanControl>(); bool visited=false,cancelled=false;
+                context.progress=[&](const ScanProgress& p) { if(p.phase==phase){visited=true;context.control->request_cancel();} };
+                try { execute_query(s,"SELECT file, lines FROM files WHERE lines > 1 ORDER BY lines DESC",context); }
+                catch(const ScanCancelled&){cancelled=true;}
+                check(visited&&cancelled,"query stage did not honour cancellation");
+            }
+            const auto answer=execute_query(s,"SELECT lines FROM files ORDER BY lines DESC LIMIT 1");
+            check(cell(answer,0)=="4095","cancelled queries changed their input snapshot");
         } else if (test == "coverage") {
             s.analysis.status = "not_requested";
             check(execute_query(s,"SELECT * FROM files").rows.size() == 3,"inventory query needs no Clang");

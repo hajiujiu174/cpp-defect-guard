@@ -59,6 +59,7 @@ void display(const codeguard::ScanResult& result) {
               << "\nfunction_metrics=" << result.analysis.metrics.size() << "\ncovered_files=" << result.analysis.covered_files.size() << '\n';
     std::cout << "issues=" << result.analysis.issues.size() << "\nworkers=" << result.analysis.workers << "\nanalysis_ms=" << result.analysis.elapsed_ms << '\n';
     std::cout<<"suppressed_issues="<<result.analysis.suppressed_issues.size()<<'\n';
+    if(result.analysis.cache){const auto& c=*result.analysis.cache;std::cout<<"cache_hits="<<c.hits<<"\ncache_misses="<<c.misses<<"\ncache_bypassed="<<c.bypassed<<"\ncache_errors="<<c.errors<<"\ncache_validation_worker_ms="<<c.validation_ms<<'\n';}
     for(const auto& message:result.analysis.rule_diagnostics)std::cerr<<"rule_policy: "<<message<<'\n';
     if(!result.analysis.configuration.empty()) {
         const auto config=codeguard::decode_config(result.analysis.configuration);
@@ -105,7 +106,7 @@ int run(const std::vector<std::string>& args) {
                      "  --clear-list definitions|includes|excludes|rules|commands|severities|suppressions. Repeated lists replace saved lists.\n"
                      "codeguard-cli builds PROJECT --database DATABASE\n"
                      "codeguard-cli git PROJECT\n"
-                     "Scan supports --threads 0..64 (0=automatic). Ctrl+C cancels scan/build.\n"
+                     "Scan supports --threads 0..64 (0=automatic), --cache on|off (default off). Ctrl+C cancels scan/build.\n"
                      "codeguard-cli query PROJECT --database DATABASE --query \"SELECT file, lines FROM files ORDER BY lines DESC LIMIT 20\"\n"
                      "Database must be outside PROJECT. Sources are never modified.\n";
         return 0;
@@ -170,6 +171,7 @@ int run(const std::vector<std::string>& args) {
         else if (args[position] == "--kind" && command == "graph") kind = args[position + 1];
         else if (args[position] == "--query" && command == "query") query = args[position + 1];
         else if (args[position] == "--threads" && (command == "scan"||configuration_command)) options.threads=number(args[position+1],64);
+        else if(option=="--cache"&&command=="scan") {if(value!="on"&&value!="off")throw std::invalid_argument("--cache expects on or off");options.use_cache=value=="on";}
         else if (args[position] == "--severity" && command == "issues") severity=args[position+1];
         else if(command=="suppress"&&option=="--rule")suppress_rule=value;
         else if(command=="suppress"&&option=="--file")suppress_file=value;
@@ -262,7 +264,7 @@ int run(const std::vector<std::string>& args) {
     }
     if (command == "scan") {
         auto configured=codeguard::configured_scan_options(codeguard::from_utf8(project),config);
-        configured.ignored_directories=options.ignored_directories;options=std::move(configured);
+        configured.ignored_directories=options.ignored_directories;configured.use_cache=options.use_cache;options=std::move(configured);
         if(options.compile_commands.empty()&&config.analysis_enabled)std::cerr<<"No compilation database selected; importing inventory only. Use prepare for CMake or set a path with config.\n";
         options.context.control=std::make_shared<codeguard::ScanControl>(); InterruptScope scope(options.context.control);
         const auto result = codeguard::import_project(codeguard::from_utf8(project), codeguard::from_utf8(database), options);

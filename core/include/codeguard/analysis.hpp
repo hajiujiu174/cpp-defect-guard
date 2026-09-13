@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <optional>
 #include "codeguard/scan_control.hpp"
 #include "codeguard/rules.hpp"
 
@@ -27,6 +28,10 @@ struct TranslationUnitResult {
     std::string command_fingerprint = {};
     std::vector<std::string> covered_files = {}; // files contributed by this successful TU
 };
+struct CacheStatistics {
+    std::size_t hits=0,misses=0,bypassed=0,errors=0;
+    std::int64_t validation_ms=0; // sum across workers, not wall time
+};
 struct AnalysisResult {
     std::string status = "not_requested";
     std::string compile_commands;
@@ -42,9 +47,10 @@ struct AnalysisResult {
     std::int64_t elapsed_ms = 0;
     std::string configuration;
     std::string analyzer_revision; // analyzer sources + linked Clang version; empty in old snapshots
+    std::optional<CacheStatistics> cache; // telemetry of a live run; not historical evidence
 };
 bool clang_analysis_available();
-AnalysisResult analyze_project(const ScanResult& inventory, const std::string& compilation_database, const ScanContext& context = {}, unsigned threads = 0, const std::map<std::string,std::string>& choices = {},const std::vector<std::string>& disabled_rules = {});
+AnalysisResult analyze_project(const ScanResult& inventory, const std::string& compilation_database, const ScanContext& context = {}, unsigned threads = 0, const std::map<std::string,std::string>& choices = {},const std::vector<std::string>& disabled_rules = {},const std::string& cache_directory = {});
 struct CompileCommandInfo { std::string file, fingerprint, display; };
 std::vector<CompileCommandInfo> inspect_compile_commands(const std::string& database);
 // Rebase copied source paths, while keeping the generated build directory and headers.

@@ -37,11 +37,11 @@ schema 3 阶段进一步新增 `issue / build_run / build_step`，保存规则�
 
 分析器逐 TU 隔离 Clang 上下文，成功单元才合并符号/指标/边；失败单元丢弃不可靠 AST，诊断单独入库。因此“文件清单完整、部分 TU 解析失败”可保存 `partial` 快照，而“文件枚举或分析期间源码变化”不会保存。`complete` 仅说明所有清单中的源文件 TU 成功，不表示孤立头文件也被分析。符号身份采用 USR，内部/无链接符号补充文件路径，声明合并优先定义；图保留定位信息并按端点去重计算结构。详细语义与限制见 [Clang 接入说明](codeguard-analysis.md)。
 
-文件变化依据 `hash + size + mtime`，其中 hash 为带版本名的 FNV-1a 64 位变化检测值，不承担安全校验；历史模型数据的 SHA-256 校验不变。目前仍读取所有文件，只统计新增/变化/未变/删除，**未实现 AST 结果复用或增量解析提速**。GUI 用一个后台任务协调多 TU 线程池，构建测试使用独立后台控制器，两类任务在一个窗口内互斥。
+文件变化依据 `hash + size + mtime`，其中 hash 为带版本名的 FNV-1a 64 位变化检测值，不承担安全校验；历史模型数据的 SHA-256 校验不变。扫描清单仍读取所有文件；P2-1 增加默认关闭的 TU 结果缓存，每次重新预处理校验源码/头文件/编译参数/分析器后复用 AST DTO。缓存不属于历史 schema，命中统计只代表本次运行。详见 [性能与交互](performance-and-interaction.md)。GUI 用一个后台任务协调多 TU 线程池，构建测试使用独立后台控制器，两类任务在一个窗口内互斥。
 
 已落地 `core/parser`、`core/graph`、`core/query` 与符号/函数度量 DTO。自研查询按固定 Schema 对快照内存执行，不把用户文本交给 SQLite；CLI/GUI 共用接口，详细语法与边界见 [查询语言](query-language.md)。前缀检索为内存过滤排序；SQLite 有名称索引，但还没有独立高性能引用索引模块。规则、线程池、进程与构建测试已经补齐，后续集中于引用索引、增量复用和更广泛验证。
 
-`core/analyzer/clang_rules` 提供五个独立 AST 规则模块和每 TU 的分派器，Clang 适配器负责源码定位、证据和合并；`core/analyzer/rules.cpp` 提供公共规则目录、级别及抑制策略。`core/include/codeguard/thread_pool.hpp` 提供有界池，`core/process` 提供平台进程实现，`core/testing` 编排构建测试与 Git，`gui/qt/build_task` 负责后台界面控制。尚待扩展的内容包括报告对比、引用查询、增量结果复用及更深的数据流规则。当前阶段及验收限制见 [方向与进度](codeguard-status.md)。首轮调整见 [历史迁移说明](codeguard-migration.md)。以下保留原 Python 架构记录，供后续迁移比对。
+`core/analyzer/clang_rules` 提供五个独立 AST 规则模块和每 TU 的分派器，Clang 适配器负责源码定位、证据和合并；`core/analyzer/rules.cpp` 提供公共规则目录、级别及抑制策略。`core/include/codeguard/thread_pool.hpp` 提供有界池，`core/process` 提供平台进程实现，`core/testing` 编排构建测试与 Git，`gui/qt/build_task` 负责后台界面控制。报告对比和可选 AST 复用已接入；引用查询、缓存容量淘汰及更深的数据流规则仍待扩展。当前阶段及验收限制见 [方向与进度](codeguard-status.md)。首轮调整见 [历史迁移说明](codeguard-migration.md)。以下保留原 Python 架构记录，供后续迁移比对。
 
 ---
 

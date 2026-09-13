@@ -17,6 +17,14 @@ public:
     Statement(sqlite3* db, const char* sql) : db_(db) {
         check(sqlite3_prepare_v2(db, sql, -1, &statement_, nullptr), db);
     }
+    Statement(sqlite3* db, const std::shared_ptr<ScanControl>& control, const char* sql) : db_(db), control_(control) {
+        if (control_) control_->check();
+        const auto status = sqlite3_prepare_v2(db, sql, -1, &statement_, nullptr);
+        // A throwing constructor must finalize even a partially prepared VM.
+        if (status != SQLITE_OK) { sqlite3_finalize(statement_); statement_ = nullptr; }
+        if (status != SQLITE_OK && control_) control_->check();
+        check(status, db);
+    }
     ~Statement() { sqlite3_finalize(statement_); }
     Statement(const Statement&) = delete;
     void bind(int index, const std::string& value) {
@@ -24,7 +32,9 @@ public:
     }
     void bind(int index, std::int64_t value) { check(sqlite3_bind_int64(statement_, index, value), db_); }
     bool next() {
+        if (control_) control_->check();
         const int status = sqlite3_step(statement_);
+        if (control_) control_->check();
         if (status == SQLITE_ROW) return true;
         if (status != SQLITE_DONE) throw std::runtime_error(sqlite3_errmsg(db_));
         return false;
@@ -37,6 +47,7 @@ public:
 private:
     sqlite3* db_;
     sqlite3_stmt* statement_ = nullptr;
+    std::shared_ptr<ScanControl> control_;
 };
 std::int64_t scalar(sqlite3* db, const char* sql) {
     Statement query(db, sql);
@@ -51,6 +62,10 @@ struct SqliteDatabase::Impl {
     int version = 1;
     std::shared_ptr<ScanControl> control;
     std::chrono::steady_clock::time_point wait_started;
+    static int progress(void* opaque) noexcept {
+        const auto& state = *static_cast<Impl*>(opaque);
+        return state.control && state.control->state() == ScanControl::State::cancel_requested;
+    }
     static int busy(void* opaque, int previous_calls) noexcept {
         auto& state = *static_cast<Impl*>(opaque);
         if (state.control && state.control->state() == ScanControl::State::cancel_requested) return 0;
@@ -69,6 +84,9 @@ SqliteDatabase::SqliteDatabase(const fs::path& path, bool read_only, const ScanC
     const int flags = read_only ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
     check(sqlite3_open_v2(utf8_path(path).c_str(), &state->db, flags, nullptr), state->db);
     check(sqlite3_busy_handler(state->db, &Impl::busy, state.get()), state->db);
+    // Interrupt expensive SELECT sorting/counting even before its first row.
+    // Write cancellation retains the existing transaction/COMMIT fence.
+    if (read_only) sqlite3_progress_handler(state->db, 256, &Impl::progress, state.get());
     execute(state->db, "PRAGMA foreign_keys=ON");
     const auto id = scalar(state->db, "PRAGMA application_id");
     const auto version = scalar(state->db, "PRAGMA user_version");
@@ -182,14 +200,14 @@ SqliteDatabase::~SqliteDatabase() { delete impl_; }
 
 std::optional<ProjectConfig> SqliteDatabase::configuration(const std::string& root) {
     if(impl_->version<4)return {};
-    Statement query(impl_->db,"SELECT payload FROM project_configuration WHERE root=?");query.bind(1,root);
+    Statement query(impl_->db,impl_->control,"SELECT payload FROM project_configuration WHERE root=?");query.bind(1,root);
     if(!query.next())return {};
     return decode_config(query.text(0));
 }
 void SqliteDatabase::save_configuration(const std::string& root,const ProjectConfig& config) {
     const auto payload=encode_config(config);
     (void)configuration(root); // never silently replace an unsupported/corrupt profile
-    Statement write(impl_->db,"INSERT INTO project_configuration(root,payload) VALUES(?,?) ON CONFLICT(root) DO UPDATE SET payload=excluded.payload");
+    Statement write(impl_->db,impl_->control,"INSERT INTO project_configuration(root,payload) VALUES(?,?) ON CONFLICT(root) DO UPDATE SET payload=excluded.payload");
     write.bind(1,root);write.bind(2,payload);write.next();
 }
 
@@ -210,7 +228,7 @@ std::vector<ScanSummary> SqliteDatabase::scans(const std::string& root,std::int6
     sql+=impl_->version>=3?"(SELECT COUNT(*) FROM issue WHERE scan_id=s.id),":"0,";
     sql+=impl_->version>=5?"(SELECT COUNT(*) FROM suppressed_issue WHERE scan_id=s.id) ":"0 ";
     sql+="FROM scan s JOIN project p ON p.id=s.project_id WHERE p.root=? AND (?=0 OR s.id<?) ORDER BY s.id DESC LIMIT ?";
-    Statement query(impl_->db,sql.c_str());query.bind(1,root);query.bind(2,before_id);query.bind(3,before_id);query.bind(4,limit);
+    Statement query(impl_->db,impl_->control,sql.c_str());query.bind(1,root);query.bind(2,before_id);query.bind(3,before_id);query.bind(4,limit);
     std::vector<ScanSummary> result;
     while(query.next())result.push_back({query.number(0),query.text(1),query.text(2),query.number(3),query.number(4),query.number(5)});
     return result;
@@ -218,7 +236,7 @@ std::vector<ScanSummary> SqliteDatabase::scans(const std::string& root,std::int6
 ScanResult SqliteDatabase::load_snapshot(const std::string& root,std::int64_t scan_id,bool include_build_logs) {
     ScanResult result;
     result.root = root;
-    Statement scan(impl_->db, "SELECT s.id,s.scanned_at,s.added,s.changed,s.unchanged,s.removed FROM scan s JOIN project p ON p.id=s.project_id WHERE p.root=? AND (?=0 OR s.id=?) ORDER BY s.id DESC LIMIT 1");
+    Statement scan(impl_->db,impl_->control, "SELECT s.id,s.scanned_at,s.added,s.changed,s.unchanged,s.removed FROM scan s JOIN project p ON p.id=s.project_id WHERE p.root=? AND (?=0 OR s.id=?) ORDER BY s.id DESC LIMIT 1");
     scan.bind(1, root);scan.bind(2,scan_id);scan.bind(3,scan_id);
     if (!scan.next()) return result;
     result.id = scan.number(0);
@@ -228,10 +246,10 @@ ScanResult SqliteDatabase::load_snapshot(const std::string& root,std::int64_t sc
     result.unchanged = scan.number(4);
     result.removed = scan.number(5);
     if(impl_->version>=6){
-        Statement policy(impl_->db,"SELECT inventory_policy FROM scan WHERE id=?");policy.bind(1,result.id);
+        Statement policy(impl_->db,impl_->control,"SELECT inventory_policy FROM scan WHERE id=?");policy.bind(1,result.id);
         if(policy.next())result.inventory_policy=policy.text(0);
     }
-    Statement files(impl_->db, "SELECT path,language,hash,size,mtime,lines FROM file WHERE scan_id=? ORDER BY path");
+    Statement files(impl_->db,impl_->control, "SELECT path,language,hash,size,mtime,lines FROM file WHERE scan_id=? ORDER BY path");
     files.bind(1, result.id);
     while (files.next()) {
         FileRecord file;
@@ -241,52 +259,52 @@ ScanResult SqliteDatabase::load_snapshot(const std::string& root,std::int64_t sc
     }
     if (impl_->version >= 2) {
         auto& output = result.analysis;
-        Statement analysis(impl_->db, "SELECT status,compile_commands FROM analysis WHERE scan_id=?");
+        Statement analysis(impl_->db,impl_->control, "SELECT status,compile_commands FROM analysis WHERE scan_id=?");
         analysis.bind(1, result.id);
         if (analysis.next()) { output.status = analysis.text(0); output.compile_commands = analysis.text(1); }
         if(impl_->version>=4) {
-            Statement settings(impl_->db,"SELECT configuration FROM analysis WHERE scan_id=?");settings.bind(1,result.id);
+            Statement settings(impl_->db,impl_->control,"SELECT configuration FROM analysis WHERE scan_id=?");settings.bind(1,result.id);
             if(settings.next())output.configuration=settings.text(0);
         }
         if(impl_->version>=5){
-            Statement suppressed(impl_->db,"SELECT rule_id,severity,file,line,col,message,evidence,suggestion,symbol_id,detector,reason FROM suppressed_issue WHERE scan_id=? ORDER BY file,line,col,rule_id,symbol_id");
+            Statement suppressed(impl_->db,impl_->control,"SELECT rule_id,severity,file,line,col,message,evidence,suggestion,symbol_id,detector,reason FROM suppressed_issue WHERE scan_id=? ORDER BY file,line,col,rule_id,symbol_id");
             suppressed.bind(1,result.id);
             while(suppressed.next())output.suppressed_issues.push_back({suppressed.text(0),suppressed.text(1),suppressed.text(2),static_cast<int>(suppressed.number(3)),static_cast<int>(suppressed.number(4)),suppressed.text(5),suppressed.text(6),suppressed.text(7),suppressed.text(8),suppressed.text(9),suppressed.text(10)});
-            Statement diagnostic(impl_->db,"SELECT message FROM rule_diagnostic WHERE scan_id=? ORDER BY ordinal");diagnostic.bind(1,result.id);
+            Statement diagnostic(impl_->db,impl_->control,"SELECT message FROM rule_diagnostic WHERE scan_id=? ORDER BY ordinal");diagnostic.bind(1,result.id);
             while(diagnostic.next())output.rule_diagnostics.push_back(diagnostic.text(0));
         }
-        Statement units(impl_->db, "SELECT file,status,diagnostics,indirect_calls FROM translation_unit WHERE scan_id=? ORDER BY file");
+        Statement units(impl_->db,impl_->control, "SELECT file,status,diagnostics,indirect_calls FROM translation_unit WHERE scan_id=? ORDER BY file");
         units.bind(1, result.id);
         while (units.next()) output.units.push_back({units.text(0), units.text(1), units.text(2), static_cast<int>(units.number(3))});
         if(impl_->version>=6){
-            Statement revision(impl_->db,"SELECT analyzer_revision FROM analysis WHERE scan_id=?");revision.bind(1,result.id);
+            Statement revision(impl_->db,impl_->control,"SELECT analyzer_revision FROM analysis WHERE scan_id=?");revision.bind(1,result.id);
             if(revision.next())output.analyzer_revision=revision.text(0);
             for(auto& unit:output.units){
-                Statement command(impl_->db,"SELECT command_fingerprint FROM translation_unit WHERE scan_id=? AND file=?");command.bind(1,result.id);command.bind(2,unit.file);
+                Statement command(impl_->db,impl_->control,"SELECT command_fingerprint FROM translation_unit WHERE scan_id=? AND file=?");command.bind(1,result.id);command.bind(2,unit.file);
                 if(command.next())unit.command_fingerprint=command.text(0);
-                Statement covered(impl_->db,"SELECT file FROM unit_coverage WHERE scan_id=? AND unit_file=? ORDER BY file");covered.bind(1,result.id);covered.bind(2,unit.file);
+                Statement covered(impl_->db,impl_->control,"SELECT file FROM unit_coverage WHERE scan_id=? AND unit_file=? ORDER BY file");covered.bind(1,result.id);covered.bind(2,unit.file);
                 while(covered.next())unit.covered_files.push_back(covered.text(0));
             }
         }
-        Statement symbols(impl_->db, "SELECT usr,kind,name,file,line,col,is_definition,external FROM symbol WHERE scan_id=? ORDER BY usr");
+        Statement symbols(impl_->db,impl_->control, "SELECT usr,kind,name,file,line,col,is_definition,external FROM symbol WHERE scan_id=? ORDER BY usr");
         symbols.bind(1, result.id);
         while (symbols.next()) output.symbols.push_back({symbols.text(0), symbols.text(1), symbols.text(2), symbols.text(3),
             static_cast<int>(symbols.number(4)), static_cast<int>(symbols.number(5)), symbols.number(6) != 0, symbols.number(7) != 0});
-        Statement metrics(impl_->db, "SELECT usr,lines,parameters,complexity FROM function_metric WHERE scan_id=? ORDER BY usr");
+        Statement metrics(impl_->db,impl_->control, "SELECT usr,lines,parameters,complexity FROM function_metric WHERE scan_id=? ORDER BY usr");
         metrics.bind(1, result.id);
         while (metrics.next()) output.metrics.push_back({metrics.text(0), static_cast<int>(metrics.number(1)),
             static_cast<int>(metrics.number(2)), static_cast<int>(metrics.number(3))});
-        Statement edges(impl_->db, "SELECT kind,source,target,file,line,col FROM graph_edge WHERE scan_id=? ORDER BY kind,source,target,file,line,col");
+        Statement edges(impl_->db,impl_->control, "SELECT kind,source,target,file,line,col FROM graph_edge WHERE scan_id=? ORDER BY kind,source,target,file,line,col");
         edges.bind(1, result.id);
         while (edges.next()) output.edges.push_back({edges.text(0), edges.text(1), edges.text(2), edges.text(3),
             static_cast<int>(edges.number(4)), static_cast<int>(edges.number(5))});
-        Statement coverage(impl_->db, "SELECT file FROM coverage WHERE scan_id=? ORDER BY file");
+        Statement coverage(impl_->db,impl_->control, "SELECT file FROM coverage WHERE scan_id=? ORDER BY file");
         coverage.bind(1, result.id);
         while (coverage.next()) output.covered_files.push_back(coverage.text(0));
         if (impl_->version >= 3) {
-            Statement stats(impl_->db, "SELECT workers,elapsed_ms FROM analysis WHERE scan_id=?"); stats.bind(1, result.id);
+            Statement stats(impl_->db,impl_->control, "SELECT workers,elapsed_ms FROM analysis WHERE scan_id=?"); stats.bind(1, result.id);
             if (stats.next()) { output.workers = static_cast<unsigned>(stats.number(0)); output.elapsed_ms = stats.number(1); }
-            Statement issues(impl_->db, "SELECT rule_id,severity,file,line,col,message,evidence,suggestion,symbol_id,detector FROM issue WHERE scan_id=? ORDER BY file,line,col,rule_id,symbol_id");
+            Statement issues(impl_->db,impl_->control, "SELECT rule_id,severity,file,line,col,message,evidence,suggestion,symbol_id,detector FROM issue WHERE scan_id=? ORDER BY file,line,col,rule_id,symbol_id");
             issues.bind(1, result.id);
             while (issues.next()) output.issues.push_back({issues.text(0),issues.text(1),issues.text(2),static_cast<int>(issues.number(3)),
                 static_cast<int>(issues.number(4)),issues.text(5),issues.text(6),issues.text(7),issues.text(8),issues.text(9)});
@@ -299,7 +317,7 @@ ScanResult SqliteDatabase::load_snapshot(const std::string& root,std::int64_t sc
     return result;
 }
 std::vector<ProjectSummary> SqliteDatabase::projects() {
-    Statement query(impl_->db, "SELECT p.root,s.scanned_at FROM project p JOIN scan s ON s.id=(SELECT MAX(id) FROM scan WHERE project_id=p.id) ORDER BY s.id DESC");
+    Statement query(impl_->db,impl_->control, "SELECT p.root,s.scanned_at FROM project p JOIN scan s ON s.id=(SELECT MAX(id) FROM scan WHERE project_id=p.id) ORDER BY s.id DESC");
     std::vector<ProjectSummary> result;
     while (query.next()) result.push_back({query.text(0), query.text(1)});
     return result;
@@ -421,17 +439,17 @@ std::vector<BuildRun> SqliteDatabase::builds(const std::string& root, bool inclu
 std::vector<BuildRun> SqliteDatabase::load_builds(const std::string& root,bool include_logs,std::int64_t only_id,std::int64_t scan_id,int limit) {
     std::vector<BuildRun> result;
     if (impl_->version < 3) return result;
-    Statement query(impl_->db,"SELECT id,scan_id,root,started_at,status,workspace,target,git_revision,CASE WHEN ? THEN git_log ELSE '' END,source_unchanged FROM build_run WHERE root=? AND (?=0 OR id=?) AND (?=0 OR scan_id=?) ORDER BY id DESC LIMIT ?");
+    Statement query(impl_->db,impl_->control,"SELECT id,scan_id,root,started_at,status,workspace,target,git_revision,CASE WHEN ? THEN git_log ELSE '' END,source_unchanged FROM build_run WHERE root=? AND (?=0 OR id=?) AND (?=0 OR scan_id=?) ORDER BY id DESC LIMIT ?");
     query.bind(1,include_logs ? 1 : 0);query.bind(2,root);query.bind(3,only_id);query.bind(4,only_id);
     query.bind(5,scan_id);query.bind(6,scan_id);query.bind(7,limit);
     while (query.next()) {
         BuildRun run; run.id=query.number(0); run.scan_id=query.number(1); run.root=query.text(2); run.started_at=query.text(3);
         run.status=query.text(4); run.workspace=query.text(5); run.target=query.text(6); run.git_revision=query.text(7); run.git_log=query.text(8); run.source_unchanged=query.number(9)!=0;
         if(impl_->version>=4) {
-            Statement settings(impl_->db,"SELECT compile_commands,configuration FROM build_run WHERE id=?");settings.bind(1,run.id);
+            Statement settings(impl_->db,impl_->control,"SELECT compile_commands,configuration FROM build_run WHERE id=?");settings.bind(1,run.id);
             if(settings.next()){run.compile_commands=settings.text(0);run.configuration=settings.text(1);}
         }
-        Statement steps(impl_->db,"SELECT name,command,working_directory,status,exit_code,duration_ms,CASE WHEN ? THEN stdout ELSE '' END,CASE WHEN ? THEN stderr ELSE '' END,truncated,tests_total,tests_failed,tests_skipped FROM build_step WHERE run_id=? ORDER BY ordinal");
+        Statement steps(impl_->db,impl_->control,"SELECT name,command,working_directory,status,exit_code,duration_ms,CASE WHEN ? THEN stdout ELSE '' END,CASE WHEN ? THEN stderr ELSE '' END,truncated,tests_total,tests_failed,tests_skipped FROM build_step WHERE run_id=? ORDER BY ordinal");
         steps.bind(1,include_logs ? 1 : 0);steps.bind(2,include_logs ? 1 : 0);steps.bind(3,run.id);
         while (steps.next()) {
             BuildStep step; step.name=steps.text(0); step.command=steps.text(1); step.working_directory=steps.text(2);

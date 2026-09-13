@@ -30,33 +30,46 @@ ReportDialog::ReportDialog(const std::string& root,const codeguard::fs::path& da
     auto* scope=new QLabel(QStringLiteral("目录必须位于源码目录之外，且尚不存在；已有报告不会被覆盖。报告保留扫描配置、解析诊断、问题证据和关联构建日志，导出期间在后台读取保存的数据。"),this);scope->setWordWrap(true);layout->addWidget(scope);
     status_=new QLabel(QStringLiteral("正在载入扫描历史…"),this);status_->setObjectName("reportStatus");status_->setWordWrap(true);status_->setTextInteractionFlags(Qt::TextSelectableByMouse);layout->addWidget(status_);layout->addStretch();
     auto* buttons=new QHBoxLayout;generate_=new QPushButton(QStringLiteral("导出 HTML 和 JSON"),this);generate_->setObjectName("reportGenerate");close_=new QPushButton(QStringLiteral("关闭"),this);buttons->addStretch();buttons->addWidget(generate_);buttons->addWidget(close_);layout->addLayout(buttons);
+    cancel_=new QPushButton(QStringLiteral("取消操作"),this);cancel_->setObjectName("reportCancel");buttons->insertWidget(1,cancel_);cancel_->setEnabled(false);
+    connect(cancel_,&QPushButton::clicked,this,[this]{cancel();});
     connect(refresh_,&QPushButton::clicked,this,[this]{load(true);});connect(older_,&QPushButton::clicked,this,[this]{load(false);});connect(generate_,&QPushButton::clicked,this,[this]{exportSelected();});connect(close_,&QPushButton::clicked,this,&ReportDialog::reject);
     connect(choose_,&QPushButton::clicked,this,[this]{const auto parent=QFileDialog::getExistingDirectory(this,QStringLiteral("选择报告父目录"));if(!parent.isEmpty())output_->setText(parent+"/report-"+QDateTime::currentDateTime().toString("yyyyMMdd-HHmmss-zzz"));});
     auto* timer=new QTimer(this);timer->setInterval(25);connect(timer,&QTimer::timeout,this,[this]{poll();});timer->start();load(true);
 }
-ReportDialog::~ReportDialog(){if(history_.valid())history_.wait();if(export_.valid())export_.wait();}
-void ReportDialog::busy(bool value){for(auto* button:{refresh_,generate_,choose_,close_})button->setEnabled(!value);older_->setEnabled(!value&&more_);current_->setEnabled(!value);baseline_->setEnabled(!value);output_->setEnabled(!value);if(!value)generate_->setEnabled(current_->count()>0);}
-void ReportDialog::reject(){if(history_.valid()||export_.valid()){status_->setText(QStringLiteral("后台任务仍在执行，完成后可关闭。"));return;}QDialog::reject();}
+ReportDialog::~ReportDialog(){if(control_)control_->request_cancel();if(history_.valid())history_.wait();if(export_.valid())export_.wait();}
+void ReportDialog::busy(bool value){for(auto* button:{refresh_,generate_,choose_})button->setEnabled(!value);cancel_->setEnabled(value);older_->setEnabled(!value&&more_);current_->setEnabled(!value);baseline_->setEnabled(!value);output_->setEnabled(!value);if(!value)generate_->setEnabled(current_->count()>0);}
+void ReportDialog::cancel(){
+    if(control_&&control_->request_cancel()){cancel_->setEnabled(false);status_->setText(QStringLiteral("正在取消后台操作…"));}
+    else if(history_.valid()||export_.valid())status_->setText(QStringLiteral("报告已开始写入，等待文件保存完成…"));
+}
+void ReportDialog::reject(){if(history_.valid()||export_.valid()){close_pending_=true;cancel();return;}QDialog::reject();}
 void ReportDialog::load(bool reset){
     if(history_.valid()||export_.valid())return;
-    if(reset){cursor_=0;current_->clear();baseline_->clear();baseline_->addItem(QStringLiteral("不对比，只导出当前版本"),qlonglong{0});}
+    reset_pending_=reset;control_=std::make_shared<codeguard::ScanControl>();
     busy(true);status_->setText(QStringLiteral("正在载入扫描历史…"));
-    history_=std::async(std::launch::async,[root=root_,database=database_,cursor=cursor_]{codeguard::SqliteDatabase db(database,true);return db.scans(root,cursor,50);});
+    history_=std::async(std::launch::async,[root=root_,database=database_,cursor=reset?0:cursor_,control=control_]{codeguard::ScanContext context;context.control=control;codeguard::SqliteDatabase db(database,true,context);return db.scans(root,cursor,50);});
 }
 void ReportDialog::exportSelected(){
     if(history_.valid()||export_.valid()||current_->currentIndex()<0)return;
     const auto id=current_->currentData().toLongLong(),baseline=baseline_->currentData().toLongLong();
     if(baseline>=id){status_->setText(QStringLiteral("基线必须早于报告版本，请重新选择。"));return;}
     const auto output=codeguard::from_utf8(s(output_->text()));busy(true);status_->setText(QStringLiteral("正在读取快照并生成报告…"));
-    export_=std::async(std::launch::async,[root=root_,database=database_,id,baseline,output]{codeguard::SqliteDatabase db(database,true);auto current=db.snapshot(root,id,true);std::optional<codeguard::ScanResult> old;if(baseline)old=db.snapshot(root,baseline,true);return codeguard::export_report(current,output,old?&*old:nullptr);});
+    control_=std::make_shared<codeguard::ScanControl>();
+    export_=std::async(std::launch::async,[root=root_,database=database_,id,baseline,output,control=control_]{codeguard::ScanContext context;context.control=control;codeguard::SqliteDatabase db(database,true,context);auto current=db.snapshot(root,id,true);std::optional<codeguard::ScanResult> old;if(baseline)old=db.snapshot(root,baseline,true);return codeguard::export_report(current,output,old?&*old:nullptr,context);});
 }
 void ReportDialog::poll(){
+    if(control_&&control_->state()==codeguard::ScanControl::State::committing)cancel_->setEnabled(false);
     try{
         if(history_.valid()&&history_.wait_for(std::chrono::milliseconds(0))==std::future_status::ready){
-            const auto page=history_.get();more_=page.size()==50;
+            const auto page=history_.get();control_->check();control_->finish();more_=page.size()==50;
+            if(reset_pending_){cursor_=0;current_->clear();baseline_->clear();baseline_->addItem(QStringLiteral("不对比，只导出当前版本"),qlonglong{0});}
             for(const auto& scan:page){const auto label=QStringLiteral("#%1 · %2 · %3 · 问题 %4 / 抑制 %5").arg(scan.id).arg(q(codeguard::report_time(scan.scanned_at)),q(scan.analysis_status)).arg(scan.issue_count).arg(scan.suppressed_count);current_->addItem(label,static_cast<qlonglong>(scan.id));baseline_->addItem(label,static_cast<qlonglong>(scan.id));cursor_=scan.id;}
             busy(false);status_->setText(current_->count()?QStringLiteral("已载入 %1 个扫描版本。选择版本后导出。" ).arg(current_->count()):QStringLiteral("该工程没有保存的扫描记录。"));
         }
         if(export_.valid()&&export_.wait_for(std::chrono::milliseconds(0))==std::future_status::ready){const auto files=export_.get();busy(false);setProperty("reportExported",q(codeguard::utf8_path(files.html)));status_->setText(QStringLiteral("报告已保存：\n%1\n%2").arg(q(codeguard::utf8_path(files.html)),q(codeguard::utf8_path(files.json))));}
-    }catch(const std::exception& e){busy(false);status_->setText(QStringLiteral("操作失败：")+q(e.what()));}
+    }catch(const std::exception& e){busy(false);const bool cancelled=control_&&control_->state()==codeguard::ScanControl::State::cancel_requested;status_->setText(cancelled?QStringLiteral("操作已取消 · 未创建新报告目录"):QStringLiteral("操作失败：")+q(e.what()));}
+    if(!history_.valid()&&!export_.valid()){
+        if(control_)control_->finish();
+        if(close_pending_)QDialog::reject();
+    }
 }

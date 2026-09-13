@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import re
 import shutil
 import sqlite3
 import subprocess
@@ -94,7 +95,7 @@ def equivalent(one, four):
             con.row_factory = sqlite3.Row
             latest = con.execute("SELECT max(scan_id) FROM analysis").fetchone()[0]
             result = {}
-            for table in ("translation_unit", "symbol", "function_metric", "graph_edge", "coverage", "issue"):
+            for table in ("translation_unit", "unit_coverage", "symbol", "function_metric", "graph_edge", "coverage", "issue", "suppressed_issue", "rule_diagnostic"):
                 result[table] = sorted(json.dumps({k: v for k, v in row.items() if k != "scan_id"}, sort_keys=True)
                                        for row in rows(con, table, latest))
             return result
@@ -154,7 +155,7 @@ def accept(project, args, env):
     configure = run([cmake, "-S", source, "-B", out / "configure", "-G", "Ninja", *common,
                      *("-D" + value for value in project["definitions"])], out, out / "configure.log", env)
     raw_database = out / "raw.sqlite3"
-    raw = run([args.cli, "scan", source, "--database", raw_database, "--compile-commands", out / "configure", "--threads", "4"],
+    raw = run([args.cli, "scan", source, "--database", raw_database, "--compile-commands", out / "configure", "--threads", "4", "--cache", "off"],
               out, out / "raw-scan.log", env, allowed=(0, 2))
     raw_report = analysis_report(raw_database)
     save(out / "raw-analysis.json", raw_report)
@@ -163,11 +164,19 @@ def accept(project, args, env):
     scans = {}
     for threads in (1, 4):
         database = out / f"threads-{threads}.sqlite3"
-        scans[str(threads)] = run([args.cli, "scan", source, "--database", database, "--compile-commands", out / "selected", "--threads", threads],
+        scans[str(threads)] = run([args.cli, "scan", source, "--database", database, "--compile-commands", out / "selected", "--threads", threads, "--cache", "off"],
                                  out, out / f"scan-{threads}.log", env, allowed=(0, 2))
     report = analysis_report(out / "threads-4.sqlite3")
     save(out / "analysis.json", report)
     equality = equivalent(out / "threads-1.sqlite3", out / "threads-4.sqlite3")
+    cache_runs = {}
+    for label in ("cold", "warm"):
+        cache_runs[label] = run([args.cli, "scan", source, "--database", out / "cache.sqlite3", "--compile-commands", out / "selected", "--threads", "4", "--cache", "on"],
+                                out, out / f"cache-{label}.log", env, allowed=(0, 2))
+    cache_equal = equivalent(out / "threads-4.sqlite3", out / "cache.sqlite3")
+    warm_log = (out / "cache-warm.log").read_text(encoding="utf-8")
+    cache_counts = {name: int(re.search(rf"(?m)^cache_{name}=(\d+)", warm_log).group(1)) for name in ("hits", "misses", "bypassed", "errors")}
+    cache_runs.update({"warm_counts": cache_counts, "equivalent_to_full": cache_equal})
     active_units = [unit for unit in report["units"] if os.path.normcase(str((source / unit["file"]).resolve())) in commands]
     compiled_ok = len(active_units) == len(commands) and bool(active_units) and all(unit["status"] == "success" for unit in active_units)
     review = json.loads((REPO / "config/real-project-review.json").read_text(encoding="utf-8-sig"))["projects"][project["id"]]
@@ -190,14 +199,14 @@ def accept(project, args, env):
     test_file = Path(build_run["workspace"]) / "tests.xml"
     tests = ET.parse(test_file).getroot().attrib if test_file.exists() else {}
     source_unchanged = before == {name: digest((source / name).read_bytes()) for name in before}
-    passed = (compiled_ok and equality and reviewed and source_unchanged and build_run["status"] == "passed"
+    passed = (compiled_ok and equality and cache_equal and cache_counts["hits"] > 0 and cache_counts["errors"] == 0 and reviewed and source_unchanged and build_run["status"] == "passed"
               and int(tests.get("tests", 0)) >= project["minimum_tests"] and int(tests.get("failures", -1)) == 0
               and int(tests.get("skipped", -1)) == 0 and int(tests.get("disabled", -1)) == 0)
     summary = {"project": project, "source": str(source), "configure": configure, "raw_scan": raw,
                "raw_unit_status_counts": raw_report["unit_status_counts"], "selection": selection,
                "scans": scans, "analysis": {k: v for k, v in report.items() if k not in ("units", "issues")},
                "active_translation_units": len(active_units), "active_translation_units_success": sum(u["status"] == "success" for u in active_units),
-               "equivalent_1_and_4_threads": equality, "build": build, "build_run": build_run,
+               "equivalent_1_and_4_threads": equality, "cache": cache_runs, "build": build, "build_run": build_run,
                "build_steps": steps, "ctest": tests, "tracked_files_unchanged": source_unchanged,
                "reviewed_issue_locations_match": reviewed,
                "automated_acceptance_passed": passed}

@@ -1,6 +1,7 @@
 #include "codeguard/application.hpp"
 #include "codeguard/thread_pool.hpp"
 #include "../analyzer/clang_rules/rule.hpp"
+#include "analysis_cache.hpp"
 #include <clang/Lex/Lexer.h>
 #include <chrono>
 #include <mutex>
@@ -55,6 +56,7 @@ struct Collector {
     mutable std::unordered_map<std::string, std::string> path_cache;
     fs::path working_directory;
     clang_rules::Engine rules;
+    tu_cache::Probe* cache_trace=nullptr;
     Collector(const std::map<std::string, std::string>& files, const std::string& directory,const std::vector<std::string>& disabled)
         : inventory(files), working_directory(from_utf8(directory)),rules(disabled) {}
     const std::string& normalized(llvm::StringRef filename) const {
@@ -215,6 +217,7 @@ public:
     }
     std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance& compiler, llvm::StringRef) override {
         compiler.getPreprocessor().addPPCallbacks(std::make_unique<Includes>(output, compiler.getSourceManager()));
+        if(output.cache_trace)compiler.getPreprocessor().addPPCallbacks(std::make_unique<tu_cache::Trace>(*output.cache_trace,compiler.getSourceManager()));
         return finder.newASTConsumer();
     }
 };
@@ -298,7 +301,12 @@ std::string relocate_compile_commands(const std::string& input,const std::string
     stream<<llvm::formatv("{0:2}",llvm::json::Value(std::move(result))).str();
     if(!stream)throw std::runtime_error("cannot write prepared compilation database");return utf8_path(fs::absolute(path));
 }
-AnalysisResult analyze_project(const ScanResult& inventory, const std::string& database, const ScanContext& context, unsigned threads, const std::map<std::string,std::string>& choices,const std::vector<std::string>& disabled_rules) {
+AnalysisResult analyze_project(const ScanResult& inventory, const std::string& database, const ScanContext& context, unsigned threads, const std::map<std::string,std::string>& choices,const std::vector<std::string>& disabled_rules,const std::string& cache_directory) {
+    fs::path cache_path;
+    if(!cache_directory.empty()) {
+        cache_path=fs::weakly_canonical(fs::absolute(from_utf8(cache_directory)));
+        if(project_path_inside(cache_path,from_utf8(inventory.root)))throw std::invalid_argument("AST cache must be outside the source tree");
+    }
     std::map<std::string,std::string> selected_choices;
     for(const auto& [file,id]:choices)if(!selected_choices.emplace(key(from_utf8(file)),id).second)throw std::invalid_argument("duplicate canonical command choice");
     const auto started = std::chrono::steady_clock::now();
@@ -309,6 +317,7 @@ AnalysisResult analyze_project(const ScanResult& inventory, const std::string& d
     if (path.filename() != "compile_commands.json") throw std::invalid_argument("expected compile_commands.json or its directory");
     const auto commands=read_commands(utf8_path(path));
     AnalysisResult result; result.compile_commands = utf8_path(path);
+    if(!cache_path.empty())result.cache.emplace();
     result.analyzer_revision="sha256:" CODEGUARD_ANALYZER_REVISION ";clang:"+getClangFullVersion();
     const auto packaged_resources=from_utf8(executable_directory())/"resources"/"clang";
     const auto resource_directory=fs::is_regular_file(packaged_resources/"include"/"stddef.h") ? utf8_path(packaged_resources) : std::string(CODEGUARD_RESOURCE_DIR);
@@ -336,14 +345,11 @@ AnalysisResult analyze_project(const ScanResult& inventory, const std::string& d
     const auto total = std::count_if(inventory.files.begin(), inventory.files.end(), [](const auto& file) { return file.language != "header"; });
     if (!threads) threads = std::min(8u, std::max(1u, std::thread::hardware_concurrency()));
     result.workers = std::min<unsigned>(threads, std::max<std::size_t>(1, total));
-    struct UnitOutput {
-        TranslationUnitResult unit;
-        std::map<std::string, Symbol> symbols;
-        std::map<std::string, FunctionMetric> metrics;
-        std::set<std::string> covered;
-        std::vector<GraphEdge> edges;
-        std::vector<Issue> issues;
-    };
+    using tu_cache::UnitOutput;
+    llvm::SHA256 scope_hash;tu_cache::add(scope_hash,result.analyzer_revision);tu_cache::add(scope_hash,resource_directory);
+    for(const auto& [absolute,relative]:files){tu_cache::add(scope_hash,absolute);tu_cache::add(scope_hash,relative);}
+    for(const auto& rule:disabled_rules)tu_cache::add(scope_hash,rule);
+    const auto cache_scope=llvm::toHex(scope_hash.final(),true);
     std::mutex progress_mutex;
     std::size_t completed = 0;
     // Pool declared after shared state so workers are joined before it is destroyed.
@@ -373,14 +379,44 @@ AnalysisResult analyze_project(const ScanResult& inventory, const std::string& d
             unit.status = "rejected_command"; unit.diagnostics = "Plugin, response-file, module or side-effect compiler option is not supported in read-only analysis.";
         } else {
             unit.command_fingerprint=command_id(*selected);
+            auto configure_tool=[&](ClangTool& tool,Diagnostics& diagnostic){
+                tool.setDiagnosticConsumer(&diagnostic);
+                tool.appendArgumentsAdjuster(getClangStripDependencyFileAdjuster());
+                tool.appendArgumentsAdjuster(getInsertArgumentAdjuster(CommandLineArguments{"-resource-dir="+resource_directory},ArgumentInsertPosition::END));
+            };
+            std::map<std::string,std::string> probed_dependencies;
+            auto probe=[&]()->std::string {
+                const auto begin=std::chrono::steady_clock::now();context.check();
+                {std::lock_guard lock(progress_mutex);context.report("cache_validating",file.path,completed,total);}
+                tu_cache::Probe trace;Diagnostics messages;OneCommand command(*selected);
+                struct ProbeFactory final:FrontendActionFactory {tu_cache::Probe& trace;explicit ProbeFactory(tu_cache::Probe& t):trace(t){}std::unique_ptr<FrontendAction> create() override{return std::make_unique<tu_cache::ProbeAction>(trace);}} factory(trace);
+                llvm::IntrusiveRefCntPtr<llvm::vfs::FileSystem> filesystem(llvm::vfs::createPhysicalFileSystem().release());
+                ClangTool tool(command,{utf8_path(absolute)},std::make_shared<PCHContainerOperations>(),filesystem);configure_tool(tool,messages);
+                const auto code=tool.run(&factory);context.check();
+                part.validation_ms+=std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now()-begin).count();
+                if(code||!trace.reusable)return {};
+                probed_dependencies=trace.dependencies;
+                tu_cache::add(trace.trace,cache_scope);tu_cache::add(trace.trace,unit.command_fingerprint);tu_cache::add(trace.trace,std::to_string(found->second.size()));tu_cache::add(trace.trace,messages.text);
+                return trace.fingerprint();
+            };
+            std::string cache_key;
+            if(!cache_path.empty()) {
+                cache_key=probe();part.cache_checked=!cache_key.empty();
+                if(!cache_key.empty())try {
+                    if(auto saved=tu_cache::read(cache_path,cache_key)) {
+                        if(saved->unit.file!=unit.file||saved->unit.command_fingerprint!=unit.command_fingerprint)throw std::runtime_error("cache provenance mismatch");
+                        saved->validation_ms=part.validation_ms;saved->cache_checked=true;part=std::move(*saved);
+                    }
+                }catch(const std::exception&){part.cache_error=true;}
+            }
+            if(!part.cached) {
             Collector output{files, selected->Directory,disabled_rules}; Factory factory(output); Diagnostics diagnostic;
+            tu_cache::Probe ast_trace;if(!cache_key.empty())output.cache_trace=&ast_trace;
             OneCommand command(*selected);
             // A private VFS working directory avoids mutating the GUI process CWD.
             llvm::IntrusiveRefCntPtr<llvm::vfs::FileSystem> filesystem(llvm::vfs::createPhysicalFileSystem().release());
             ClangTool tool(command, {utf8_path(absolute)}, std::make_shared<PCHContainerOperations>(), filesystem);
-            tool.setDiagnosticConsumer(&diagnostic);
-            tool.appendArgumentsAdjuster(getClangStripDependencyFileAdjuster());
-            tool.appendArgumentsAdjuster(getInsertArgumentAdjuster(CommandLineArguments{"-resource-dir="+resource_directory}, ArgumentInsertPosition::END));
+            configure_tool(tool,diagnostic);
             const auto code = tool.run(&factory);
             context.check(); // cancellation is cooperative at TU boundaries
             unit.status = code == 0 ? "success" : "parse_failed";
@@ -393,6 +429,15 @@ AnalysisResult analyze_project(const ScanResult& inventory, const std::string& d
                 part.covered = std::move(output.covered);
                 part.symbols = std::move(output.symbols); part.metrics = std::move(output.metrics);
                 part.edges = std::move(output.result.edges); part.issues = std::move(output.result.issues);
+                if(!cache_key.empty()) {
+                    if(!ast_trace.reusable||ast_trace.dependencies!=probed_dependencies)throw std::runtime_error("source or dependency changed during AST analysis; snapshot not saved");
+                    // Reject a changing dependency set, rather than caching AST
+                    // evidence under the fingerprint of a different input.
+                    if(probe()!=cache_key)throw std::runtime_error("source or dependency changed during analysis; snapshot not saved");
+                    context.check();
+                    try{tu_cache::write(cache_path,cache_key,part);}catch(const std::exception&){part.cache_error=true;}
+                }
+            }
             }
         }
         { std::lock_guard lock(progress_mutex); context.report("analyzing", file.path, ++completed, total); }
@@ -402,6 +447,7 @@ AnalysisResult analyze_project(const ScanResult& inventory, const std::string& d
     // Deterministic merge in inventory order; no AST or SQLite objects cross workers.
     for (auto& future : pending) {
         auto part = future.get(); context.check(); const auto& unit = part.unit;
+        if(result.cache){auto& stats=*result.cache;if(part.cached)++stats.hits;else if(part.cache_checked)++stats.misses;else ++stats.bypassed;if(part.cache_error)++stats.errors;stats.validation_ms+=part.validation_ms;}
         if (unit.status == "success") ++good; else ++bad;
         result.units.push_back(unit);
         covered.insert(part.covered.begin(), part.covered.end());

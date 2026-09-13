@@ -4,6 +4,7 @@
 #include <string>
 #include <variant>
 #include <vector>
+#include "codeguard/scan_control.hpp"
 
 namespace codeguard {
 struct ScanResult;
@@ -48,6 +49,6 @@ struct QueryResult {
 // Pure C++ language pipeline. It never sends query text to SQLite.
 std::vector<QueryToken> lex_query(const std::string& source);
 QueryAst parse_query(const std::string& source);
-QueryResult execute_query(const ScanResult& scan, const std::string& source);
+QueryResult execute_query(const ScanResult& scan, const std::string& source, const ScanContext& context = {});
 std::string query_value_text(const QueryValue& value);
 } // namespace codeguard
