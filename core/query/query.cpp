@@ -121,7 +121,8 @@ const std::map<std::string, Schema> schemas = {
     {"issues", {{"rule_id",false},{"severity",false},{"file",false},{"line",true},{"column",true},{"message",false},{"evidence",false},{"suggestion",false},{"symbol_id",false},{"detector",false}}},
     {"builds", {{"run_id",true},{"scan_id",true},{"stage",false},{"status",false},{"exit_code",true},{"duration_ms",true},{"tests_total",true},{"tests_failed",true},{"tests_skipped",true},{"target",false}}},
     {"files", {{"file",false},{"language",false},{"lines",true},{"size",true},{"mtime",true},{"hash",false}}},
-    {"functions", {{"name",false},{"file",false},{"line",true},{"complexity",true},{"lines",true},{"parameters",true},{"symbol_id",false}}},
+    {"functions", {{"name",false},{"file",false},{"line",true},{"complexity",true},{"lines",true},{"parameters",true},{"symbol_id",false},{"max_nesting",true},{"fan_in",true},{"fan_out",true}}},
+    {"references", {{"symbol_id",false},{"enclosing_symbol",false},{"kind",false},{"file",false},{"line",true},{"column",true},{"translation_unit",false}}},
     {"symbols", {{"name",false},{"file",false},{"line",true},{"column",true},{"kind",false},{"definition",true},{"external",true},{"symbol_id",false}}},
     {"edges", {{"kind",false},{"source",false},{"target",false},{"file",false},{"line",true},{"column",true}}}
 };
@@ -178,6 +179,8 @@ std::vector<Row> materialize(const ScanResult& scan, const std::string& table, c
         for (const auto& f : scan.files) append({f.path, f.language, signed_size(f.lines), signed_size(f.size), f.mtime, f.hash});
     } else if (table == "symbols") {
         for (const auto& s : scan.analysis.symbols) append({s.name,s.file,std::int64_t{s.line},std::int64_t{s.column},s.kind,std::int64_t{s.definition},std::int64_t{s.external},s.id});
+    } else if (table == "references") {
+        for (const auto& r : scan.analysis.references) append({r.symbol_id,r.enclosing_symbol,r.kind,r.file,std::int64_t{r.line},std::int64_t{r.column},r.translation_unit});
     } else if (table == "edges") {
         for (const auto& e : scan.analysis.edges) append({e.kind,e.source,e.target,e.file,std::int64_t{e.line},std::int64_t{e.column}});
     } else {
@@ -187,7 +190,7 @@ std::vector<Row> materialize(const ScanResult& scan, const std::string& table, c
             const auto found = symbols.find(m.symbol_id);
             if (found == symbols.end()) throw std::runtime_error("metric refers to a missing symbol");
             const auto& s = *found->second;
-            append({s.name,s.file,std::int64_t{s.line},std::int64_t{m.complexity},std::int64_t{m.lines},std::int64_t{m.parameters},s.id});
+            append({s.name,s.file,std::int64_t{s.line},std::int64_t{m.complexity},std::int64_t{m.lines},std::int64_t{m.parameters},s.id,std::int64_t{m.max_nesting},std::int64_t{m.fan_in},std::int64_t{m.fan_out}});
         }
     }
     return rows;
@@ -259,6 +262,8 @@ QueryResult execute_query(const ScanResult& scan, const std::string& source, con
     context.check();
     const auto ast = parse_query(source);
     const auto plan = analyze(ast, source); // validate even on empty input
+    if (ast.table == "references" && scan.analysis.reference_index != "resolved_ast_v1")
+        throw QueryError(source, ast.table_offset, "reference index unavailable; rescan with Clang analysis");
     if (ast.table != "files" && ast.table != "builds" && ast.table != "rule_diagnostics" && scan.analysis.status == "not_requested")
         throw QueryError(source, ast.table_offset, "table requires a Clang analysis snapshot");
     const auto data = materialize(scan, ast.table, context);

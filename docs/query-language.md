@@ -1,5 +1,7 @@
 # CodeGuard 自研查询语言
 
+2026-09-13 P2-2 扩展：新增 `references`，字符串字段为 `symbol_id / enclosing_symbol / kind / file / translation_unit`，整数为 `line / column`；`functions` 增加整数 `max_nesting / fan_in / fan_out`，历史未记录值为 -1。旧快照查询引用时报“索引不可用”，不返回伪造的零引用。使用和范围见 [引用与度量](references-and-metrics.md)。
+
 更新日期：2026-09-09。对应方案书第 5 章及 Level 3 查询模块。
 
 v0.3.0 增加 `issues` 与 `builds`，覆盖规则与构建测试记录。字段和完整工程闭环见 [Level 3 验收](level3-acceptance.md)。下文保留最初四类实体的语法说明与查询阶段验收；最新整体测试结果以 Level 3 文档为准。

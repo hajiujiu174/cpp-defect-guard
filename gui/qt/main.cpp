@@ -167,8 +167,8 @@ int main(int argc, char** argv) {
         tabs->addTab(value, title);
         return value;
     };
-    auto* symbols_table = make_table(QStringLiteral("符号"));
-    auto* metrics_table = make_table(QStringLiteral("复杂度"));
+    auto* symbols_table = make_table(QStringLiteral("符号")); symbols_table->setObjectName("symbolsTable");
+    auto* metrics_table = make_table(QStringLiteral("度量")); metrics_table->setObjectName("metricsTable");
     auto* edges_table = make_table(QStringLiteral("关系"));
     auto* cycles_table = make_table(QStringLiteral("循环"));
     auto* units_table = make_table(QStringLiteral("诊断"));
@@ -202,7 +202,7 @@ int main(int argc, char** argv) {
     auto* git_log = new QPlainTextEdit(tabs);git_log->setReadOnly(true);tabs->addTab(git_log,QStringLiteral("Git"));
     auto* query_panel = new QWidget(tabs);
     auto* query_layout = new QVBoxLayout(query_panel);
-    auto* query_help = new QLabel(QStringLiteral("只读查询：files / functions / symbols / edges / issues / builds"), query_panel);
+    auto* query_help = new QLabel(QStringLiteral("只读查询：files / functions / symbols / references / edges / issues / builds"), query_panel);
     query_help->setToolTip(QStringLiteral("支持 SELECT、WHERE、AND/OR、ORDER BY、LIMIT；字符串使用单引号，数字字段使用整数。"));
     query_help->setWordWrap(true);
     auto* query_input = new QPlainTextEdit(query_panel);
@@ -347,7 +347,7 @@ int main(int argc, char** argv) {
     };
     QObject::connect(filter, &QLineEdit::textChanged, [&]() { apply_filter(); });
     QObject::connect(tabs, &QTabWidget::currentChanged, [&]() { filter->setVisible(qobject_cast<QTableWidget*>(tabs->currentWidget()) != nullptr); apply_filter(); });
-    auto navigate = [&](const QString& relative, int line) {
+    auto navigate = [&](const QString& relative, int line, int column = 1) {
         try {
             const auto record = std::find_if(current->files.begin(), current->files.end(), [&](const auto& file) { return text(file.path) == relative; });
             if (record == current->files.end()) throw std::runtime_error("Location is outside the project inventory");
@@ -366,6 +366,11 @@ int main(int argc, char** argv) {
             std::ostringstream fingerprint; fingerprint << "fnv1a64-v1:" << std::hex << std::setw(16) << std::setfill('0') << hash;
             const bool changed = fingerprint.str() != record->hash;
             editor->setPlainText(QString::fromUtf8(data)); editor->goToLine(line); opened_file = relative;
+            auto cursor=editor->textCursor();cursor.movePosition(QTextCursor::StartOfBlock);
+            auto block=cursor;block.movePosition(QTextCursor::EndOfBlock,QTextCursor::KeepAnchor);
+            const auto encoded=block.selectedText().toUtf8();
+            const int characters=QString::fromUtf8(encoded.left(std::clamp(column-1,0,static_cast<int>(encoded.size())))).size();
+            cursor.setPosition(cursor.position()+characters);editor->setTextCursor(cursor);
             source_path->setText(relative + QStringLiteral("   ·   只读 / UTF-8") + (changed ? QStringLiteral("   ·   内容已变化，请重新扫描") : ""));
             source_path->setToolTip(path);
             window.statusBar()->showMessage(QStringLiteral("%1  |  行 %2  |  %3").arg(relative).arg(editor->textCursor().blockNumber() + 1)
@@ -425,14 +430,42 @@ int main(int argc, char** argv) {
         if (close_pending) QTimer::singleShot(0, &window, &QWidget::close);
     };
     QObject::connect(query_table, &QTableView::doubleClicked, [&](const QModelIndex& index) {
-        QString file; int line = 1;
+        QString file; int line = 1, column = 1;
         for (int col = 0; col < query_model->columnCount(); ++col) {
             const auto name = query_model->headerData(col, Qt::Horizontal).toString();
             const auto value = query_model->data(query_model->index(index.row(), col)).toString();
             if (name == "file") file = value;
             if (name == "line") line = value.toInt();
+            if (name == "column") column = value.toInt();
         }
-        if (!file.isEmpty()) navigate(file, line);
+        if (!file.isEmpty()) navigate(file, line, column);
+    });
+    auto lookup_references = [&](QString id) {
+        if (id.isEmpty() || query_task.busy()) {
+            window.statusBar()->showMessage(QStringLiteral("请先选择符号；已有查询时请等待或取消。"));return;
+        }
+        id.replace("'","''");
+        query_input->setPlainText("SELECT file, line, column, kind, translation_unit, enclosing_symbol, symbol_id FROM references WHERE symbol_id = '"+id+"' ORDER BY file, line, column, translation_unit;");
+        tabs->setCurrentWidget(query_panel);query_run->click();
+    };
+    for (auto* target : {symbols_table,metrics_table}) {
+        auto* action=new QAction(QStringLiteral("查找此符号的引用"),target);
+        action->setObjectName(target==symbols_table?"findSymbolReferences":"findMetricReferences");
+        target->addAction(action);target->setContextMenuPolicy(Qt::ActionsContextMenu);
+        target->setToolTip(QStringLiteral("右键查找引用；引用按来源编译单元保留，双击查询结果可定位。"));
+        QObject::connect(action,&QAction::triggered,[&,target] {
+            const auto* item=target->item(target->currentRow(),0);
+            if(item)lookup_references(item->data(Qt::UserRole+2).toString());
+        });
+    }
+    auto* definition_action=new QAction(QStringLiteral("跳转到目标符号的定义 / 声明"),query_table);
+    definition_action->setObjectName("referenceDefinition");query_table->addAction(definition_action);query_table->setContextMenuPolicy(Qt::ActionsContextMenu);
+    QObject::connect(definition_action,&QAction::triggered,[&] {
+        QString id;const auto row=query_table->currentIndex().row();
+        for(int col=0;col<query_model->columnCount();++col)if(query_model->headerData(col,Qt::Horizontal).toString()=="symbol_id")
+            id=query_model->data(query_model->index(row,col)).toString();
+        for(const auto& symbol:current->analysis.symbols)if(text(symbol.id)==id){navigate(text(symbol.file),symbol.line,symbol.column);return;}
+        window.statusBar()->showMessage(QStringLiteral("请选择包含 symbol_id 的查询结果。"));
     });
     auto display = [&](std::shared_ptr<const codeguard::ScanResult> snapshot) {
         const auto& result = *snapshot;
@@ -502,8 +535,9 @@ int main(int argc, char** argv) {
         std::sort(metrics.begin(), metrics.end(), [](const auto& a, const auto& b) { return a.complexity > b.complexity; });
         for (const auto& metric : metrics) {
             const auto& symbol = symbols.at(metric.symbol_id);
+            auto known=[](int n){return n<0?QStringLiteral("未知"):QString::number(n);};
             metric_rows.push_back({text(symbol.name), QString::number(metric.complexity), QString::number(metric.lines),
-                QString::number(metric.parameters), text(symbol.file) + ":" + QString::number(symbol.line)});
+                QString::number(metric.parameters), text(symbol.file) + ":" + QString::number(symbol.line),known(metric.max_nesting),known(metric.fan_in),known(metric.fan_out)});
         }
         auto node_name = [&](const std::string& id) {
             const auto found = symbols.find(id);
@@ -526,7 +560,7 @@ int main(int argc, char** argv) {
                 if (std::find(result.analysis.covered_files.begin(), result.analysis.covered_files.end(), file.path) == result.analysis.covered_files.end())
                     unit_rows.push_back({text(file.path), "uncovered", "", QStringLiteral("未被成功翻译单元覆盖，不代表已完成分析")});
         fill(symbols_table, {QStringLiteral("类型"), QStringLiteral("名称"), QStringLiteral("文件"), QStringLiteral("行"), QStringLiteral("位置类型"), "USR"}, symbol_rows);
-        fill(metrics_table, {QStringLiteral("函数"), QStringLiteral("CFG 圈复杂度"), QStringLiteral("函数行数"), QStringLiteral("参数"), QStringLiteral("位置")}, metric_rows);
+        fill(metrics_table, {QStringLiteral("函数"), QStringLiteral("CFG 圈复杂度"), QStringLiteral("函数行数"), QStringLiteral("参数"), QStringLiteral("位置"),QStringLiteral("最大嵌套"),QStringLiteral("观测扇入"),QStringLiteral("观测扇出")}, metric_rows);
         fill(edges_table, {QStringLiteral("图类型"), QStringLiteral("起点"), QStringLiteral("终点"), QStringLiteral("调用/include 位置")}, edge_rows);
         fill(cycles_table, {QStringLiteral("图类型"), QStringLiteral("循环强连通分量（成员列表，不是环路径）")}, cycle_rows);
         fill(units_table, {QStringLiteral("文件"), QStringLiteral("状态"), QStringLiteral("未解析调用数"), QStringLiteral("诊断")}, unit_rows);
@@ -541,9 +575,12 @@ int main(int argc, char** argv) {
         std::vector<QStringList> policy_rows;for(const auto& message:result.analysis.rule_diagnostics)policy_rows.push_back({text(message)});
         fill(rule_diagnostics,{QStringLiteral("未应用的抑制 / 配置诊断")},policy_rows);
         int row = 0;
-        for (const auto& symbol : result.analysis.symbols) if (!symbol.external) location(symbols_table, row++, text(symbol.file), symbol.line);
+        for (const auto& symbol : result.analysis.symbols) if (!symbol.external) {
+            location(symbols_table,row,text(symbol.file),symbol.line);symbols_table->item(row++,0)->setData(Qt::UserRole+2,text(symbol.id));
+        }
         for (std::size_t i = 0; i < metrics.size(); ++i) {
             const auto& symbol = symbols.at(metrics[i].symbol_id); location(metrics_table, static_cast<int>(i), text(symbol.file), symbol.line);
+            metrics_table->item(static_cast<int>(i),0)->setData(Qt::UserRole+2,text(symbol.id));
         }
         for (std::size_t i = 0; i < result.analysis.edges.size(); ++i) {
             const auto& edge = result.analysis.edges[i]; location(edges_table, static_cast<int>(i), text(edge.file), edge.line);
@@ -925,6 +962,30 @@ int main(int argc, char** argv) {
                 if (!window.grab().save(text(codeguard::utf8_path(screenshot.parent_path() / "gui-query-compact.png")))) throw std::runtime_error("query screenshot failed");
                 window.resize(1480, 860); app.processEvents();
                 if (!window.grab().save(text(codeguard::utf8_path(screenshot.parent_path() / "gui-query.png")))) throw std::runtime_error("query screenshot failed");
+                if(!saved.analysis.references.empty()) {
+                    int selected=-1;std::string id;
+                    for(int row=0;row<symbols_table->rowCount();++row){
+                        const auto candidate=bytes(symbols_table->item(row,0)->data(Qt::UserRole+2).toString());
+                        if(std::any_of(saved.analysis.references.begin(),saved.analysis.references.end(),[&](const auto& r){return r.symbol_id==candidate;})){selected=row;id=candidate;break;}
+                    }
+                    if(selected<0)throw std::runtime_error("no reference fixture symbol");
+                    symbols_table->setCurrentCell(selected,0);
+                    symbols_table->findChild<QAction*>("findSymbolReferences")->trigger();wait_read([&]{return query_task.busy();});
+                    const auto expected=codeguard::find_references(saved.analysis,id);
+                    if(query_model->rowCount()!=static_cast<int>(expected.size())||tabs->currentWidget()!=query_panel)
+                        throw std::runtime_error("reference action query mismatch");
+                    query_table->setCurrentIndex(query_model->index(0,0));query_table->doubleClicked(query_model->index(0,0));
+                    if(opened_file!=text(expected[0].file)||editor->textCursor().blockNumber()+1!=expected[0].line)
+                        throw std::runtime_error("reference source navigation failed");
+                    auto cursor=editor->textCursor();const int position=cursor.position();cursor.movePosition(QTextCursor::StartOfBlock,QTextCursor::KeepAnchor);
+                    if(cursor.selectedText().toUtf8().size()!=expected[0].column-1||position<0)throw std::runtime_error("reference byte column navigation failed");
+                    app.processEvents();window.grab().save(text(codeguard::utf8_path(screenshot.parent_path()/"gui-references.png")));
+                    window.resize(1080,680);app.processEvents();window.grab().save(text(codeguard::utf8_path(screenshot.parent_path()/"gui-references-compact.png")));window.resize(1480,860);
+                    definition_action->trigger();
+                    const auto target=std::find_if(saved.analysis.symbols.begin(),saved.analysis.symbols.end(),[&](const auto& s){return s.id==id;});
+                    if(target==saved.analysis.symbols.end()||opened_file!=text(target->file)||editor->textCursor().blockNumber()+1!=target->line)
+                        throw std::runtime_error("reference definition navigation failed");
+                }
                 query_input->setPlainText("SELECT missing FROM files;"); query_run->click(); wait_read([&] { return query_task.busy(); });
                 if (query_model->rowCount() != 0 || !query_status->text().startsWith(QStringLiteral("查询失败：")))
                     throw std::runtime_error("invalid query did not clear old results");

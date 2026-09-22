@@ -82,7 +82,11 @@ def analysis_report(database):
         units = rows(connection, "translation_unit", scan_id)
         issues = rows(connection, "issue", scan_id)
         files = rows(connection, "file", scan_id)
+        references = connection.execute("SELECT COUNT(*) FROM symbol_reference WHERE scan_id=?", (scan_id,)).fetchone()[0]
+        metrics = connection.execute("SELECT COUNT(*),MAX(max_nesting),MAX(fan_in),MAX(fan_out) FROM function_metric WHERE scan_id=?", (scan_id,)).fetchone()
         return {"analysis": analysis, "units": units, "issues": issues,
+                "reference_observations": references,
+                "function_metrics": {"count": metrics[0], "max_nesting": metrics[1], "max_fan_in": metrics[2], "max_fan_out": metrics[3]},
                 "unit_status_counts": dict(collections.Counter(u["status"] for u in units)),
                 "file_count": len(files), "physical_lines": sum(f["lines"] for f in files),
                 "covered_files": len(rows(connection, "coverage", scan_id)),
@@ -95,7 +99,7 @@ def equivalent(one, four):
             con.row_factory = sqlite3.Row
             latest = con.execute("SELECT max(scan_id) FROM analysis").fetchone()[0]
             result = {}
-            for table in ("translation_unit", "unit_coverage", "symbol", "function_metric", "graph_edge", "coverage", "issue", "suppressed_issue", "rule_diagnostic"):
+            for table in ("translation_unit", "unit_coverage", "symbol", "symbol_reference", "function_metric", "graph_edge", "coverage", "issue", "suppressed_issue", "rule_diagnostic"):
                 result[table] = sorted(json.dumps({k: v for k, v in row.items() if k != "scan_id"}, sort_keys=True)
                                        for row in rows(con, table, latest))
             return result

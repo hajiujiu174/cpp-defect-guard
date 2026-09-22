@@ -22,6 +22,7 @@ struct UnitOutput {
     std::map<std::string,FunctionMetric> metrics;
     std::set<std::string> covered;
     std::vector<GraphEdge> edges;
+    std::vector<SymbolReference> references;
     std::vector<Issue> issues;
     bool cached=false;
     bool cache_checked=false,cache_error=false;
@@ -103,19 +104,20 @@ inline std::string encode(const UnitOutput& part,const std::string& key){
     // Evidence may end halfway through a UTF-8 code point. Preserve arbitrary
     // bytes exactly instead of feeding invalid UTF-8 to LLVM's JSON strings.
     auto text=[](const std::string& s){return llvm::toHex(llvm::StringRef(s),true);};
-    Array symbols,metrics,edges,issues,covered;
+    Array symbols,metrics,edges,issues,covered,references;
     for(const auto& [id,s]:part.symbols)symbols.push_back(Array{text(s.id),text(s.kind),text(s.name),text(s.file),s.line,s.column,s.definition,s.external});
-    for(const auto& [id,m]:part.metrics)metrics.push_back(Array{text(m.symbol_id),m.lines,m.parameters,m.complexity});
+    for(const auto& [id,m]:part.metrics)metrics.push_back(Array{text(m.symbol_id),m.lines,m.parameters,m.complexity,m.max_nesting});
+    for(const auto& r:part.references)references.push_back(Array{text(r.symbol_id),text(r.enclosing_symbol),text(r.kind),text(r.file),r.line,r.column,text(r.translation_unit)});
     for(const auto& e:part.edges)edges.push_back(Array{text(e.kind),text(e.source),text(e.target),text(e.file),e.line,e.column});
     for(const auto& i:part.issues)issues.push_back(Array{text(i.rule_id),text(i.severity),text(i.file),i.line,i.column,text(i.message),text(i.evidence),text(i.suggestion),text(i.symbol_id),text(i.detector)});
     for(const auto& path:part.covered)covered.push_back(text(path));
-    Object result{{"version",1},{"key",key},{"unit",Array{text(part.unit.file),text(part.unit.status),text(part.unit.diagnostics),part.unit.indirect_calls,text(part.unit.command_fingerprint)}},
-        {"symbols",std::move(symbols)},{"metrics",std::move(metrics)},{"edges",std::move(edges)},{"issues",std::move(issues)},{"covered",std::move(covered)}};
+    Object result{{"version",2},{"key",key},{"unit",Array{text(part.unit.file),text(part.unit.status),text(part.unit.diagnostics),part.unit.indirect_calls,text(part.unit.command_fingerprint)}},
+        {"symbols",std::move(symbols)},{"metrics",std::move(metrics)},{"edges",std::move(edges)},{"issues",std::move(issues)},{"covered",std::move(covered)},{"references",std::move(references)}};
     return llvm::formatv("{0}",llvm::json::Value(std::move(result))).str();
 }
 inline UnitOutput decode(const std::string& payload,const std::string& key){
     auto parsed=llvm::json::parse(payload);if(!parsed){llvm::consumeError(parsed.takeError());throw std::runtime_error("invalid cache JSON");}
-    const auto* object=parsed->getAsObject();if(!object||object->getInteger("version")!=1||object->getString("key")!=key)throw std::runtime_error("invalid cache version or key");
+    const auto* object=parsed->getAsObject();if(!object||object->getInteger("version")!=2||object->getString("key")!=key)throw std::runtime_error("invalid cache version or key");
     auto rows=[&](const char* field)->const llvm::json::Array&{const auto* value=object->getArray(field);if(!value)throw std::runtime_error("missing cache array");return *value;};
     auto row=[](const llvm::json::Value& value,std::size_t count)->const llvm::json::Array&{const auto* a=value.getAsArray();if(!a||a->size()!=count)throw std::runtime_error("invalid cache row");return *a;};
     auto string=[](const llvm::json::Value& value){auto s=value.getAsString();if(!s||s->size()%2||!std::all_of(s->begin(),s->end(),[](char c){return llvm::isHexDigit(c);}))throw std::runtime_error("invalid cache text");return llvm::fromHex(*s);};
@@ -125,7 +127,12 @@ inline UnitOutput decode(const std::string& payload,const std::string& key){
     part.unit={string(unit[0]),string(unit[1]),string(unit[2]),integer(unit[3]),string(unit[4])};
     if(part.unit.status!="success")throw std::runtime_error("only successful AST results can be reused");
     for(const auto& value:rows("symbols")){const auto& r=row(value,8);Symbol s{string(r[0]),string(r[1]),string(r[2]),string(r[3]),integer(r[4]),integer(r[5]),boolean(r[6]),boolean(r[7])};if(!part.symbols.emplace(s.id,s).second)throw std::runtime_error("duplicate cache symbol");}
-    for(const auto& value:rows("metrics")){const auto& r=row(value,4);FunctionMetric m{string(r[0]),integer(r[1]),integer(r[2]),integer(r[3])};if(!part.symbols.contains(m.symbol_id)||!part.metrics.emplace(m.symbol_id,m).second)throw std::runtime_error("invalid cache metric reference");}
+    for(const auto& value:rows("metrics")){const auto& r=row(value,5);FunctionMetric m{string(r[0]),integer(r[1]),integer(r[2]),integer(r[3]),integer(r[4])};if(!part.symbols.contains(m.symbol_id)||!part.metrics.emplace(m.symbol_id,m).second)throw std::runtime_error("invalid cache metric reference");}
+    for(const auto& value:rows("references")){
+        const auto& r=row(value,7);SymbolReference reference{string(r[0]),string(r[1]),string(r[2]),string(r[3]),integer(r[4]),integer(r[5]),string(r[6])};
+        if(!part.symbols.contains(reference.symbol_id)||reference.translation_unit!=part.unit.file)throw std::runtime_error("invalid cache symbol reference");
+        part.references.push_back(std::move(reference));
+    }
     for(const auto& value:rows("edges")){const auto& r=row(value,6);part.edges.push_back({string(r[0]),string(r[1]),string(r[2]),string(r[3]),integer(r[4]),integer(r[5])});}
     for(const auto& value:rows("issues")){const auto& r=row(value,10);part.issues.push_back({string(r[0]),string(r[1]),string(r[2]),integer(r[3]),integer(r[4]),string(r[5]),string(r[6]),string(r[7]),string(r[8]),string(r[9])});}
     for(const auto& value:rows("covered"))part.covered.insert(string(value));

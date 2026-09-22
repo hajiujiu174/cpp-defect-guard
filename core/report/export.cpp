@@ -58,11 +58,13 @@ std::string snapshot_json(const ScanResult& scan){
         {"file_changes",object({{"added",number(scan.added)},{"changed",number(scan.changed)},{"unchanged",number(scan.unchanged)},{"removed",number(scan.removed)}})},
         {"files",array(scan.files,[this](const FileRecord& f){return object({{"file",quote(f.path)},{"language",quote(f.language)},{"hash",quote(f.hash)},{"size",number(f.size)},{"mtime",number(f.mtime)},{"lines",number(f.lines)}});})},
         {"analysis",object({{"status",quote(a.status)},{"compile_commands",quote(a.compile_commands)},{"configuration",quote(a.configuration)},{"analyzer_revision",quote(a.analyzer_revision)},{"workers",number(a.workers)},{"elapsed_ms",number(a.elapsed_ms)},
-            {"covered_files",strings(a.covered_files)},{"rule_diagnostics",strings(a.rule_diagnostics)},
+            {"covered_files",strings(a.covered_files)},{"rule_diagnostics",strings(a.rule_diagnostics)},{"reference_index",quote(a.reference_index)},
+            {"references",array(a.references,[this](const SymbolReference& r){return object({{"symbol_id",quote(r.symbol_id)},{"enclosing_symbol",quote(r.enclosing_symbol)},{"kind",quote(r.kind)},{"file",quote(r.file)},{"line",number(r.line)},{"column",number(r.column)},{"translation_unit",quote(r.translation_unit)}});})},
+            {"edges",array(a.edges,[this](const GraphEdge& e){return object({{"kind",quote(e.kind)},{"source",quote(e.source)},{"target",quote(e.target)},{"file",quote(e.file)},{"line",number(e.line)},{"column",number(e.column)}});})},
             {"units",array(a.units,[this](const TranslationUnitResult& u){return object({{"file",quote(u.file)},{"status",quote(u.status)},{"diagnostics",quote(u.diagnostics)},{"indirect_calls",number(u.indirect_calls)},{"command_fingerprint",quote(u.command_fingerprint)},{"covered_files",strings(u.covered_files)}});})},
             {"issues",array(a.issues,[this](const Issue& issue){return issue_json(issue);})},{"suppressed_issues",array(a.suppressed_issues,[this](const Issue& issue){return issue_json(issue);})},
             {"symbols",array(a.symbols,[this](const Symbol& s){return object({{"id",quote(s.id)},{"kind",quote(s.kind)},{"name",quote(s.name)},{"file",quote(s.file)},{"line",number(s.line)},{"column",number(s.column)},{"definition",boolean(s.definition)},{"external",boolean(s.external)}});})},
-            {"metrics",array(a.metrics,[this](const FunctionMetric& m){return object({{"symbol_id",quote(m.symbol_id)},{"lines",number(m.lines)},{"parameters",number(m.parameters)},{"complexity",number(m.complexity)}});})}})},
+            {"metrics",array(a.metrics,[this](const FunctionMetric& m){return object({{"symbol_id",quote(m.symbol_id)},{"lines",number(m.lines)},{"parameters",number(m.parameters)},{"complexity",number(m.complexity)},{"max_nesting",number(m.max_nesting)},{"fan_in",number(m.fan_in)},{"fan_out",number(m.fan_out)}});})}})},
         {"build_runs",array(scan.build_runs,[this](const BuildRun& r){return object({{"id",number(r.id)},{"scan_id",number(r.scan_id)},{"started_at",quote(r.started_at)},{"status",quote(r.status)},{"workspace",quote(r.workspace)},{"target",quote(r.target)},{"git_revision",quote(r.git_revision)},{"git_log",quote(r.git_log)},{"source_unchanged",boolean(r.source_unchanged)},{"compile_commands",quote(r.compile_commands)},{"configuration",quote(r.configuration)},
             {"steps",array(r.steps,[this](const BuildStep& s){return object({{"name",quote(s.name)},{"command",quote(s.command)},{"working_directory",quote(s.working_directory)},{"status",quote(s.result.status)},{"exit_code",number(s.result.exit_code)},{"duration_ms",number(s.result.duration_ms)},{"tests_total",number(s.tests_total)},{"tests_failed",number(s.tests_failed)},{"tests_skipped",number(s.tests_skipped)},{"stdout",quote(s.result.stdout_text)},{"stderr",quote(s.result.stderr_text)},{"output_truncated",boolean(s.result.output_truncated)}});})}});})}
     });
@@ -108,11 +110,19 @@ std::string snapshot_html(const ScanResult& scan){
     out+=table_end;
     std::set<std::string> covered;for(const auto& path:a.covered_files){context.check();covered.insert(path);}
     out+="<details><summary>未覆盖文件</summary><ul>";for(const auto& f:scan.files)if((context.check(),!covered.contains(f.path)))out+="<li>"+escape(f.path)+"</li>";out+="</ul></details>";
-    out+="<h3>函数复杂度</h3><p>复杂度为 CFG 圈复杂度；未知值保持未知，不换成零。</p>"+table({"函数","位置","复杂度","函数行数","参数"});
+    out+="<h3>函数度量</h3><p>复杂度为 CFG 圈复杂度；嵌套为语法控制层级。扇入/扇出仅统计已观测的直接调用端点，不表示全部运行时调用。未知值保持未知。</p>"+table({"函数","位置","复杂度","函数行数","参数","最大嵌套","观测扇入","观测扇出"});
     std::map<std::string,const Symbol*> symbols;for(const auto& s:a.symbols){context.check();symbols[s.id]=&s;}
     auto metrics=a.metrics;std::stable_sort(metrics.begin(),metrics.end(),[this](const auto& x,const auto& y){context.check();return x.complexity>y.complexity;});
-    for(const auto& m:metrics){auto found=symbols.find(m.symbol_id);const auto name=found==symbols.end()?m.symbol_id:found->second->name;const auto where=found==symbols.end()?"未记录":found->second->file+":"+number(found->second->line);out+="<tr>"+cell(name)+cell(where)+cell(m.complexity<0?"未知":number(m.complexity))+cell(number(m.lines))+cell(number(m.parameters))+"</tr>";}
-    out+=table_end+"<h3>构建与测试</h3>";
+    auto known=[&](int n){return n<0?std::string("未知"):number(n);};
+    for(const auto& m:metrics){auto found=symbols.find(m.symbol_id);const auto name=found==symbols.end()?m.symbol_id:found->second->name;const auto where=found==symbols.end()?"未记录":found->second->file+":"+number(found->second->line);out+="<tr>"+cell(name)+cell(where)+cell(known(m.complexity))+cell(number(m.lines))+cell(number(m.parameters))+cell(known(m.max_nesting))+cell(known(m.fan_in))+cell(known(m.fan_out))+"</tr>";}
+    out+=table_end+"<h3>引用索引</h3>";
+    if(a.reference_index.empty())out+="<p>本次快照未记录引用索引；不能当作没有引用。</p>";
+    else {
+        out+="<p>已解析的语法引用，含未求值表达式；不含未解析的依赖名称或宏定义索引。共享头文件按来源编译单元保留观测，不是去重后的源码位置数。</p><details><summary>引用观测（"+number(a.references.size())+"）</summary>"+table({"符号","类别","位置","来源编译单元"});
+        for(const auto& r:a.references){context.check();auto found=symbols.find(r.symbol_id);out+="<tr>"+cell(found==symbols.end()?r.symbol_id:found->second->name)+cell(r.kind)+cell(r.file+":"+number(r.line)+":"+number(r.column))+cell(r.translation_unit)+"</tr>";}
+        out+=table_end+"</details>";
+    }
+    out+="<h3>构建与测试</h3>";
     if(scan.build_runs.empty())out+="<p>该扫描没有关联构建记录，不能据此认为测试通过。</p>";
     else if(!scan.build_logs_loaded)out+="<p class=note>本次输入仅载入构建摘要，未载入完整输出日志；空日志字段不代表构建没有输出。</p>";
     for(const auto& run:scan.build_runs){

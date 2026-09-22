@@ -6,6 +6,8 @@
 
 ## 架构与模块
 
+P2-2 进行中：引用与度量阶段已实现按 TU 溯源的已解析引用、CLI/Qt 查找引用及字节列定位、最大嵌套及观测扇入扇出，schema 7 保留旧快照未知语义。本地 Core 55 通过/1 跳过，Clang/Qt 107 通过/1 跳过。真实库及远端验收进度、能力边界见 [引用与度量](references-and-metrics.md)；局部数据流分析、交互图和路径查看仍待完成。
+
 ```text
 cpp-defect-guard/
 ├─ core/                 纯 C++20 核心库
@@ -28,7 +30,7 @@ cpp-defect-guard/
 | 级别 | 当前已有 | 仍需完成 |
 |---|---|---|
 | Level 1 骨架 | Core/CLI/Qt、目录扫描、项目快照、最近项目、SQLite 事务、Windows 运行包、按工程配置与重启恢复 | 更多构建系统及实际桌面环境覆盖 |
-| Level 2 分析 | Core Clang、USR 符号与定义、CFG 复杂度、直接调用/include 图、图算法、覆盖诊断、源码定位、五类 AST 规则 | 引用/宏索引、交互图画布、更完整度量及更广规则评测 |
+| Level 2 分析 | Core Clang、USR 符号与定义、已解析引用及查找、CFG 复杂度/嵌套/观测扇入扇出、直接调用/include 图、图算法、覆盖诊断、源码定位、五类 AST 规则 | 完整宏/模板索引、局部数据流、交互图画布及路径查看、更广规则评测 |
 | Level 3 工程闭环 | 自研查询语言、CLI/Qt 查询、多 TU 线程池、单写线程、有界队列、进度/取消、Windows/POSIX 进程、CMake/CTest/Git、BuildTest/Issue 持久化、并发实验入口、Windows CI/独立运行包、三个固定真实库工程验收 | 更大应用及更多配置覆盖、完整规则真值评测；Linux 全功能验收暂缓 |
 | Level 4 研究 | 保留旧 AST/CFG/DFG、Juliet 数据、模型实验和检查点 | 可选 ONNX C++ 部署或自动修复对照，不能宣称已完成 |
 

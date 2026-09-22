@@ -36,7 +36,7 @@ void equivalent(cg::ScanResult a,cg::ScanResult b){
     auto normalize=[](cg::ScanResult& scan){scan.id=1;scan.scanned_at="0";scan.added=scan.changed=scan.unchanged=scan.removed=0;scan.analysis.elapsed_ms=0;scan.analysis.workers=0;auto config=cg::decode_config(scan.analysis.configuration);config.threads=0;scan.analysis.configuration=cg::encode_config(config);};
     normalize(a);normalize(b);
     require(cg::report_json(a)==cg::report_json(b),"cached and full snapshot evidence differ");
-    for(const auto* table:{"symbols","functions","edges","issues","suppressed_issues","rule_diagnostics"}){
+    for(const auto* table:{"symbols","functions","references","edges","issues","suppressed_issues","rule_diagnostics"}){
         const auto query="SELECT * FROM "+std::string(table);require(cg::execute_query(a,query).rows==cg::execute_query(b,query).rows,"cached/full query mismatch: "+query);
     }
 }

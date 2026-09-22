@@ -6,6 +6,7 @@
 #include <chrono>
 #include <mutex>
 #include <clang/AST/RecursiveASTVisitor.h>
+#include <clang/AST/ParentMapContext.h>
 #include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/Analysis/CFG.h>
 #include <clang/Basic/Version.h>
@@ -55,10 +56,11 @@ struct Collector {
     int indirect = 0;
     mutable std::unordered_map<std::string, std::string> path_cache;
     fs::path working_directory;
+    std::string translation_unit;
     clang_rules::Engine rules;
     tu_cache::Probe* cache_trace=nullptr;
-    Collector(const std::map<std::string, std::string>& files, const std::string& directory,const std::vector<std::string>& disabled)
-        : inventory(files), working_directory(from_utf8(directory)),rules(disabled) {}
+    Collector(const std::map<std::string, std::string>& files, const std::string& directory,const std::vector<std::string>& disabled,const std::string& unit)
+        : inventory(files), working_directory(from_utf8(directory)),translation_unit(unit),rules(disabled) {}
     const std::string& normalized(llvm::StringRef filename) const {
         const auto name = filename.str();
         const auto found = path_cache.find(name);
@@ -84,6 +86,10 @@ struct Collector {
             const auto location = sources.getExpansionLoc(declaration->getCanonicalDecl()->getLocation());
             result += "@file=" + path(sources.getFilename(location));
         }
+        bool unit_local = declaration->getFormalLinkage() == Linkage::Internal;
+        for (auto* owner=declaration->getDeclContext(); owner && !unit_local; owner=owner->getParent())
+            if (const auto* named=dyn_cast<NamedDecl>(owner)) unit_local=named->getFormalLinkage()==Linkage::Internal;
+        if (unit_local) result += "@tu=" + translation_unit;
         return result;
     }
     std::string symbol(const NamedDecl* declaration, const SourceManager& sources, bool permit_external = false) {
@@ -110,6 +116,12 @@ struct Collector {
             symbol.definition = variable->isThisDeclarationADefinition() != VarDecl::DeclarationOnly;
         } else if (isa<FieldDecl>(declaration)) {
             symbol.kind = "field"; symbol.definition = true;
+        } else if (isa<EnumDecl>(declaration)) {
+            symbol.kind = "enum"; symbol.definition = cast<EnumDecl>(declaration)->isCompleteDefinition();
+        } else if (isa<EnumConstantDecl>(declaration)) {
+            symbol.kind = "enumerator"; symbol.definition = true;
+        } else if (isa<TypedefNameDecl>(declaration)) {
+            symbol.kind = "type_alias"; symbol.definition = true;
         } else return {};
         const auto old = symbols.find(symbol.id);
         if (old == symbols.end() || (symbol.definition && !old->second.definition) ||
@@ -121,10 +133,25 @@ struct Collector {
 class Calls final : public RecursiveASTVisitor<Calls> {
     Collector& output;
     const SourceManager& sources;
+    ASTContext& ast;
     std::string caller;
 public:
-    Calls(Collector& out, const SourceManager& sm, std::string id) : output(out), sources(sm), caller(std::move(id)) {}
-    bool TraverseLambdaExpr(LambdaExpr*) { return true; } // no outer-function attribution of lambda bodies
+    Calls(Collector& out, ASTContext& context, std::string id) : output(out), sources(context.getSourceManager()), ast(context), caller(std::move(id)) {}
+    bool TraverseLambdaExpr(LambdaExpr* lambda) {
+        for(auto* capture:lambda->capture_inits())TraverseStmt(capture);
+        return true; // no outer-function attribution of lambda bodies
+    }
+    bool TraverseUnaryExprOrTypeTraitExpr(UnaryExprOrTypeTraitExpr*) { return true; }
+    bool TraverseCXXNoexceptExpr(CXXNoexceptExpr*) { return true; }
+    bool TraverseCXXTypeidExpr(CXXTypeidExpr*) { return true; } // conservative: evaluated polymorphic typeid is also excluded
+    bool TraverseIfStmt(IfStmt* branch) {
+        bool condition=false;
+        if(branch->isConstexpr()&&!branch->getCond()->isValueDependent()&&branch->getCond()->EvaluateAsBooleanCondition(condition,ast)) {
+            TraverseStmt(branch->getInit());TraverseStmt(branch->getConditionVariableDeclStmt());TraverseStmt(branch->getCond());
+            TraverseStmt(condition?branch->getThen():branch->getElse());return true;
+        }
+        return RecursiveASTVisitor<Calls>::TraverseIfStmt(branch);
+    }
     bool TraverseFunctionDecl(FunctionDecl*) { return true; } // local class methods have their own callback
     void add(const FunctionDecl* target, SourceLocation input) {
         const auto location = sources.getExpansionLoc(input);
@@ -143,6 +170,18 @@ class Matches final : public MatchFinder::MatchCallback {
 public:
     explicit Matches(Collector& out) : output(out) {}
     void run(const MatchFinder::MatchResult& match) override {
+        if (const auto* use = match.Nodes.getNodeAs<DeclRefExpr>("reference"))
+            reference(use->getDecl(), use->getLocation(), "declref", DynTypedNode::create(*use), match);
+        if (const auto* use = match.Nodes.getNodeAs<MemberExpr>("member_reference"))
+            reference(use->getMemberDecl(), use->getMemberLoc(), "member", DynTypedNode::create(*use), match);
+        if (const auto* use = match.Nodes.getNodeAs<CXXConstructExpr>("construction"))
+            reference(use->getConstructor(), use->getLocation(), "construct", DynTypedNode::create(*use), match);
+        if (const auto* use = match.Nodes.getNodeAs<TypeLoc>("type_reference")) {
+            if (auto tag = use->getAs<TagTypeLoc>())
+                reference(tag.getDecl(), tag.getNameLoc(), "type", DynTypedNode::create(*use), match);
+            else if (auto alias = use->getAs<TypedefTypeLoc>())
+                reference(alias.getTypePtr()->getDecl(), alias.getNameLoc(), "type", DynTypedNode::create(*use), match);
+        }
         const auto* declaration = match.Nodes.getNodeAs<NamedDecl>("symbol");
         if (!declaration) return;
         const auto id = output.symbol(declaration, *match.SourceManager);
@@ -151,6 +190,7 @@ public:
         const auto& sources = *match.SourceManager;
         FunctionMetric metric;
         metric.symbol_id = id; metric.parameters = function->getNumParams();
+        metric.max_nesting = nesting(function->getBody());
         const auto start = sources.getExpansionLineNumber(function->getBeginLoc());
         const auto end = sources.getExpansionLineNumber(function->getEndLoc());
         metric.lines = end >= start ? end - start + 1 : 0;
@@ -162,13 +202,45 @@ public:
             for (const auto* block : *cfg) if (block && block->succ_size() > 1) metric.complexity += block->succ_size() - 1;
         }
         output.metrics[id] = metric;
-        Calls calls(output, sources, id);
+        Calls calls(output, *match.Context, id);
         calls.TraverseStmt(const_cast<Stmt*>(function->getBody()));
         output.rules.inspect(function->getBody(),*match.Context,[&](const Stmt* statement,const std::string& rule,const std::string& message,const std::string& suggestion){
             add_issue(statement,*match.Context,id,rule,message,suggestion);
         });
     }
 private:
+    // Syntactic control depth; expression operators and braces alone do not add levels.
+    static int nesting(const Stmt* body) {
+        int maximum = 0;
+        std::vector<std::pair<const Stmt*,int>> pending{{body,0}};
+        while (!pending.empty()) {
+            const auto [s, depth] = pending.back(); pending.pop_back();
+            if (!s || isa<LambdaExpr>(s)) continue;
+            const int next = depth + (isa<IfStmt,ForStmt,CXXForRangeStmt,WhileStmt,DoStmt,SwitchStmt,CXXTryStmt>(s) ? 1 : 0);
+            maximum = std::max(maximum,next);
+            if (const auto* declarations = dyn_cast<DeclStmt>(s)) {
+                for (const auto* d : declarations->decls()) if (const auto* v = dyn_cast<VarDecl>(d)) pending.emplace_back(v->getInit(),next);
+            } else for (const auto* child : s->children()) pending.emplace_back(child,next);
+        }
+        return maximum;
+    }
+    void reference(const NamedDecl* target, SourceLocation input, const std::string& kind, DynTypedNode node, const MatchFinder::MatchResult& match) {
+        const auto& sources = *match.SourceManager;
+        const auto loc = sources.getExpansionLoc(input);
+        if (loc.isInvalid() || !output.internal(sources.getFilename(loc))) return;
+        const auto id = output.symbol(target,sources,true);
+        if (id.empty()) return; // unresolved dependent names and implicit declarations have no stable target
+        std::string enclosing;
+        // Ambiguous ancestry (e.g. shared template nodes) stays unknown.
+        for (unsigned depth=0; depth<256; ++depth) {
+            const auto parents = match.Context->getParents(node);
+            if (parents.size()!=1) break;
+            node=parents[0];
+            if (const auto* f=node.get<FunctionDecl>()) { enclosing=output.symbol(f,sources); break; }
+        }
+        output.result.references.push_back({id,enclosing,kind,output.path(sources.getFilename(loc)),
+            static_cast<int>(sources.getExpansionLineNumber(loc)),static_cast<int>(sources.getExpansionColumnNumber(loc)),{}});
+    }
     void add_issue(const Stmt* statement, ASTContext& context, const std::string& id, const std::string& rule,
                    const std::string& message, const std::string& suggestion) {
         auto& sources = context.getSourceManager();
@@ -214,6 +286,13 @@ public:
         finder.addMatcher(recordDecl(unless(isImplicit())).bind("symbol"), &callback);
         finder.addMatcher(varDecl(unless(isImplicit())).bind("symbol"), &callback);
         finder.addMatcher(fieldDecl(unless(isImplicit())).bind("symbol"), &callback);
+        finder.addMatcher(enumDecl(unless(isImplicit())).bind("symbol"), &callback);
+        finder.addMatcher(enumConstantDecl().bind("symbol"), &callback);
+        finder.addMatcher(typedefNameDecl(unless(isImplicit())).bind("symbol"), &callback);
+        finder.addMatcher(declRefExpr().bind("reference"), &callback);
+        finder.addMatcher(memberExpr().bind("member_reference"), &callback);
+        finder.addMatcher(cxxConstructExpr().bind("construction"), &callback);
+        finder.addMatcher(typeLoc().bind("type_reference"), &callback);
     }
     std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance& compiler, llvm::StringRef) override {
         compiler.getPreprocessor().addPPCallbacks(std::make_unique<Includes>(output, compiler.getSourceManager()));
@@ -410,7 +489,7 @@ AnalysisResult analyze_project(const ScanResult& inventory, const std::string& d
                 }catch(const std::exception&){part.cache_error=true;}
             }
             if(!part.cached) {
-            Collector output{files, selected->Directory,disabled_rules}; Factory factory(output); Diagnostics diagnostic;
+            Collector output{files, selected->Directory,disabled_rules,file.path}; Factory factory(output); Diagnostics diagnostic;
             tu_cache::Probe ast_trace;if(!cache_key.empty())output.cache_trace=&ast_trace;
             OneCommand command(*selected);
             // A private VFS working directory avoids mutating the GUI process CWD.
@@ -429,6 +508,8 @@ AnalysisResult analyze_project(const ScanResult& inventory, const std::string& d
                 part.covered = std::move(output.covered);
                 part.symbols = std::move(output.symbols); part.metrics = std::move(output.metrics);
                 part.edges = std::move(output.result.edges); part.issues = std::move(output.result.issues);
+                part.references = std::move(output.result.references);
+                for (auto& reference : part.references) reference.translation_unit = file.path;
                 if(!cache_key.empty()) {
                     if(!ast_trace.reusable||ast_trace.dependencies!=probed_dependencies)throw std::runtime_error("source or dependency changed during AST analysis; snapshot not saved");
                     // Reject a changing dependency set, rather than caching AST
@@ -444,6 +525,9 @@ AnalysisResult analyze_project(const ScanResult& inventory, const std::string& d
         return part;
         }));
     }
+    // Issues are source findings. TU-local symbol identities must not multiply
+    // the same finding when a header or implementation is included by many TUs.
+    std::set<std::tuple<std::string,int,int,std::string,std::string>> issue_positions;
     // Deterministic merge in inventory order; no AST or SQLite objects cross workers.
     for (auto& future : pending) {
         auto part = future.get(); context.check(); const auto& unit = part.unit;
@@ -462,15 +546,33 @@ AnalysisResult analyze_project(const ScanResult& inventory, const std::string& d
             if (old == metrics.end() || metric.complexity > old->second.complexity) metrics[id] = metric;
         }
         result.edges.insert(result.edges.end(), part.edges.begin(), part.edges.end());
-        result.issues.insert(result.issues.end(), part.issues.begin(), part.issues.end());
+        result.references.insert(result.references.end(), part.references.begin(), part.references.end());
+        for (auto& issue : part.issues) {
+            auto identity=issue.symbol_id;const auto suffix="@tu="+unit.file;
+            if(identity.ends_with(suffix))identity.resize(identity.size()-suffix.size());
+            if(issue_positions.emplace(issue.file,issue.line,issue.column,issue.rule_id,identity).second)
+                result.issues.push_back(std::move(issue)); // retain first successful TU's actual symbol ID
+        }
     }
     result.status = good == 0 ? "failed" : (bad ? "partial" : "complete");
+    if (good) result.reference_index = "resolved_ast_v1";
     for (const auto& [id, symbol] : symbols) result.symbols.push_back(symbol);
     for (const auto& [id, metric] : metrics) result.metrics.push_back(metric);
     result.covered_files.assign(covered.begin(), covered.end());
     auto tuple = [](const GraphEdge& edge) { return std::tie(edge.kind, edge.source, edge.target, edge.file, edge.line, edge.column); };
     std::sort(result.edges.begin(), result.edges.end(), [&](const auto& a, const auto& b) { return tuple(a) < tuple(b); });
     result.edges.erase(std::unique(result.edges.begin(), result.edges.end(), [&](const auto& a, const auto& b) { return tuple(a) == tuple(b); }), result.edges.end());
+    std::map<std::string,std::set<std::string>> incoming,outgoing;
+    for (const auto& edge : result.edges) if (edge.kind == "call") {
+        outgoing[edge.source].insert(edge.target); incoming[edge.target].insert(edge.source);
+    }
+    for (auto& metric : result.metrics) {
+        metric.fan_in = static_cast<int>(incoming[metric.symbol_id].size());
+        metric.fan_out = static_cast<int>(outgoing[metric.symbol_id].size());
+    }
+    auto reference_key = [](const SymbolReference& r) { return std::tie(r.symbol_id,r.file,r.line,r.column,r.kind,r.enclosing_symbol,r.translation_unit); };
+    std::sort(result.references.begin(),result.references.end(),[&](const auto& a,const auto& b) { return reference_key(a)<reference_key(b); });
+    result.references.erase(std::unique(result.references.begin(),result.references.end()),result.references.end());
     auto issue_key = [](const Issue& issue) { return std::tie(issue.file, issue.line, issue.column, issue.rule_id, issue.symbol_id); };
     std::stable_sort(result.issues.begin(), result.issues.end(), [&](const auto& a, const auto& b) { return issue_key(a) < issue_key(b); });
     result.issues.erase(std::unique(result.issues.begin(), result.issues.end(), [&](const auto& a, const auto& b) { return issue_key(a) == issue_key(b); }), result.issues.end());

@@ -2,9 +2,11 @@
 
 ## 当前架构（新方案 V1.0）
 
-P1-3 更新：当前存储为 schema 6，增加扫描范围、分析器版本、每 TU 的命令指纹和覆盖来源；`core/report` 负责仅基于快照的比较和 HTML/JSON 输出。历史报告按批次加载全部关联构建，Qt 报告对话框后台读取/导出。旧库新字段保留未知，详见 [报告与版本对比](reports-and-comparison.md)。下段保留 P1-2 迁移说明。
+P2-2 引用与度量阶段：当前存储为 schema 7，新增已解析引用及来源 TU、最大嵌套和观测扇入扇出，CLI/Qt 共用后台查询及源码定位。旧快照引用缺失和度量未知不伪装成零，详见 [引用与度量](references-and-metrics.md)。
 
-2026-09-13：当前存储版本为 schema 5，在 schema 4 的工程配置及溯源上增加已抑制问题和规则配置诊断。`core/project/configuration.cpp` 提供纯 C++ 配置校验、编码、发现与恢复；配置写版本 2，兼容读取版本 1。Qt 设置页及 CLI 复用该模型。下文 schema 2/3 说明保留迁移顺序，具体流程见 [配置管理](project-configuration.md) 和 [规则引擎](rule-engine.md)。
+P1-3 历史迁移：schema 6 增加扫描范围、分析器版本、每 TU 的命令指纹和覆盖来源；`core/report` 负责仅基于快照的比较和 HTML/JSON 输出。历史报告按批次加载全部关联构建，Qt 报告对话框后台读取/导出。旧库新字段保留未知，详见 [报告与版本对比](reports-and-comparison.md)。下段保留 P1-2 迁移说明。
+
+2026-09-13 P1-2 历史迁移：schema 5 在 schema 4 的工程配置及溯源上增加已抑制问题和规则配置诊断。`core/project/configuration.cpp` 提供纯 C++ 配置校验、编码、发现与恢复；配置写版本 2，兼容读取版本 1。Qt 设置页及 CLI 复用该模型。下文 schema 2/3 说明保留迁移顺序，具体流程见 [配置管理](project-configuration.md) 和 [规则引擎](rule-engine.md)。
 
 ```text
 cli/                         gui/qt/（仅 Qt Widgets 表示层）
@@ -35,11 +37,11 @@ SQLite schema 2 在 `project → scan → file` 上新增 `analysis / translatio
 
 schema 3 阶段进一步新增 `issue / build_run / build_step`，保存规则证据与构建测试全过程；analysis 保存实际线程数和分析耗时。schema 2→3 为附加事务迁移。多 TU 线程池各自产生 DTO，协调线程确定性合并后，把完整快照交给单一数据库写线程提交；不进行多个 SQLite 连接的并发写入。工程管理经 `core/testing/engineering.cpp → ProcessRunner` 执行副本内 CMake/CTest，并只读获取 Git 信息，详见 [Level 3](level3-acceptance.md)。
 
-分析器逐 TU 隔离 Clang 上下文，成功单元才合并符号/指标/边；失败单元丢弃不可靠 AST，诊断单独入库。因此“文件清单完整、部分 TU 解析失败”可保存 `partial` 快照，而“文件枚举或分析期间源码变化”不会保存。`complete` 仅说明所有清单中的源文件 TU 成功，不表示孤立头文件也被分析。符号身份采用 USR，内部/无链接符号补充文件路径，声明合并优先定义；图保留定位信息并按端点去重计算结构。详细语义与限制见 [Clang 接入说明](codeguard-analysis.md)。
+分析器逐 TU 隔离 Clang 上下文，成功单元才合并符号/指标/边；失败单元丢弃不可靠 AST，诊断单独入库。因此“文件清单完整、部分 TU 解析失败”可保存 `partial` 快照，而“文件枚举或分析期间源码变化”不会保存。`complete` 仅说明所有清单中的源文件 TU 成功，不表示孤立头文件也被分析。符号身份采用 USR，内部/无链接符号补充文件路径，内部链接实体及所属局部符号再补 TU 身份，声明合并优先定义；图保留定位信息并按端点去重计算结构。详细语义与限制见 [Clang 接入说明](codeguard-analysis.md)。
 
 文件变化依据 `hash + size + mtime`，其中 hash 为带版本名的 FNV-1a 64 位变化检测值，不承担安全校验；历史模型数据的 SHA-256 校验不变。扫描清单仍读取所有文件；P2-1 增加默认关闭的 TU 结果缓存，每次重新预处理校验源码/头文件/编译参数/分析器后复用 AST DTO。缓存不属于历史 schema，命中统计只代表本次运行。详见 [性能与交互](performance-and-interaction.md)。GUI 用一个后台任务协调多 TU 线程池，构建测试使用独立后台控制器，两类任务在一个窗口内互斥。
 
-已落地 `core/parser`、`core/graph`、`core/query` 与符号/函数度量 DTO。自研查询按固定 Schema 对快照内存执行，不把用户文本交给 SQLite；CLI/GUI 共用接口，详细语法与边界见 [查询语言](query-language.md)。前缀检索为内存过滤排序；SQLite 有名称索引，但还没有独立高性能引用索引模块。规则、线程池、进程与构建测试已经补齐，后续集中于引用索引、增量复用和更广泛验证。
+已落地 `core/parser`、`core/graph`、`core/query` 与符号/函数度量 DTO。自研查询按固定 Schema 对快照内存执行，不把用户文本交给 SQLite；CLI/GUI 共用接口，详细语法与边界见 [查询语言](query-language.md)。前缀检索和引用查询在已载入快照内执行；SQLite 的引用主键包含扫描及目标符号，当前尚未实现按符号直接分页读取数据库。规则、线程池、进程、构建测试和可选增量复用已经补齐，后续集中于局部数据流、交互图、路径查看及更广泛验证。
 
 `core/analyzer/clang_rules` 提供五个独立 AST 规则模块和每 TU 的分派器，Clang 适配器负责源码定位、证据和合并；`core/analyzer/rules.cpp` 提供公共规则目录、级别及抑制策略。`core/include/codeguard/thread_pool.hpp` 提供有界池，`core/process` 提供平台进程实现，`core/testing` 编排构建测试与 Git，`gui/qt/build_task` 负责后台界面控制。报告对比和可选 AST 复用已接入；引用查询、缓存容量淘汰及更深的数据流规则仍待扩展。当前阶段及验收限制见 [方向与进度](codeguard-status.md)。首轮调整见 [历史迁移说明](codeguard-migration.md)。以下保留原 Python 架构记录，供后续迁移比对。
 

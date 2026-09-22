@@ -17,6 +17,13 @@ struct Symbol {
 struct FunctionMetric {
     std::string symbol_id;
     int lines = 0, parameters = 0, complexity = -1; // -1 = CFG unavailable
+    int max_nesting = -1, fan_in = -1, fan_out = -1; // -1 = not recorded; fan counts observed direct endpoints
+};
+struct SymbolReference {
+    std::string symbol_id, enclosing_symbol, kind, file;
+    int line = 0, column = 0;
+    std::string translation_unit; // retain each successful TU's evidence, including shared headers
+    bool operator==(const SymbolReference&) const = default;
 };
 struct GraphEdge {
     std::string kind, source, target, file;
@@ -48,6 +55,8 @@ struct AnalysisResult {
     std::string configuration;
     std::string analyzer_revision; // analyzer sources + linked Clang version; empty in old snapshots
     std::optional<CacheStatistics> cache; // telemetry of a live run; not historical evidence
+    std::string reference_index; // empty = unavailable/old snapshot; resolved_ast_v1 = syntactic resolved uses
+    std::vector<SymbolReference> references;
 };
 bool clang_analysis_available();
 AnalysisResult analyze_project(const ScanResult& inventory, const std::string& compilation_database, const ScanContext& context = {}, unsigned threads = 0, const std::map<std::string,std::string>& choices = {},const std::vector<std::string>& disabled_rules = {},const std::string& cache_directory = {});
@@ -56,6 +65,7 @@ std::vector<CompileCommandInfo> inspect_compile_commands(const std::string& data
 // Rebase copied source paths, while keeping the generated build directory and headers.
 std::string relocate_compile_commands(const std::string& input,const std::string& copied_source,const std::string& original_source,const std::string& output);
 std::vector<Symbol> find_symbols(const AnalysisResult& analysis, const std::string& prefix);
+std::vector<SymbolReference> find_references(const AnalysisResult& analysis, const std::string& symbol_id, const ScanContext& context = {});
 
 struct GraphSummary {
     std::vector<std::string> nodes;

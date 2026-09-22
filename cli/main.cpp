@@ -87,6 +87,7 @@ int run(const std::vector<std::string>& args) {
                      "codeguard-cli scans PROJECT --database DATABASE [--before ID] [--limit 1..500]\n"
                      "codeguard-cli report PROJECT --database DATABASE --output NEW_DIRECTORY [--scan ID] [--baseline OLDER_ID]\n"
                      "codeguard-cli symbols PROJECT --database DATABASE [--prefix NAME]\n"
+                     "codeguard-cli references PROJECT --database DATABASE --symbol USR\n"
                      "codeguard-cli metrics PROJECT --database DATABASE\n"
                      "codeguard-cli graph PROJECT --database DATABASE --kind call|include\n"
                      "codeguard-cli recent --database DATABASE\n"
@@ -133,7 +134,7 @@ int run(const std::vector<std::string>& args) {
         std::string revision; std::cout << codeguard::read_git(codeguard::fs::canonical(codeguard::from_utf8(args[1])),options,&revision);
         return revision.empty() ? 2 : 0;
     }
-    if (!configuration_command && command != "scan" && command != "status" && command != "recent" && command != "symbols" && command != "metrics" && command != "graph" && command != "query" && command != "issues" && command != "suppress" && command != "suppressed" && command != "build" && command != "builds")
+    if (!configuration_command && command != "scan" && command != "status" && command != "recent" && command != "symbols" && command != "references" && command != "metrics" && command != "graph" && command != "query" && command != "issues" && command != "suppress" && command != "suppressed" && command != "build" && command != "builds")
         throw std::invalid_argument("unknown command; use --help");
     std::string project, database;
     std::size_t position = 1;
@@ -150,7 +151,7 @@ int run(const std::vector<std::string>& args) {
     codeguard::BuildOptions build_options=config.build;
     std::vector<std::string> selected_commands;
     bool config_changed=false;
-    std::string prefix, kind, query, severity;
+    std::string prefix, kind, query, severity, symbol_id;
     std::string suppress_rule,suppress_file,suppress_reason;unsigned suppress_line=0,suppress_column=0;
     std::set<std::string> seen;
     for (; position < args.size(); position += 2) {
@@ -168,6 +169,7 @@ int run(const std::vector<std::string>& args) {
             if(options.compile_commands!=config.compile_commands)config.command_choices.clear();
         }
         else if (args[position] == "--prefix" && command == "symbols") prefix = args[position + 1];
+        else if (option == "--symbol" && command == "references") symbol_id = value;
         else if (args[position] == "--kind" && command == "graph") kind = args[position + 1];
         else if (args[position] == "--query" && command == "query") query = args[position + 1];
         else if (args[position] == "--threads" && (command == "scan"||configuration_command)) options.threads=number(args[position+1],64);
@@ -302,6 +304,13 @@ int run(const std::vector<std::string>& args) {
                 for (const auto& symbol : codeguard::find_symbols(result.analysis, prefix))
                     std::cout << symbol.kind << '\t' << symbol.name << '\t' << symbol.file << ':' << symbol.line << ':' << symbol.column
                               << '\t' << (symbol.definition ? "definition" : "declaration") << '\t' << symbol.id << '\n';
+            } else if (command == "references") {
+                if (symbol_id.empty()) throw std::invalid_argument("references requires --symbol USR (from symbols)");
+                const auto refs = codeguard::find_references(result.analysis,symbol_id);
+                std::cout << "reference_index=" << result.analysis.reference_index << "\nreference_observations=" << refs.size()
+                          << "\nkind\tfile\tline\tcolumn\ttranslation_unit\tenclosing_symbol\tsymbol_id\n";
+                for (const auto& r : refs) std::cout << r.kind << '\t' << tsv(r.file) << '\t' << r.line << '\t' << r.column << '\t'
+                    << tsv(r.translation_unit) << '\t' << tsv(r.enclosing_symbol) << '\t' << tsv(r.symbol_id) << '\n';
             } else if (command == "metrics") {
                 auto metrics = result.analysis.metrics;
                 std::map<std::string, codeguard::Symbol> symbols;
@@ -309,11 +318,12 @@ int run(const std::vector<std::string>& args) {
                 std::sort(metrics.begin(), metrics.end(), [](const auto& a, const auto& b) {
                     return a.complexity != b.complexity ? a.complexity > b.complexity : a.symbol_id < b.symbol_id;
                 });
-                std::cout << "complexity\tlines\tparameters\tname\tlocation\n";
+                std::cout << "complexity\tlines\tparameters\tname\tlocation\tmax_nesting\tfan_in\tfan_out\n";
                 for (const auto& metric : metrics) {
                     const auto& symbol = symbols.at(metric.symbol_id);
                     std::cout << metric.complexity << '\t' << metric.lines << '\t' << metric.parameters << '\t'
-                              << symbol.name << '\t' << symbol.file << ':' << symbol.line << '\n';
+                              << symbol.name << '\t' << symbol.file << ':' << symbol.line << '\t'
+                              << metric.max_nesting << '\t' << metric.fan_in << '\t' << metric.fan_out << '\n';
                 }
             } else {
                 const auto graph = codeguard::project_graph(result, kind);

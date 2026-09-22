@@ -108,7 +108,7 @@ PRAGMA application_id=1128744018;
 PRAGMA user_version=1;
 COMMIT;
 )SQL");
-    } else if (id != application_id || (version < 1 || version > 6)) {
+    } else if (id != application_id || (version < 1 || version > 7)) {
         throw std::runtime_error("not a supported CodeGuard inventory database; use a separate new database");
     }
     state->version = static_cast<int>(scalar(state->db, "PRAGMA user_version"));
@@ -193,6 +193,22 @@ CREATE TABLE unit_coverage(scan_id INTEGER NOT NULL REFERENCES scan(id),unit_fil
 PRAGMA user_version=6;
 COMMIT;
 )SQL");state->version=6;
+    }
+    if(state->version==6&&!read_only){
+        execute(state->db,R"SQL(
+BEGIN IMMEDIATE;
+ALTER TABLE analysis ADD COLUMN reference_index TEXT NOT NULL DEFAULT '';
+ALTER TABLE function_metric ADD COLUMN max_nesting INTEGER NOT NULL DEFAULT -1;
+ALTER TABLE function_metric ADD COLUMN fan_in INTEGER NOT NULL DEFAULT -1;
+ALTER TABLE function_metric ADD COLUMN fan_out INTEGER NOT NULL DEFAULT -1;
+CREATE TABLE symbol_reference(scan_id INTEGER NOT NULL, symbol_id TEXT NOT NULL, enclosing_symbol TEXT NOT NULL,
+ kind TEXT NOT NULL, file TEXT NOT NULL, line INTEGER NOT NULL, col INTEGER NOT NULL, unit_file TEXT NOT NULL,
+ PRIMARY KEY(scan_id,symbol_id,file,line,col,kind,enclosing_symbol,unit_file),
+ FOREIGN KEY(scan_id,symbol_id) REFERENCES symbol(scan_id,usr),
+ FOREIGN KEY(scan_id,unit_file) REFERENCES translation_unit(scan_id,file));
+PRAGMA user_version=7;
+COMMIT;
+)SQL");state->version=7;
     }
     impl_ = state.release();
 }
@@ -290,10 +306,18 @@ ScanResult SqliteDatabase::load_snapshot(const std::string& root,std::int64_t sc
         symbols.bind(1, result.id);
         while (symbols.next()) output.symbols.push_back({symbols.text(0), symbols.text(1), symbols.text(2), symbols.text(3),
             static_cast<int>(symbols.number(4)), static_cast<int>(symbols.number(5)), symbols.number(6) != 0, symbols.number(7) != 0});
-        Statement metrics(impl_->db,impl_->control, "SELECT usr,lines,parameters,complexity FROM function_metric WHERE scan_id=? ORDER BY usr");
+        if(impl_->version>=7){
+            Statement index(impl_->db,impl_->control,"SELECT reference_index FROM analysis WHERE scan_id=?");index.bind(1,result.id);
+            if(index.next())output.reference_index=index.text(0);
+            Statement refs(impl_->db,impl_->control,"SELECT symbol_id,enclosing_symbol,kind,file,line,col,unit_file FROM symbol_reference WHERE scan_id=? ORDER BY symbol_id,file,line,col,kind,enclosing_symbol,unit_file");refs.bind(1,result.id);
+            while(refs.next())output.references.push_back({refs.text(0),refs.text(1),refs.text(2),refs.text(3),static_cast<int>(refs.number(4)),static_cast<int>(refs.number(5)),refs.text(6)});
+        }
+        Statement metrics(impl_->db,impl_->control, impl_->version>=7?
+            "SELECT usr,lines,parameters,complexity,max_nesting,fan_in,fan_out FROM function_metric WHERE scan_id=? ORDER BY usr":
+            "SELECT usr,lines,parameters,complexity,-1,-1,-1 FROM function_metric WHERE scan_id=? ORDER BY usr");
         metrics.bind(1, result.id);
         while (metrics.next()) output.metrics.push_back({metrics.text(0), static_cast<int>(metrics.number(1)),
-            static_cast<int>(metrics.number(2)), static_cast<int>(metrics.number(3))});
+            static_cast<int>(metrics.number(2)), static_cast<int>(metrics.number(3)),static_cast<int>(metrics.number(4)),static_cast<int>(metrics.number(5)),static_cast<int>(metrics.number(6))});
         Statement edges(impl_->db,impl_->control, "SELECT kind,source,target,file,line,col FROM graph_edge WHERE scan_id=? ORDER BY kind,source,target,file,line,col");
         edges.bind(1, result.id);
         while (edges.next()) output.edges.push_back({edges.text(0), edges.text(1), edges.text(2), edges.text(3),
@@ -356,9 +380,9 @@ void SqliteDatabase::save(ScanResult& result, const ScanContext& context) {
             insert.next();
         }
         const auto& data = result.analysis;
-        Statement analysis(db, "INSERT INTO analysis(scan_id,status,compile_commands,workers,elapsed_ms,configuration,analyzer_revision) VALUES(?,?,?,?,?,?,?)");
+        Statement analysis(db, "INSERT INTO analysis(scan_id,status,compile_commands,workers,elapsed_ms,configuration,analyzer_revision,reference_index) VALUES(?,?,?,?,?,?,?,?)");
         analysis.bind(1, id); analysis.bind(2, data.status); analysis.bind(3, data.compile_commands);
-        analysis.bind(4, data.workers); analysis.bind(5, data.elapsed_ms); analysis.bind(6,data.configuration);analysis.bind(7,data.analyzer_revision); analysis.next();
+        analysis.bind(4, data.workers); analysis.bind(5, data.elapsed_ms); analysis.bind(6,data.configuration);analysis.bind(7,data.analyzer_revision);analysis.bind(8,data.reference_index); analysis.next();
         for (const auto& unit : data.units) {
             context.check();
             Statement row(db, "INSERT INTO translation_unit(scan_id,file,status,diagnostics,indirect_calls,command_fingerprint) VALUES(?,?,?,?,?,?)");
@@ -377,9 +401,15 @@ void SqliteDatabase::save(ScanResult& result, const ScanContext& context) {
         }
         for (const auto& metric : data.metrics) {
             context.check();
-            Statement row(db, "INSERT INTO function_metric VALUES(?,?,?,?,?)");
+            Statement row(db, "INSERT INTO function_metric VALUES(?,?,?,?,?,?,?,?)");
             row.bind(1, id); row.bind(2, metric.symbol_id); row.bind(3, metric.lines);
-            row.bind(4, metric.parameters); row.bind(5, metric.complexity); row.next();
+            row.bind(4, metric.parameters); row.bind(5, metric.complexity);
+            row.bind(6,metric.max_nesting);row.bind(7,metric.fan_in);row.bind(8,metric.fan_out);row.next();
+        }
+        for(const auto& reference:data.references){
+            context.check();Statement row(db,"INSERT INTO symbol_reference VALUES(?,?,?,?,?,?,?,?)");
+            row.bind(1,id);row.bind(2,reference.symbol_id);row.bind(3,reference.enclosing_symbol);row.bind(4,reference.kind);
+            row.bind(5,reference.file);row.bind(6,reference.line);row.bind(7,reference.column);row.bind(8,reference.translation_unit);row.next();
         }
         for (const auto& edge : data.edges) {
             context.check();

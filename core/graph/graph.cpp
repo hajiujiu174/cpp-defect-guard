@@ -16,6 +16,22 @@ std::vector<Symbol> find_symbols(const AnalysisResult& analysis, const std::stri
     return result;
 }
 using Adjacency = std::map<std::string, std::set<std::string>>;
+std::vector<SymbolReference> find_references(const AnalysisResult& analysis, const std::string& symbol_id, const ScanContext& context) {
+    context.check();
+    if (analysis.reference_index != "resolved_ast_v1") throw std::invalid_argument("reference index unavailable; rescan with Clang analysis");
+    if (std::none_of(analysis.symbols.begin(), analysis.symbols.end(), [&](const auto& s) { return s.id == symbol_id; }))
+        throw std::invalid_argument("unknown symbol ID in this snapshot");
+    std::vector<SymbolReference> result;
+    for (const auto& reference : analysis.references) {
+        context.check();
+        if (reference.symbol_id == symbol_id) result.push_back(reference);
+    }
+    std::sort(result.begin(), result.end(), [](const auto& a, const auto& b) {
+        return std::tie(a.file,a.line,a.column,a.kind,a.enclosing_symbol,a.translation_unit) <
+               std::tie(b.file,b.line,b.column,b.kind,b.enclosing_symbol,b.translation_unit);
+    });
+    return result;
+}
 GraphSummary summarize_graph(const std::vector<std::string>& nodes, const std::vector<GraphEdge>& edges) {
     Adjacency forward, reverse;
     for (const auto& node : nodes) { forward[node]; reverse[node]; }
