@@ -9,6 +9,10 @@ on:
         description: Run the locked real C/C++ project acceptance suite
         type: boolean
         default: false
+      real_repairs:
+        description: Replay the pinned libgit2 repair and negative control on a separate runner
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -47,15 +51,17 @@ jobs:
         run: ./tests/windows/restore_tests.ps1
       - name: Verify failed builds preserve caller environment
         run: ./tests/windows/ci_environment_tests.ps1 -ToolchainRoot "$env:RUNNER_TEMP/codeguard-toolchain"
+      - name: Verify real repair reference and process evidence
+        run: python -m unittest discover -s tests -p 'test_real_repair*.py' -v
       - name: Core debug build and tests
         run: ./scripts/ci_windows.ps1 -ToolchainRoot "$env:RUNNER_TEMP/codeguard-toolchain" -Mode Core
       - name: Clang and Qt release build, tests and package
         run: ./scripts/ci_windows.ps1 -ToolchainRoot "$env:RUNNER_TEMP/codeguard-toolchain" -Mode Analysis -Package
       - name: Real C and C++ project acceptance
-        if: github.event_name == 'workflow_dispatch' && inputs.real_projects
+        if: (github.event_name == 'workflow_dispatch' && inputs.real_projects) || github.ref == 'refs/heads/codex/p2-p3-independent-ci-20261027'
         run: python scripts/accept_real_projects.py --cli build/windows-ci-analysis/codeguard-cli.exe --toolchain "$env:RUNNER_TEMP/codeguard-toolchain" --output artifacts/real-projects
       - name: Preserve real project acceptance evidence
-        if: always() && github.event_name == 'workflow_dispatch' && inputs.real_projects
+        if: always() && ((github.event_name == 'workflow_dispatch' && inputs.real_projects) || github.ref == 'refs/heads/codex/p2-p3-independent-ci-20261027')
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: windows-real-projects
@@ -98,6 +104,88 @@ jobs:
           path: |
             artifacts/windows-ci/CodeGuard-Windows-x64.zip
             artifacts/windows-ci/CodeGuard-Windows-x64.zip.sha256
+      - name: Upload the matching real repair proposal helper
+        if: (github.event_name == 'workflow_dispatch' && inputs.real_repairs) || github.ref == 'refs/heads/codex/p2-p3-independent-ci-20261027'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: windows-real-repair-helper
+          retention-days: 14
+          if-no-files-found: error
+          path: build/windows-ci-analysis/tests/codeguard/codeguard-real-proposal-helper.exe
+
+  real-repair:
+    name: Pinned libgit2 repair and negative control
+    if: (github.event_name == 'workflow_dispatch' && inputs.real_repairs) || github.ref == 'refs/heads/codex/p2-p3-independent-ci-20261027'
+    needs: build-test
+    runs-on: windows-2022
+    timeout-minutes: 180
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ runner.temp }}/codeguard-package-cache
+          key: windows-mingw64-${{ hashFiles('config/windows-toolchain.lock.json') }}
+      - name: Restore locked native toolchain
+        run: ./scripts/restore_windows_toolchain.ps1 -Destination "$env:RUNNER_TEMP/codeguard-toolchain" -PackageCache "$env:RUNNER_TEMP/codeguard-package-cache"
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: CodeGuard-Windows-x64
+          path: artifacts/real-repair-package
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: windows-real-repair-helper
+          path: artifacts/real-repair-helper
+      - name: Fetch the two pinned upstream commits
+        timeout-minutes: 5
+        run: |
+          $ErrorActionPreference='Stop'
+          $case=Get-Content benchmarks/libgit2-error-return/manifest.json -Raw | ConvertFrom-Json
+          $store=Join-Path $env:RUNNER_TEMP 'cg-upstream.git'
+          & git init --bare $store
+          if($LASTEXITCODE -ne 0){throw 'Cannot create upstream object store'}
+          & git -c http.sslBackend=openssl -C $store fetch --no-tags --depth=1 $case.repository $case.buggy_commit $case.fixed_commit
+          if($LASTEXITCODE -ne 0){throw 'Cannot fetch the two pinned upstream commits'}
+      - name: Replay with fresh scan and proposals
+        timeout-minutes: 150
+        run: |
+          $ErrorActionPreference='Stop'
+          $archive='artifacts/real-repair-package/CodeGuard-Windows-x64.zip'
+          $expected=(Get-Content "$archive.sha256").Split(' ')[0]
+          if((Get-FileHash $archive -Algorithm SHA256).Hash -ne $expected){throw 'Archive checksum mismatch'}
+          Expand-Archive -LiteralPath $archive -DestinationPath artifacts/real-repair-package/unpacked
+          $store=Join-Path $env:RUNNER_TEMP 'cg-upstream.git'
+          $toolchain=Join-Path $env:RUNNER_TEMP 'codeguard-toolchain'
+          $cli=Join-Path $PWD 'artifacts/real-repair-package/unpacked/CodeGuard-Windows-x64/codeguard-cli.exe'
+          $helper=Join-Path $PWD 'artifacts/real-repair-helper/codeguard-real-proposal-helper.exe'
+          & python scripts/accept_real_repair.py --cli $cli --proposal-helper $helper --repository $store --toolchain $toolchain --output "$env:RUNNER_TEMP/cgr"
+          $replayExit=$LASTEXITCODE
+          [ordered]@{exit_code=$replayExit;finished_utc=[DateTime]::UtcNow.ToString('o')} | ConvertTo-Json | Set-Content "$env:RUNNER_TEMP/cg-real-replay-process.json" -Encoding utf8
+          if($replayExit -ne 0){throw "Real repair acceptance failed ($replayExit); inspect windows-real-repair diagnostics"}
+      - name: Preserve real repair diagnostics even on failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: windows-real-repair
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/cg-real-replay-process.json
+            ${{ runner.temp }}/cgr/*.json
+            ${{ runner.temp }}/cgr/*.log
+            ${{ runner.temp }}/cgr/*.xml
+            ${{ runner.temp }}/cgr/a*/**/*.json
+            ${{ runner.temp }}/cgr/a*/**/*.log
+            ${{ runner.temp }}/cgr/a*/**/*.xml
+            ${{ runner.temp }}/cgr/a*/scan.db
+            ${{ runner.temp }}/cgr/b/compile_commands.json
+            ${{ runner.temp }}/cgr/fb/compile_commands.json
+            ${{ runner.temp }}/cgr/s/COPYING
+            ${{ runner.temp }}/cgr/s/AUTHORS
 
   clean-runtime:
     name: Fresh Windows runner package smoke test

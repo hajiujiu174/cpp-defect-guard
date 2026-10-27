@@ -1,0 +1,90 @@
+{
+  "format": "CodeGuardCIReadiness 1",
+  "date": "2026-10-28",
+  "workflow": {
+    "workflow_sha256": "fe3ce4a57df613f7af2da4b7eababa0170b22a1fef71e9dc01e45dd6d9974201",
+    "run_blocks_parsed": 12,
+    "yaml_parser": "PyYAML BaseLoader (existing local environment)",
+    "actions_fixed_to_commit": true,
+    "real_repair_opt_in": true,
+    "fresh_scan_and_proposals": true,
+    "always_uploads_diagnostics": true,
+    "github_service_validation": "not_run"
+  },
+  "local_checks": {
+    "workflow-powershell": {
+      "exit_code": 0,
+      "seconds": 0.7810000000008586
+    },
+    "reference-and-process-unit-tests": {
+      "exit_code": 0,
+      "seconds": 1.5469999999986612
+    },
+    "upstream-local-fetch": {
+      "exit_code": 0,
+      "seconds": 2.5
+    },
+    "real-job-preparation": {
+      "exit_code": 0,
+      "seconds": 275.78100000000086
+    }
+  },
+  "native_preparation": {
+    "buggy": {
+      "tests": {
+        "codeguard-real.tree-invalid-options": "failed",
+        "codeguard-real.index-invalid-options": "failed",
+        "codeguard-real.merge-corrupt-index": "failed",
+        "codeguard-real.valid-options-control": "passed"
+      },
+      "commit": "f28579db11737eaa2ced18498e229967a12f1c3f",
+      "archive_sha256": "e40981a1d458eb3f566e814338207128ed06583e2d5dd3d701944c968297ba3f",
+      "prepared_material_hashes_verified": 740
+    },
+    "fixed": {
+      "tests": {
+        "codeguard-real.tree-invalid-options": "passed",
+        "codeguard-real.index-invalid-options": "passed",
+        "codeguard-real.merge-corrupt-index": "passed",
+        "codeguard-real.valid-options-control": "passed"
+      },
+      "commit": "dca35e94a61b79e77e381ea59b0d9142163e87a5",
+      "archive_sha256": "d21514419637425333e352029a08f6e35b8b4e15b31464e87407224c8d45073a",
+      "prepared_material_hashes_verified": 740
+    }
+  },
+  "cpp_build_inputs_unchanged_from_stage10": 120,
+  "limits": [
+    "Fresh native preparation only; no new static repair replay or full product CTest run",
+    "Local verified upstream object store used; public network fetch not verified",
+    "GitHub service execution and independent runner are pending authorization"
+  ],
+  "retained_failures": [
+    "Initial Schannel credentials-interface error",
+    "OpenSSL upstream fetch stopped after the 5 minute observation budget, only owned Git descendants terminated",
+    "a2 reference build interrupted without complete output; root cause unknown",
+    "Initial Python test fixture read UTF-8 JSON with GBK; fixture now explicitly reads UTF-8"
+  ],
+  "process_evidence_tests": [
+    "stdout/stderr separation",
+    "expected negative exit",
+    "unexpected exit",
+    "spawn failure",
+    "timeout partial output",
+    "live output and running state before completion"
+  ],
+  "rehearsal_adaptations": {
+    "runtime_zip_sha256": "b0861c45ed3c37aba860949539e6c73558d39eb3b6904bd942b588c4aab384f3",
+    "helper_sha256": "f50471bc5c23a857dc908f02e2213e03e61ec71de9f5e00838e0d25e681dc1be",
+    "adaptations": [
+      "downloaded artifacts supplied from the locally tested stage-10 package and matching helper",
+      "existing checksum-matching locked toolchain supplied instead of restoring it again",
+      "--prepare-only appended; no new full static repair replay is claimed",
+      "local upstream object store substituted for the public URL after the separately retained network failures"
+    ],
+    "upstream_fetch": "fresh bare store fetch of both fixed commit IDs from existing verified local upstream objects; no successful network-fetch claim",
+    "output": "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\r11\\cgr"
+  },
+  "remote_ci": "not_run",
+  "commit_or_push": "not_run"
+}

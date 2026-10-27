@@ -11,7 +11,7 @@ if(NOT EXISTS "${CODEGUARD_RESOURCE_DIR}/include/stddef.h")
     message(FATAL_ERROR "Missing matching Clang builtin headers")
 endif()
 target_sources(codeguard-core PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/clang_analysis.cpp")
-foreach(rule engine unbounded_call array_bounds assignment_condition local_lifetime null_dereference)
+foreach(rule engine unbounded_call array_bounds assignment_condition local_lifetime null_dereference local_flow)
     target_sources(codeguard-core PRIVATE "${PROJECT_SOURCE_DIR}/core/analyzer/clang_rules/${rule}.cpp")
 endforeach()
 target_include_directories(codeguard-core SYSTEM PRIVATE ${LLVM_INCLUDE_DIRS} ${CLANG_INCLUDE_DIRS})
@@ -24,6 +24,7 @@ file(GLOB analyzer_inputs CONFIGURE_DEPENDS
     "${PROJECT_SOURCE_DIR}/core/analyzer/clang_rules/*.hpp")
 list(APPEND analyzer_inputs "${CMAKE_CURRENT_SOURCE_DIR}/clang_analysis.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/analysis_cache.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/repair_hints.hpp"
     "${PROJECT_SOURCE_DIR}/core/include/codeguard/analysis.hpp"
     "${PROJECT_SOURCE_DIR}/core/include/codeguard/rules.hpp"
     "${PROJECT_SOURCE_DIR}/core/analyzer/rules.cpp"

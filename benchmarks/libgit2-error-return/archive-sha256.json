@@ -1,0 +1,14 @@
+{
+  "repository": "https://github.com/libgit2/libgit2.git",
+  "format": "git archive --format=zip, commit SHA in ZIP comment",
+  "buggy": {
+    "git_commit": "f28579db11737eaa2ced18498e229967a12f1c3f",
+    "bytes": 17511686,
+    "sha256": "e40981a1d458eb3f566e814338207128ed06583e2d5dd3d701944c968297ba3f"
+  },
+  "fixed": {
+    "git_commit": "dca35e94a61b79e77e381ea59b0d9142163e87a5",
+    "bytes": 17511670,
+    "sha256": "d21514419637425333e352029a08f6e35b8b4e15b31464e87407224c8d45073a"
+  }
+}

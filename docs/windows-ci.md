@@ -2,6 +2,8 @@
 
 2026-09-10：按用户最新要求，当前只交付 Windows x64，Linux/macOS 等平台的新增构建与验收暂缓。既有 POSIX 代码和 WSL 测试记录保留。
 
+2026-10-27：工作区新增可选的独立真实修复作业 `real_repairs`、同次构建 helper 传递、固定上游提交拉取预算、失败诊断及普通 CI 的参考 AST 测试。当前尚未提交/推送，不能复用本页历史成功记录声称本轮远端通过；本地预演、源码审阅和待授权步骤见 [CI 准备与验收边界](ci-readiness.md)。
+
 ## 构建输入
 
 `config/windows-toolchain.lock.json` 固定 79 个 MSYS2 MINGW64 原生依赖包的版本、官方归档 URL、字节数和 SHA-256，约 364 MiB 压缩数据。根依赖是 Clang、Clang Tools Extra、LLVM、GCC、CMake、Ninja、Qt 6 Base、SQLite、GoogleTest 和 Binutils；递归包含本次依赖闭包。Clang 的 CMake 导出配置引用 Tools Extra 的静态库，因此即使业务不直接调用这些工具，也必须一同还原。

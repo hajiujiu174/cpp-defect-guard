@@ -1,0 +1,338 @@
+{
+  "schema": 1,
+  "date": "2026-10-26",
+  "stage": "P2-2 local dataflow",
+  "recorded_at": "2026-10-26T18:48:40.564238+08:00",
+  "local_base_commit": "68a3490508deece1bfa6c2bc29a375d69ddbb00e",
+  "local_worktree": "Uncommitted continuation; source hashes include the new untracked implementation and tests.",
+  "platform": "Windows x64, locked Clang 22.1.8 and Qt; no new remote CI run or second-machine acceptance",
+  "sources": [
+    {
+      "path": "core/analyzer/clang_rules/array_bounds.cpp",
+      "sha256": "6c97105fac908aedb2e90f0640221309b614b038931bef5e185340885f296fbf"
+    },
+    {
+      "path": "core/analyzer/clang_rules/assignment_condition.cpp",
+      "sha256": "1ab995ce17e5d42ef2fe6c3b05d7af43777ec12b3d75a23aa6fb50052bfdbdfd"
+    },
+    {
+      "path": "core/analyzer/clang_rules/engine.cpp",
+      "sha256": "98a6a53130107e962175d6a4b2bf0fe89536fdcdadec5afbb467a28081a7dc42"
+    },
+    {
+      "path": "core/analyzer/clang_rules/local_flow.cpp",
+      "sha256": "cfffb22e80ff37e23b7d49b83ab532aa9de14d82796a2cefee708d249ace3c5b"
+    },
+    {
+      "path": "core/analyzer/clang_rules/local_lifetime.cpp",
+      "sha256": "45d12802906efb5d9fb1b94131f50fd32a85331a927707899714d64905f66ad5"
+    },
+    {
+      "path": "core/analyzer/clang_rules/null_dereference.cpp",
+      "sha256": "b1e6873ecef9bad3b81469d32dd76b8f96e8470027f190d5b637d98313504193"
+    },
+    {
+      "path": "core/analyzer/clang_rules/unbounded_call.cpp",
+      "sha256": "10f1a90dd267185a8e4edfffd872c1dc65d403d20d99b24656ccd9267cf5d69c"
+    },
+    {
+      "path": "core/analyzer/clang_rules/rule.hpp",
+      "sha256": "b0170f5de5944c390241b2ae76222d0ce21e661b4e053426c28f224d50f1808c"
+    },
+    {
+      "path": "core/analyzer/rules.cpp",
+      "sha256": "eea57f1082a4d7a200ea7b04e550a68cf45288f512927aace0b29182c8af478c"
+    },
+    {
+      "path": "core/parser/clang_analysis.cpp",
+      "sha256": "88c5ace8fb163ae8539e063bc07944f32cd9cb63f23d606f04b6cccfd0626047"
+    },
+    {
+      "path": "core/parser/CMakeLists.txt",
+      "sha256": "e0b960daaf3fa6cb7c8203160fc1826568d0221f47542ddd86603ad5d43e373c"
+    },
+    {
+      "path": "core/parser/analysis_cache.hpp",
+      "sha256": "93e3ad6b671f07447337a13b9f9e516b176960925a3e44e03c082829a8e97cc6"
+    },
+    {
+      "path": "core/include/codeguard/analysis.hpp",
+      "sha256": "57c97b63b5500313f392e8166b54d3150739021ea72ab1d6b3ecadfb79c5378f"
+    },
+    {
+      "path": "core/include/codeguard/rules.hpp",
+      "sha256": "a98cd33bd6b8ab768717e3d3654a9c5ac19d4610388db224cb961feb3c0ce859"
+    },
+    {
+      "path": "tests/codeguard/local_flow_tests.cpp",
+      "sha256": "9d6f84621f46423ee0f1ee3ed9ed950c636cb80633e2308b9904098ba71e61c1"
+    },
+    {
+      "path": "tests/codeguard/CMakeLists.txt",
+      "sha256": "bb70f368cc31899793675a4f9ac3032379cd1edff1b164c9e074c400251abb72"
+    },
+    {
+      "path": "samples/rule-evaluation/manifest.tsv",
+      "sha256": "c34d543b64a63b288c56ec410a6243aa30a065e874cc8e22bde3b4b91388b2f2"
+    },
+    {
+      "path": "scripts/verify_codeguard_package.ps1",
+      "sha256": "cf966c151b0c5a967448236703c5f48331152025db19df35f256d9c7b3f7966c"
+    },
+    {
+      "path": "config/windows-toolchain.lock.json",
+      "sha256": "eea718ec1b22b719053e52161ab6a0a3774be42fa7e2bc79daba8345feb45083"
+    },
+    {
+      "path": "config/real-projects.lock.json",
+      "sha256": "c2b71c09f784bed3fd791ddf249698118d48122a4e3159fd85a4517a1be2acfe"
+    },
+    {
+      "path": "config/real-project-review.json",
+      "sha256": "24e4a1a5c31a2d1ac17d697eda92e29c8f9843fd346e424746f6d29150e32dc5"
+    }
+  ],
+  "local_tests": [
+    {
+      "path": "artifacts/p2-2-flow-20261026/clean-core/core/tests.xml",
+      "sha256": "bee21b98e65cc986906ee0dd61728f4baff16ee7a89b67dbfbf1b57f8678edc2",
+      "tests": 56,
+      "failures": 0,
+      "disabled": 0,
+      "skipped": 1,
+      "passed": 55,
+      "skipped_names": [
+        "codeguard.symlink"
+      ]
+    },
+    {
+      "path": "artifacts/p2-2-flow-20261026/analysis-final-tests.xml",
+      "sha256": "913343cc3421c45c6faf646af156f4b30ba64c3cfa972a06be986d45f8b1229d",
+      "tests": 112,
+      "failures": 0,
+      "disabled": 0,
+      "skipped": 1,
+      "passed": 111,
+      "skipped_names": [
+        "codeguard.symlink"
+      ]
+    },
+    {
+      "path": "artifacts/p2-2-flow-20261026/local-flow-tests.xml",
+      "sha256": "5ce0cfb45a11bc83f33ff77d06889e793626b2c93c3496dded50e34fd785de81",
+      "tests": 4,
+      "failures": 0,
+      "disabled": 0,
+      "skipped": 0,
+      "passed": 4,
+      "skipped_names": []
+    }
+  ],
+  "local_flow_cases": {
+    "total": 64,
+    "positive": 23,
+    "negative_or_unknown": 41
+  },
+  "fixed_rule_evaluation": {
+    "samples": 45,
+    "TP": 21,
+    "FP": 0,
+    "TN": 21,
+    "FN": 3,
+    "note": "Synthetic set only; CG005_alias retains its positive label."
+  },
+  "crash_regression": {
+    "source": "template<class T> int f(){T value(1);return 0;}",
+    "before_exit_code": "0xC0000005",
+    "after_analysis": "complete",
+    "after_issues": 0,
+    "debugger_log": {
+      "path": "artifacts/p2-2-flow-20261026/tiny-gdb.log",
+      "sha256": "7bc4b382d05f7b833ee7d219ebc0491d8821bdfc7dab7628fa88786662bfcb6d"
+    },
+    "fixed_log": {
+      "path": "artifacts/p2-2-flow-20261026/template-fixed.log",
+      "sha256": "b1916b7a87d42406ea8ceb99594690adbca69dfe80583ac5e17d0261c951b53e"
+    }
+  },
+  "real_projects": [
+    {
+      "id": "cjson",
+      "commit": "c859b25da02955fef659d658b8f324b5cde87be3",
+      "license_sha256": "a36dda207c36db5818729c54e7ad4e8b0c6fba847491ba64f372c1a2037b6d5c",
+      "active_translation_units": 27,
+      "active_translation_units_success": 27,
+      "unit_status_counts": {
+        "success": 27,
+        "missing_command": 49
+      },
+      "reference_observations": 73929,
+      "function_metrics": {
+        "count": 1105,
+        "max_nesting": 5,
+        "max_fan_in": 145,
+        "max_fan_out": 89
+      },
+      "analyzer_revision": "sha256:0a8438283e138976838e6af086c1a4e8880d1d844e3844c381b489d6a238d400;clang:clang version 22.1.8 (https://github.com/msys2/MINGW-packages 6e4e79c2f86eeb534e324e583f2057dc9fd5ecab)",
+      "issue_counts": {
+        "CG001": 26
+      },
+      "equivalent_1_and_4_threads": true,
+      "cache_equivalent_to_full": true,
+      "cache_warm_counts": {
+        "hits": 27,
+        "misses": 0,
+        "bypassed": 49,
+        "errors": 0
+      },
+      "ctest": {
+        "name": "(empty)",
+        "tests": "22",
+        "failures": "0",
+        "disabled": "0",
+        "skipped": "0",
+        "hostname": "",
+        "time": "5",
+        "timestamp": "2026-10-26T18:37:44"
+      },
+      "tracked_files_unchanged": true,
+      "reviewed_issue_locations_match": true,
+      "automated_acceptance_passed": true,
+      "summary": {
+        "path": "artifacts/p2-2-flow-20261026/real-projects/cjson/summary.json",
+        "sha256": "c09f20c50d6fa8df187f0e5bf621201348acabb74d5370fd1e151bf048ec13a0"
+      }
+    },
+    {
+      "id": "tinyxml2",
+      "commit": "321ea883b7190d4e85cae5512a12e5eaa8f8731f",
+      "license_sha256": "9332252e9b9e46db8285d4a3f0bf25f139bf1dca6781b956d57f2302efca6432",
+      "active_translation_units": 2,
+      "active_translation_units_success": 2,
+      "unit_status_counts": {
+        "missing_command": 1,
+        "success": 2
+      },
+      "reference_observations": 9065,
+      "function_metrics": {
+        "count": 515,
+        "max_nesting": 9,
+        "max_fan_in": 25,
+        "max_fan_out": 191
+      },
+      "analyzer_revision": "sha256:0a8438283e138976838e6af086c1a4e8880d1d844e3844c381b489d6a238d400;clang:clang version 22.1.8 (https://github.com/msys2/MINGW-packages 6e4e79c2f86eeb534e324e583f2057dc9fd5ecab)",
+      "issue_counts": {},
+      "equivalent_1_and_4_threads": true,
+      "cache_equivalent_to_full": true,
+      "cache_warm_counts": {
+        "hits": 2,
+        "misses": 0,
+        "bypassed": 1,
+        "errors": 0
+      },
+      "ctest": {
+        "name": "Win32-ninja",
+        "tests": "1",
+        "failures": "0",
+        "disabled": "0",
+        "skipped": "0",
+        "hostname": "Chara",
+        "time": "0",
+        "timestamp": "2026-10-26T18:38:12"
+      },
+      "tracked_files_unchanged": true,
+      "reviewed_issue_locations_match": true,
+      "automated_acceptance_passed": true,
+      "summary": {
+        "path": "artifacts/p2-2-flow-20261026/real-projects/tinyxml2/summary.json",
+        "sha256": "651c5965613967f9cfa794f57cfcafab4d2fd4acac16160cc158354e12d5e267"
+      }
+    },
+    {
+      "id": "fmt",
+      "commit": "123913715afeb8a437e6388b4473fcc4753e1c9a",
+      "license_sha256": "07580f2a3b35709ce703d523f447b242f6dfec7582a8c0df102c7fa2849375f8",
+      "active_translation_units": 30,
+      "active_translation_units_success": 30,
+      "unit_status_counts": {
+        "missing_command": 16,
+        "success": 30
+      },
+      "reference_observations": 782610,
+      "function_metrics": {
+        "count": 24773,
+        "max_nesting": 8,
+        "max_fan_in": 1078,
+        "max_fan_out": 108
+      },
+      "analyzer_revision": "sha256:0a8438283e138976838e6af086c1a4e8880d1d844e3844c381b489d6a238d400;clang:clang version 22.1.8 (https://github.com/msys2/MINGW-packages 6e4e79c2f86eeb534e324e583f2057dc9fd5ecab)",
+      "issue_counts": {},
+      "equivalent_1_and_4_threads": true,
+      "cache_equivalent_to_full": true,
+      "cache_warm_counts": {
+        "hits": 30,
+        "misses": 0,
+        "bypassed": 16,
+        "errors": 0
+      },
+      "ctest": {
+        "name": "(empty)",
+        "tests": "21",
+        "failures": "0",
+        "disabled": "0",
+        "skipped": "0",
+        "hostname": "",
+        "time": "19",
+        "timestamp": "2026-10-26T18:44:34"
+      },
+      "tracked_files_unchanged": true,
+      "reviewed_issue_locations_match": true,
+      "automated_acceptance_passed": true,
+      "summary": {
+        "path": "artifacts/p2-2-flow-20261026/real-projects/fmt/summary.json",
+        "sha256": "9d831899d7e582f6b3725c1e74a11bf564b7ba6be6a9fb2eeaeb5de59ea07a07"
+      }
+    }
+  ],
+  "package": {
+    "path": "artifacts/p2-2-flow-20261026/CodeGuard-Windows-x64.zip",
+    "sha256": "f6868943f167ba40ac58d60869a6f386526b87e01bb2edac14e5a39ebc420ba8",
+    "bytes": 134298445,
+    "cli": {
+      "path": "artifacts/p2-2-flow-20261026/CodeGuard-Windows-x64/codeguard-cli.exe",
+      "sha256": "a37ed8715b0fb1439eef1f4188d04f2823955e98808325b6a724be626f46ccba"
+    },
+    "qa": {
+      "clean_path": true,
+      "clang": true,
+      "timestamp": "2026-10-26T18:42:56.3486574+08:00",
+      "template_initializer": true,
+      "local_flow": true,
+      "packaged_resource_header": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p2-2-flow-20261026/CodeGuard-Windows-x64/resources/clang/include/stddef.h",
+      "package": "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p2-2-flow-20261026\\CodeGuard-Windows-x64",
+      "gui": true,
+      "chinese_font": true,
+      "cli": true
+    },
+    "qa_record": {
+      "path": "artifacts/p2-2-flow-20261026/package-qa/result.json",
+      "sha256": "a831d225338fe92680ec195c950418f3811ad5cbdd0c2538871cff45787cf527"
+    },
+    "screenshots_reviewed": [
+      {
+        "path": "artifacts/p2-2-flow-20261026/package-qa/gui-smoke.png",
+        "sha256": "d5a7ffd2473bb4600bb3aac8aba0a81590a770b7b4dcb196096f78ed5b571eb6"
+      },
+      {
+        "path": "artifacts/p2-2-flow-20261026/package-qa/gui-smoke-compact.png",
+        "sha256": "749d8b445c1e0f084be00affd223ae5384dac4d134a7faea03fb7f51f8c91b9e"
+      }
+    ]
+  },
+  "scope": [
+    "No interprocedural, heap or complex alias proofs",
+    "Unknown states do not mean safe",
+    "Real repositories remain partial: missing compilation commands are retained",
+    "Interactive graph canvas and path viewer remain pending"
+  ]
+}

@@ -41,6 +41,27 @@ struct ProjectSummary {
     std::string root;
     std::string last_scan;
 };
+// A read projection for proposal/build/validation gates, deliberately distinct
+// from ScanResult: no symbol/reference/metric/graph/history payload and no
+// implicit conversion that could label an incomplete graph as a full scan.
+struct ValidationAnalysis {
+    std::string status="not_requested",compile_commands,configuration,analyzer_revision;
+    std::vector<TranslationUnitResult> units;
+    std::vector<std::string> covered_files;
+    std::vector<Issue> issues,suppressed_issues;
+    std::vector<std::string> rule_diagnostics;
+    unsigned workers=0;
+    std::int64_t elapsed_ms=0;
+};
+struct ValidationInputs {
+    std::int64_t id=0;
+    std::string root,scanned_at,inventory_policy;
+    std::vector<FileRecord> files;
+    std::vector<Diagnostic> diagnostics;
+    ValidationAnalysis analysis;
+    std::uint64_t added=0,changed=0,unchanged=0,removed=0;
+};
+ValidationInputs validation_inputs_of(const ScanResult& snapshot);
 struct ScanSummary {
     std::int64_t id = 0;
     std::string scanned_at, analysis_status;
@@ -84,6 +105,8 @@ public:
     SqliteDatabase(const SqliteDatabase&) = delete;
     SqliteDatabase& operator=(const SqliteDatabase&) = delete;
     ScanResult latest(const std::string& root) override;
+    ValidationInputs validation_inputs(const std::string& root);
+    std::int64_t latest_scan_id(const std::string& root);
     // Historical reads use the saved root string and do not require source files
     // to exist. Exact snapshots include all builds associated with that scan.
     ScanResult snapshot(const std::string& root, std::int64_t scan_id, bool include_build_logs = false);
@@ -96,7 +119,8 @@ public:
     std::optional<ProjectConfig> configuration(const std::string& root);
     void save_configuration(const std::string& root,const ProjectConfig& config);
 private:
-    ScanResult load_snapshot(const std::string& root, std::int64_t scan_id, bool include_build_logs);
+    enum class SnapshotScope { full,validation };
+    ScanResult load_snapshot(const std::string& root, std::int64_t scan_id, bool include_build_logs,SnapshotScope scope=SnapshotScope::full);
     std::vector<BuildRun> load_builds(const std::string& root, bool include_logs, std::int64_t only_id,
                                     std::int64_t scan_id, int limit);
     struct Impl;

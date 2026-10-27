@@ -1,0 +1,22 @@
+{
+  "format": "CodeGuardRealRepairCase 1",
+  "id": "libgit2-error-return-precedence",
+  "repository": "https://github.com/libgit2/libgit2.git",
+  "buggy_commit": "f28579db11737eaa2ced18498e229967a12f1c3f",
+  "fixed_commit": "dca35e94a61b79e77e381ea59b0d9142163e87a5",
+  "reference_url": "https://github.com/libgit2/libgit2/commit/dca35e94a61b79e77e381ea59b0d9142163e87a5",
+  "license": "GPL-2.0-only WITH libgit2-linking-exception; preserve upstream COPYING and AUTHORS",
+  "rule": "CG003",
+  "recipe": "condition.assignment_result",
+  "targets": [
+    {"file": "src/libgit2/diff_generate.c", "line": 1532, "function": "git_diff_tree_to_workdir", "regression": "tree-invalid-options"},
+    {"file": "src/libgit2/diff_generate.c", "line": 1604, "function": "git_diff_index_to_index", "regression": "index-invalid-options"},
+    {"file": "src/libgit2/merge.c", "line": 3526, "function": "git_merge", "regression": null},
+    {"file": "src/libgit2/merge.c", "line": 3527, "function": "git_merge", "regression": "merge-corrupt-index"}
+  ],
+  "limitations": [
+    "The harness is authored by CodeGuard, not an upstream regression test.",
+    "The first git_repository_index call in git_merge is preceded by a weakptr index lookup; no independent public-API failure reproduction is claimed for that site.",
+    "Reference AST equivalence and regression outcomes apply only to the recorded Windows build configuration, not all configurations or unrestricted semantic correctness."
+  ]
+}

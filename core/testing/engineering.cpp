@@ -1,5 +1,6 @@
 #include "codeguard/application.hpp"
 #include "codeguard/thread_pool.hpp"
+#include "../project/path_filter.hpp"
 #include <fstream>
 #include <map>
 #include <regex>
@@ -7,6 +8,7 @@
 #include <ctime>
 #include <algorithm>
 #include <cwctype>
+#include <set>
 
 namespace codeguard {
 namespace {
@@ -35,7 +37,7 @@ std::string timestamp() {
 #endif
     std::ostringstream out; out << std::put_time(&utc,"%Y-%m-%dT%H:%M:%SZ"); return out.str();
 }
-bool same_source(const ScanResult& before, const ScanResult& after) {
+bool same_source(const ValidationInputs& before, const ScanResult& after) {
     if (!after.diagnostics.empty() || before.files.size() != after.files.size()) return false;
     for (std::size_t i = 0; i < before.files.size(); ++i)
         if (before.files[i].path != after.files[i].path || before.files[i].hash != after.files[i].hash || before.files[i].size != after.files[i].size) return false;
@@ -49,10 +51,12 @@ void write_text(const fs::path& file, const std::string& text) {
 void copy_project(const fs::path& root, const fs::path& target, const BuildOptions& options) {
     fs::create_directories(target); std::size_t count = 0; std::uintmax_t bytes = 0;
     const auto ignored = ScanOptions{}.ignored_directories;
+    check_cancel(options);
+    const detail::PathExclusions exclusions(root,options.copy_excludes);
     for (fs::recursive_directory_iterator it(root), end; it != end; ++it) {
         check_cancel(options); const auto status = it->symlink_status();
         if (fs::is_symlink(status)) { it.disable_recursion_pending(); continue; }
-        if(std::any_of(options.copy_excludes.begin(),options.copy_excludes.end(),[&](const auto& path){return inside(it->path(),root/from_utf8(path));})) {it.disable_recursion_pending();continue;}
+        if(exclusions.contains(it->path())) {it.disable_recursion_pending();continue;}
         auto name = utf8_path(it->path().filename());
         std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c){ return static_cast<char>(std::tolower(c)); });
         const bool included = std::any_of(options.copy_includes.begin(), options.copy_includes.end(), [&](const auto& value) {
@@ -71,6 +75,8 @@ void copy_project(const fs::path& root, const fs::path& target, const BuildOptio
             fs::permissions(destination,status.permissions());
         }
     }
+    check_cancel(options);
+    exclusions.check_unchanged();
 }
 void test_counts(BuildStep& step) {
     if (step.result.output_truncated) return;
@@ -80,27 +86,56 @@ void test_counts(BuildStep& step) {
     if (std::regex_search(text, match, summary)) {
         step.tests_failed = match[2].matched ? std::stoi(match[2]) : 0; step.tests_total = std::stoi(match[3]);
         step.tests_skipped = 0;
-        const std::regex skipped(R"(\*\*\*Skipped)");
+        const std::regex skipped(R"(\*\*\*(?:Skipped|Not Run))");
         for (std::sregex_iterator i(text.begin(),text.end(),skipped),end;i!=end;++i) ++step.tests_skipped;
     }
 }
 }
 std::string read_git(const fs::path& root, const BuildOptions& options, std::string* revision) {
-    std::string log;
+    // An extracted project can live below an unrelated checkout. Never infer
+    // its revision from an ancestor, or retain a previous caller's revision.
+    if(revision)revision->clear();
+    std::error_code error;const auto source=fs::canonical(root,error);
+    if(error||!fs::is_directory(source,error))return "[CodeGuard Git] source_git_status=unavailable; revision=unknown; source directory unavailable\n";
+    const auto marker=source/".git";
+    const bool local_metadata=fs::is_directory(marker,error)||fs::is_regular_file(marker,error);
+    if(error||!local_metadata)return "[CodeGuard Git] source_git_status=no_local_metadata; revision=unknown; parent repositories are not attributed to this project\n";
+    std::string log="[CodeGuard Git] source_root="+utf8_path(source)+"\n";
+    auto execute=[&](const std::vector<std::string>& command) {
+        ProcessOptions process;
+        // Explicit paths also override inherited GIT_DIR / GIT_WORK_TREE. Git
+        // resolves a local .git file for linked worktrees and submodules.
+        process.arguments={options.git,"--no-pager","--no-optional-locks","-c","core.fsmonitor=false",
+            "--git-dir="+utf8_path(marker),"--work-tree="+utf8_path(source),"-C",utf8_path(source)};
+        process.arguments.insert(process.arguments.end(),command.begin(),command.end());
+        process.working_directory=utf8_path(source);process.control=options.control;
+        process.timeout=std::min(options.timeout,std::chrono::milliseconds(10000));
+        auto result=run_process(process);
+        log+="$ "+format_arguments(process.arguments)+"\n"+result.status+"\n"+result.stdout_text+result.stderr_text;
+        if(result.output_truncated)log+="\n[output truncated]\n";
+        return result;
+    };
+    auto trim=[](std::string value){while(!value.empty()&&(value.back()=='\n'||value.back()=='\r'))value.pop_back();return value;};
+    const auto owner=execute({"rev-parse","--show-toplevel"});
+    if(owner.status!="passed"||owner.output_truncated) {
+        log+="[CodeGuard Git] source_git_status=unverified; revision=unknown\n";return log;
+    }
+    bool same_owner=false;
+    try {const auto reported=from_utf8(trim(owner.stdout_text));same_owner=!reported.empty()&&fs::equivalent(source,reported,error)&&!error;}
+    catch(const std::exception&) { /* Invalid Git path output is unavailable metadata. */ }
+    if(!same_owner) {
+        log+="[CodeGuard Git] source_git_status=owner_mismatch; revision=unknown\n";return log;
+    }
+    log+="[CodeGuard Git] source_git_status=owned_root\n";
     for (const auto& command : std::vector<std::vector<std::string>>{{"rev-parse","HEAD"},{"branch","--show-current"},
         {"status","--short","--untracked-files=no"},{"log","-5","--oneline"},{"diff","--no-ext-diff","--no-textconv","--"}}) {
-        ProcessOptions process;
-        process.arguments = {options.git,"--no-pager","--no-optional-locks","-c","core.fsmonitor=false","-C",utf8_path(root)};
-        process.arguments.insert(process.arguments.end(),command.begin(),command.end());
-        process.working_directory= utf8_path(root); process.control=options.control;
-        process.timeout=std::min(options.timeout,std::chrono::milliseconds(10000));
-        const auto result=run_process(process);
-        log += "$ " + format_arguments(process.arguments) + "\n" + result.status + "\n" + result.stdout_text + result.stderr_text;
-        if (result.output_truncated) log += "\n[output truncated]\n";
+        const auto result=execute(command);
         if (result.status != "passed") break;
-        if (revision && command.front()=="rev-parse") {
-            *revision=result.stdout_text;
-            while (!revision->empty() && (revision->back()=='\n' || revision->back()=='\r')) revision->pop_back();
+        if(command.front()=="rev-parse") {
+            const auto value=trim(result.stdout_text);
+            const bool hash=(value.size()==40||value.size()==64)&&std::all_of(value.begin(),value.end(),[](unsigned char c){return (c>='0'&&c<='9')||(c>='a'&&c<='f')||(c>='A'&&c<='F');});
+            if(result.output_truncated||!hash){log+="[CodeGuard Git] invalid revision output; revision=unknown\n";break;}
+            if(revision)*revision=value;
         }
     }
     return log;
@@ -112,6 +147,7 @@ BuildRun build_and_test(const fs::path& input, const fs::path& database, const B
     if (inside(dbpath,root) || inside(options.output_directory,root)) throw std::invalid_argument("build database and output must be outside source directory");
     ProjectConfig settings;settings.build=options;validate_config(settings);
     ScanOptions inventory_options;inventory_options.ignored_paths=options.copy_excludes;
+    inventory_options.context.control=options.control;
     for (const auto& definition : options.cmake_definitions) {
         const auto equal = definition.find('=');
         if (equal == std::string::npos || !std::regex_match(definition.substr(0,equal),std::regex("[A-Za-z_][A-Za-z0-9_]*(:[A-Za-z]+)?")) || definition.find('\0') != std::string::npos)
@@ -127,8 +163,8 @@ BuildRun build_and_test(const fs::path& input, const fs::path& database, const B
         if (unsafe || !inside(root/relative,root) || !fs::is_directory(root/relative) || fs::is_symlink(root/relative))
             throw std::invalid_argument("copy include must name an existing project-relative directory, without dot segments, symlinks or .git");
     }
-    ScanResult snapshot;
-    { SqliteDatabase db(dbpath,true); snapshot = db.latest(utf8_path(root)); }
+    ValidationInputs snapshot;
+    { SqliteDatabase db(dbpath,true); snapshot = db.validation_inputs(utf8_path(root)); }
     if (!snapshot.id) throw std::invalid_argument("scan the project before build/test");
     BuildRun run; run.root=snapshot.root; run.scan_id=snapshot.id; run.started_at=timestamp(); run.target=options.target;run.configuration=encode_config(settings);
     const auto base = fs::absolute(options.output_directory); fs::create_directories(base);
@@ -152,6 +188,26 @@ BuildRun build_and_test(const fs::path& input, const fs::path& database, const B
         prepare.result.status="passed"; prepare.result.exit_code=0; prepare.result.stdout_text="Source snapshot copied; original C/C++ inventory matches saved scan.\n";
         run.steps.push_back(prepare);
         run.git_log=read_git(root,options,&run.git_revision);
+        if(options.keep_unpatched_copy){if(options.progress)options.progress("repair_baseline_copy");copy_project(source,work/"baseline-source",options);check_cancel(options);}
+        if(!options.copy_replacements.empty()) {
+            if(options.copy_replacements.size()>16)throw std::invalid_argument("at most 16 source replacements are supported");
+            std::set<std::string> replaced;
+            for(const auto& change:options.copy_replacements) {
+                check_cancel(options);validate_relative_directory(change.file);
+                if(!replaced.insert(change.file).second||change.before.size()>2*1024*1024||change.after.size()>2*1024*1024)
+                    throw std::invalid_argument("duplicate or oversized source replacement");
+                if(std::none_of(snapshot.files.begin(),snapshot.files.end(),[&](const auto& f){return f.path==change.file;}))
+                    throw std::invalid_argument("replacement file must belong to the saved C/C++ inventory");
+                const auto target=source/from_utf8(change.file);
+                if(!inside(target,source)||fs::is_symlink(target)||!fs::is_regular_file(target))throw std::invalid_argument("replacement path escapes copied source");
+                std::ifstream input(target,std::ios::binary);const std::string before((std::istreambuf_iterator<char>(input)),{});
+                if(!input||before!=change.before)throw std::runtime_error("replacement requires exact original file bytes");
+            }
+            BuildStep patch;patch.name="patch";patch.working_directory=utf8_path(source);
+            for(const auto& change:options.copy_replacements){check_cancel(options);write_text(source/from_utf8(change.file),change.after);patch.result.stdout_text+="Patched copied file: "+change.file+"\n";}
+            patch.result.status="passed";patch.result.exit_code=0;run.steps.push_back(std::move(patch));
+        }
+        if(options.before_configure){check_cancel(options);options.before_configure(work);check_cancel(options);}
         const unsigned jobs=options.jobs ? options.jobs : std::min(8u,std::max(1u,std::thread::hardware_concurrency()));
         std::vector<std::string> configure{options.cmake,"-S",utf8_path(source),"-B",utf8_path(build),"-G",options.generator,
             "-DCMAKE_BUILD_TYPE="+options.build_type,"-DBUILD_TESTING=ON","-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"};
@@ -170,6 +226,7 @@ BuildRun build_and_test(const fs::path& input, const fs::path& database, const B
             if (run.status != "passed") { step.result.status="skipped"; step.result.stderr_text="Previous stage did not pass."; }
             else {
                 if (options.progress) options.progress(name);
+                if(name=="test"&&options.before_test)options.before_test(work);
                 step.result=run_process({args,utf8_path(work),options.timeout,4*1024*1024,options.control});
                 if (name=="test") test_counts(step);
                 if (step.result.status!="passed") run.status=step.result.status;
@@ -186,16 +243,17 @@ BuildRun build_and_test(const fs::path& input, const fs::path& database, const B
         BuildStep step; step.name=run.steps.empty() ? "prepare" : "manager"; step.result.status=run.status; step.result.stderr_text=error.what();
         run.steps.push_back(std::move(step));
     }
-    try { run.source_unchanged=same_source(snapshot,scan_project(root,inventory_options)); }
+    try { auto verification=inventory_options;verification.context.control.reset();run.source_unchanged=same_source(snapshot,scan_project(root,verification)); }
     catch(const std::exception& error) {
         BuildStep verify;verify.name="source_check";verify.result.status="failed";verify.result.stderr_text=error.what();run.steps.push_back(std::move(verify));
         run.source_unchanged=false;
     }
     if (!run.source_unchanged && (run.status=="passed"||run.status=="configured")) run.status="source_changed";
-    if (options.control) {
+    if (options.control&&!options.defer_commit_fence) {
         try { options.control->begin_commit(); }
         catch (const ScanCancelled&) { run.status="cancelled"; }
     }
+    if(options.control&&options.control->state()==ScanControl::State::cancel_requested)run.status="cancelled";
     std::ostringstream summary;
     summary << "scan=" << run.scan_id << "\nstatus=" << run.status << "\nsource_unchanged=" << run.source_unchanged << "\n";
     for (std::size_t i=0;i<run.steps.size();++i) {

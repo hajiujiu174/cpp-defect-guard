@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.24)
+project(CodeGuardRepairDemo LANGUAGES CXX)
+enable_testing()
+add_executable(repair-demo main.cpp)
+target_compile_features(repair-demo PRIVATE cxx_std_20)
+add_test(NAME zero_classification COMMAND repair-demo)

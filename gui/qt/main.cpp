@@ -1,4 +1,7 @@
 #include "codeguard/application.hpp"
+#include "graph_panel.hpp"
+#include "repair_dialog.hpp"
+#include "repair_set_dialog.hpp"
 #include "codeguard/query.hpp"
 #include "source_editor.hpp"
 #include "scan_task.hpp"
@@ -23,6 +26,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QTableWidget>
+#include <QItemSelectionModel>
 #include <QTimer>
 #include <QTabWidget>
 #include <QLineEdit>
@@ -170,6 +174,7 @@ int main(int argc, char** argv) {
     auto* symbols_table = make_table(QStringLiteral("符号")); symbols_table->setObjectName("symbolsTable");
     auto* metrics_table = make_table(QStringLiteral("度量")); metrics_table->setObjectName("metricsTable");
     auto* edges_table = make_table(QStringLiteral("关系"));
+    auto* graph_panel = new GraphPanel(tabs);tabs->addTab(graph_panel,QStringLiteral("关系图"));
     auto* cycles_table = make_table(QStringLiteral("循环"));
     auto* units_table = make_table(QStringLiteral("诊断"));
     auto* issues_table = make_table(QStringLiteral("问题")); issues_table->setObjectName("issuesTable");
@@ -177,6 +182,8 @@ int main(int argc, char** argv) {
     auto* rule_diagnostics=make_table(QStringLiteral("规则配置诊断"));rule_diagnostics->setObjectName("ruleDiagnostics");
     auto* suppress_action=new QAction(QStringLiteral("抑制此问题（填写理由）"),issues_table);suppress_action->setObjectName("suppressIssue");
     issues_table->addAction(suppress_action);issues_table->setContextMenuPolicy(Qt::ActionsContextMenu);
+    auto* repair_action=new QAction(QStringLiteral("生成修复候选 / 差异与副本验证"),issues_table);repair_action->setObjectName("proposeRepair");issues_table->addAction(repair_action);
+    auto* repair_set_action=new QAction(QStringLiteral("组合选中问题的候选 / 同一副本验证"),issues_table);repair_set_action->setObjectName("composeRepairSet");issues_table->addAction(repair_set_action);issues_table->setSelectionMode(QAbstractItemView::ExtendedSelection);
     issues_table->setToolTip(QStringLiteral("右键可按当前源码快照抑制选中问题，理由与证据保留在数据库"));
     auto* build_panel = new QWidget(tabs); auto* build_layout = new QVBoxLayout(build_panel);
     auto* build_output = new QLineEdit(build_panel); build_output->setPlaceholderText(QStringLiteral("构建副本与日志目录，必须位于源码目录外"));
@@ -255,6 +262,8 @@ int main(int argc, char** argv) {
     QString database;
     QString smoke_project;
     bool engineering_smoke = false;
+    bool repair_smoke=false;
+    bool repair_set_smoke=false;
     int engineering_stage = 0;
     QString initial_project;
     QString session_file, config_root, config_database, configuration_smoke;
@@ -267,6 +276,19 @@ int main(int argc, char** argv) {
     std::shared_ptr<const codeguard::ScanResult> history_snapshot;
     ScanTask task;
     BuildTask build_task;
+    QObject::connect(repair_action,&QAction::triggered,[&]{
+        if(task.busy()||build_task.busy()||history_task.busy()){window.statusBar()->showMessage(QStringLiteral("请等待当前扫描或构建结束后生成候选"));return;}
+        const auto row=issues_table->currentRow();if(row<0||static_cast<std::size_t>(row)>=current->analysis.issues.size())return;
+        auto options=project_config.build;options.output_directory=codeguard::from_utf8(QFileInfo(database).absolutePath().toUtf8().toStdString())/"repair-candidates";
+        auto* dialog=new RepairDialog(current,current->analysis.issues[static_cast<std::size_t>(row)],codeguard::from_utf8(bytes(database)),options,&window);dialog->setAttribute(Qt::WA_DeleteOnClose);dialog->open();
+    });
+    QObject::connect(repair_set_action,&QAction::triggered,[&]{
+        if(task.busy()||build_task.busy()||history_task.busy()){window.statusBar()->showMessage(QStringLiteral("请等待扫描、构建或历史读取结束"));return;}
+        const auto rows=issues_table->selectionModel()->selectedRows();if(rows.size()<2||rows.size()>16){window.statusBar()->showMessage(QStringLiteral("请按 Ctrl 或 Shift 多选 2—16 个活动问题"));return;}
+        std::vector<codeguard::Issue> selected;for(const auto& row:rows)if(row.row()>=0&&static_cast<std::size_t>(row.row())<current->analysis.issues.size())selected.push_back(current->analysis.issues[static_cast<std::size_t>(row.row())]);
+        if(selected.size()!=static_cast<std::size_t>(rows.size()))return;auto options=project_config.build;options.output_directory=codeguard::from_utf8(QFileInfo(database).absolutePath().toUtf8().toStdString())/"repair-sets";
+        auto* dialog=new RepairSetDialog(current,std::move(selected),codeguard::from_utf8(bytes(database)),options,&window);dialog->setAttribute(Qt::WA_DeleteOnClose);dialog->open();
+    });
     std::vector<codeguard::BuildRun> build_runs;
     QTimer smoke_pulse; QElapsedTimer smoke_clock;
     qint64 smoke_last_tick = 0, smoke_max_gap = 0;
@@ -287,6 +309,8 @@ int main(int argc, char** argv) {
         if (args[i] == "--database" && database.isEmpty()) database = args[i + 1];
         else if (args[i] == "--smoke-test" && smoke_project.isEmpty()) smoke_project = args[i + 1];
         else if (args[i] == "--engineering-smoke" && smoke_project.isEmpty()) {smoke_project=args[i+1];engineering_smoke=true;}
+        else if (args[i] == "--repair-smoke" && smoke_project.isEmpty()) {smoke_project=args[i+1];repair_smoke=true;}
+        else if (args[i] == "--repair-set-smoke" && smoke_project.isEmpty()) {smoke_project=args[i+1];repair_set_smoke=true;}
         else if (args[i] == "--compile-commands" && commands_path->text().isEmpty()) commands_path->setText(args[i + 1]);
         else if (args[i] == "--project" && initial_project.isEmpty()) initial_project = args[i + 1];
         else if (args[i] == "--session-file" && session_file.isEmpty()) session_file = args[i + 1];
@@ -380,6 +404,7 @@ int main(int argc, char** argv) {
             window.statusBar()->showMessage(QStringLiteral("无法定位：") + text(exception.what())); return false;
         }
     };
+    graph_panel->navigate=[&](const std::string& file,int line,int column){navigate(text(file),line,column);};
     QObject::connect(tree, &QTreeWidget::itemClicked, [&](QTreeWidgetItem* item, int) {
         const auto path = item->data(0, Qt::UserRole).toString(); if (!path.isEmpty()) navigate(path, 1);
     });
@@ -457,6 +482,9 @@ int main(int argc, char** argv) {
             const auto* item=target->item(target->currentRow(),0);
             if(item)lookup_references(item->data(Qt::UserRole+2).toString());
         });
+        auto* graph_action=new QAction(QStringLiteral("在调用图中查看此函数"),target);
+        graph_action->setObjectName(target==symbols_table?"showSymbolGraph":"showMetricGraph");target->addAction(graph_action);
+        QObject::connect(graph_action,&QAction::triggered,[&,target]{const auto* item=target->item(target->currentRow(),0);if(item){tabs->setCurrentWidget(graph_panel);graph_panel->focusNode(bytes(item->data(Qt::UserRole+2).toString()));}});
     }
     auto* definition_action=new QAction(QStringLiteral("跳转到目标符号的定义 / 声明"),query_table);
     definition_action->setObjectName("referenceDefinition");query_table->addAction(definition_action);query_table->setContextMenuPolicy(Qt::ActionsContextMenu);
@@ -472,6 +500,9 @@ int main(int argc, char** argv) {
         QElapsedTimer render_clock; render_clock.start();
         query_task.cancel();
         current = std::move(snapshot); rescan->setEnabled(true); tree->clear(); opened_file.clear(); filter->clear();
+        repair_action->setEnabled(!task.busy()&&!build_task.busy()&&!history_task.busy()&&codeguard::clang_analysis_available()&&current->id>0);
+        repair_set_action->setEnabled(repair_action->isEnabled());
+        graph_panel->setSnapshot(current);
         build_runs.clear();build_table->clear();build_table->setRowCount(0);build_log->clear();git_log->clear();
         build_start->setEnabled(!build_task.busy());build_history->setEnabled(true);
         build_status->setText(QStringLiteral("可构建当前扫描快照；执行前核对源码，结果关联扫描批次 %1").arg(result.id));
@@ -598,6 +629,8 @@ int main(int argc, char** argv) {
         running = running || history_task.busy();
         report->setEnabled(!running&&!build_task.busy()&&current->id>0);
         suppress_action->setEnabled(!running&&!build_task.busy());
+        repair_action->setEnabled(!running&&!build_task.busy()&&codeguard::clang_analysis_available()&&current->id>0);
+        repair_set_action->setEnabled(repair_action->isEnabled());
         open->setEnabled(!running); reopen->setEnabled(!running);
         rescan->setEnabled(!running && (!config_root.isEmpty()||!current->root.empty()));
         project_settings->setEnabled(!running&&!build_task.busy()&&!config_root.isEmpty());
@@ -985,6 +1018,51 @@ int main(int argc, char** argv) {
                     const auto target=std::find_if(saved.analysis.symbols.begin(),saved.analysis.symbols.end(),[&](const auto& s){return s.id==id;});
                     if(target==saved.analysis.symbols.end()||opened_file!=text(target->file)||editor->textCursor().blockNumber()+1!=target->line)
                         throw std::runtime_error("reference definition navigation failed");
+                }
+                for(const auto& edge:saved.analysis.edges) {
+                    if(edge.kind!="call"||edge.source==edge.target||std::none_of(saved.files.begin(),saved.files.end(),[&](const auto& f){return f.path==edge.file;}))continue;
+                    int selected=-1;for(int row=0;row<symbols_table->rowCount();++row)if(bytes(symbols_table->item(row,0)->data(Qt::UserRole+2).toString())==edge.source){selected=row;break;}
+                    if(selected<0)continue;
+                    symbols_table->setCurrentCell(selected,0);symbols_table->findChild<QAction*>("showSymbolGraph")->trigger();app.processEvents();wait_read([&]{return graph_panel->busy();});
+                    graph_panel->findChild<QLineEdit*>("graphFrom")->setText(text(edge.source));graph_panel->findChild<QLineEdit*>("graphTo")->setText(text(edge.target));
+                    graph_panel->findChild<QPushButton*>("graphFindPath")->click();wait_read([&]{return graph_panel->busy();});
+                    auto* path_table=graph_panel->findChild<QTableView*>("graphPathSteps");
+                    if(path_table->model()->rowCount()!=1)throw std::runtime_error("main window graph path missing");
+                    const auto index=path_table->model()->index(0,0);path_table->doubleClicked(index);
+                    if(opened_file!=index.data(Qt::UserRole).toString()||editor->textCursor().blockNumber()+1!=index.data(Qt::UserRole+1).toInt())
+                        throw std::runtime_error("main window graph source navigation failed");
+                    app.processEvents();window.grab().save(text(codeguard::utf8_path(screenshot.parent_path()/"gui-graph.png")));
+                    window.resize(1080,680);app.processEvents();window.grab().save(text(codeguard::utf8_path(screenshot.parent_path()/"gui-graph-compact.png")));window.resize(1480,860);
+                    std::cout<<"GUI_GRAPH_OK directed-path source-navigation snapshot-bound"<<std::endl;break;
+                }
+                if(repair_smoke){
+                    int row=-1;for(std::size_t i=0;i<saved.analysis.issues.size();++i)if(saved.analysis.issues[i].rule_id=="CG003"){row=static_cast<int>(i);break;}
+                    if(row<0)throw std::runtime_error("repair smoke needs a CG003 fixture");const auto& selected=saved.analysis.issues[static_cast<std::size_t>(row)];
+                    QFile before(QDir(text(saved.root)).filePath(text(selected.file)));if(!before.open(QIODevice::ReadOnly))throw std::runtime_error("repair source unavailable");const auto original=before.readAll();before.close();
+                    tabs->setCurrentWidget(issues_table);issues_table->setCurrentCell(row,0);repair_action->trigger();app.processEvents();
+                    auto* base=window.findChild<QDialog*>("repairDialog");if(!base)throw std::runtime_error("repair action did not open dialog");auto* dialog=static_cast<RepairDialog*>(base);
+                    wait_read([&]{return dialog->busy();});auto* choices=dialog->findChild<QComboBox*>("repairCandidates");
+                    if(choices->count()!=2||!dialog->findChild<QPlainTextEdit*>("repairDiff")->isReadOnly())throw std::runtime_error("repair preview choices missing");
+                    choices->setCurrentIndex(choices->findData("condition.compare"));dialog->findChild<QPushButton*>("repairExport")->click();wait_read([&]{return dialog->busy();});
+                    if(!dialog->findChild<QLabel*>("repairStatus")->text().startsWith(QStringLiteral("已导出：")))throw std::runtime_error("repair export failed");
+                    app.processEvents();dialog->grab().save(text(codeguard::utf8_path(screenshot.parent_path()/"repair-preview.png")));dialog->resize(760,560);app.processEvents();dialog->grab().save(text(codeguard::utf8_path(screenshot.parent_path()/"repair-preview-compact.png")));
+                    dialog->findChild<QPushButton*>("repairEvaluate")->click();dialog->findChild<QPushButton*>("repairCancel")->click();wait_read([&]{return dialog->busy();});
+                    if(dialog->findChild<QTableWidget*>("repairBatchTable")->rowCount()!=2||!dialog->findChild<QLabel*>("repairStatus")->text().contains("cancelled"))throw std::runtime_error("cancelled batch ledger missing");
+                    app.processEvents();dialog->grab().save(text(codeguard::utf8_path(screenshot.parent_path()/"repair-batch-cancelled.png")));
+                    dialog->reject();app.processEvents();if(!before.open(QIODevice::ReadOnly)||before.readAll()!=original)throw std::runtime_error("repair preview changed original source");
+                    std::cout<<"GUI_REPAIR_OK candidates=2 readonly-preview export batch-cancel-ledger original-unchanged"<<std::endl;
+                }
+                if(repair_set_smoke){
+                    std::vector<std::pair<QString,QByteArray>> originals;for(const auto& file:saved.files){const auto path=QDir(text(saved.root)).filePath(text(file.path));QFile input(path);if(!input.open(QIODevice::ReadOnly))throw std::runtime_error("repair set source unavailable");originals.emplace_back(path,input.readAll());}
+                    tabs->setCurrentWidget(issues_table);issues_table->clearSelection();int selected_count=0;
+                    for(std::size_t n=0;n<saved.analysis.issues.size();++n)if(saved.analysis.issues[n].rule_id=="CG003"){issues_table->selectionModel()->select(issues_table->model()->index(static_cast<int>(n),0),QItemSelectionModel::Select|QItemSelectionModel::Rows);++selected_count;}
+                    if(selected_count<2)throw std::runtime_error("repair set smoke needs two CG003 issues");repair_set_action->trigger();app.processEvents();auto* base=window.findChild<QDialog*>("repairSetDialog");if(!base)throw std::runtime_error("repair set main-window action did not open dialog");auto* dialog=static_cast<RepairSetDialog*>(base);
+                    wait_read([&]{return dialog->busy();});auto* candidates=dialog->findChild<QTableWidget*>("setCandidates");int checked=0;for(int n=0;n<candidates->rowCount();++n)if(candidates->item(n,0)->data(Qt::UserRole).toString()=="condition.compare"){candidates->item(n,0)->setCheckState(Qt::Checked);++checked;}
+                    auto* preview=dialog->findChild<QPlainTextEdit*>("setDiff");if(checked!=2||!preview->isReadOnly()||!dialog->findChild<QPushButton*>("setExport")->isEnabled())throw std::runtime_error("repair set preview/selection failed");
+                    dialog->findChild<QPushButton*>("setExport")->click();wait_read([&]{return dialog->busy();});if(!dialog->findChild<QLabel*>("setStatus")->text().contains(QStringLiteral("已导出组合")))throw std::runtime_error("repair set export failed");
+                    app.processEvents();dialog->grab().save(text(codeguard::utf8_path(screenshot.parent_path()/"repair-set-preview.png")));dialog->resize(760,600);app.processEvents();dialog->grab().save(text(codeguard::utf8_path(screenshot.parent_path()/"repair-set-preview-compact.png")));
+                    dialog->findChild<QPushButton*>("setValidate")->click();dialog->findChild<QPushButton*>("setCancel")->click();wait_read([&]{return dialog->busy();});if(!dialog->findChild<QLabel*>("setStatus")->text().contains(QStringLiteral("取消")))throw std::runtime_error("repair set cancellation lost");
+                    dialog->reject();app.processEvents();for(const auto& [path,original]:originals){QFile input(path);if(!input.open(QIODevice::ReadOnly)||input.readAll()!=original)throw std::runtime_error("repair set preview changed original source");}std::cout<<"GUI_REPAIR_SET_OK explicit-selection combined-diff export cancelled-targets original-unchanged"<<std::endl;
                 }
                 query_input->setPlainText("SELECT missing FROM files;"); query_run->click(); wait_read([&] { return query_task.busy(); });
                 if (query_model->rowCount() != 0 || !query_status->text().startsWith(QStringLiteral("查询失败：")))

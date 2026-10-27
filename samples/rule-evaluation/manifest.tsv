@@ -43,4 +43,4 @@ CG005	valid	negative	0
 CG005	unevaluated	negative	0
 CG005	address_cancel	negative	0
 CG005	lambda	positive	1
-CG005	alias	positive	0
+CG005	alias	positive	1

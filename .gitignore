@@ -8,5 +8,6 @@ dist/
 artifacts/
 *.tu-cache/
 .playwright-cli/
+.serena/
 output/playwright/
 *.egg-info/

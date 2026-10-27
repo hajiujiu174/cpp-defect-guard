@@ -1,6 +1,8 @@
 #include "codeguard/application.hpp"
 #include "codeguard/query.hpp"
+#include "codeguard/graph_explorer.hpp"
 #include "report_commands.hpp"
+#include "repair_commands.hpp"
 #include <iostream>
 #include <stdexcept>
 #include <algorithm>
@@ -86,10 +88,16 @@ int run(const std::vector<std::string>& args) {
                      "codeguard-cli status PROJECT --database DATABASE\n"
                      "codeguard-cli scans PROJECT --database DATABASE [--before ID] [--limit 1..500]\n"
                      "codeguard-cli report PROJECT --database DATABASE --output NEW_DIRECTORY [--scan ID] [--baseline OLDER_ID]\n"
+                     "codeguard-cli repair propose|validate|evaluate PROJECT --database DB --output DIR [repair options]\n"
+                     "  evaluate: repeated --candidate FILE; validates separately and ranks evidence\n"
+                     "  validate/evaluate: --coverage off|gcov|gcov-tests [--gcov-tool FILE]; GNU compilers required\n"
+                     "  gcov-tests: --coverage-test-limit N (1..256, default 64); replay CTest groups with isolated counters\n"
+                     "  compose: repeated --candidate FILE (2..16); validate-set: --set FILE [build/coverage options]\n"
+                     "  compare: --candidate FILE or --set FILE [--runs 2..5] [--gcov-tool FILE] [--coverage-test-limit N]\n"
                      "codeguard-cli symbols PROJECT --database DATABASE [--prefix NAME]\n"
                      "codeguard-cli references PROJECT --database DATABASE --symbol USR\n"
                      "codeguard-cli metrics PROJECT --database DATABASE\n"
-                     "codeguard-cli graph PROJECT --database DATABASE --kind call|include\n"
+                     "codeguard-cli graph PROJECT --database DATABASE --kind call|include [--from ID --to ID]\n"
                      "codeguard-cli recent --database DATABASE\n"
                      "codeguard-cli rules\n"
                      "codeguard-cli suppress PROJECT --database DATABASE --rule ID --file RELATIVE --line N --column N --reason TEXT\n"
@@ -121,6 +129,7 @@ int run(const std::vector<std::string>& args) {
         if(paths.empty())std::cout<<"No compilation database found. For CMake projects, save config and run prepare.\n";
         return 0;
     }
+    if(command=="repair")return repair_commands(args);
     const bool configuration_command=command=="config"||command=="prepare"||command=="commands";
     const bool build_settings=command=="build"||command=="prepare"||command=="config";
     if (command=="rules") {
@@ -151,7 +160,7 @@ int run(const std::vector<std::string>& args) {
     codeguard::BuildOptions build_options=config.build;
     std::vector<std::string> selected_commands;
     bool config_changed=false;
-    std::string prefix, kind, query, severity, symbol_id;
+    std::string prefix, kind, query, severity, symbol_id, graph_from, graph_to;
     std::string suppress_rule,suppress_file,suppress_reason;unsigned suppress_line=0,suppress_column=0;
     std::set<std::string> seen;
     for (; position < args.size(); position += 2) {
@@ -171,6 +180,8 @@ int run(const std::vector<std::string>& args) {
         else if (args[position] == "--prefix" && command == "symbols") prefix = args[position + 1];
         else if (option == "--symbol" && command == "references") symbol_id = value;
         else if (args[position] == "--kind" && command == "graph") kind = args[position + 1];
+        else if (option=="--from"&&command=="graph") {if(value.empty())throw std::invalid_argument("graph --from ID must not be empty");graph_from=value;}
+        else if (option=="--to"&&command=="graph") {if(value.empty())throw std::invalid_argument("graph --to ID must not be empty");graph_to=value;}
         else if (args[position] == "--query" && command == "query") query = args[position + 1];
         else if (args[position] == "--threads" && (command == "scan"||configuration_command)) options.threads=number(args[position+1],64);
         else if(option=="--cache"&&command=="scan") {if(value!="on"&&value!="off")throw std::invalid_argument("--cache expects on or off");options.use_cache=value=="on";}
@@ -326,6 +337,17 @@ int run(const std::vector<std::string>& args) {
                               << metric.max_nesting << '\t' << metric.fan_in << '\t' << metric.fan_out << '\n';
                 }
             } else {
+                if(!graph_from.empty()||!graph_to.empty()) {
+                    if(graph_from.empty()||graph_to.empty())throw std::invalid_argument("graph path requires both --from and --to IDs");
+                    codeguard::ScanContext context;context.control=std::make_shared<codeguard::ScanControl>();InterruptScope interrupts(context.control);
+                    const auto index=codeguard::build_graph_index(result,kind,context);
+                    const auto path=codeguard::shortest_graph_path(index,graph_from,graph_to,context);
+                    std::cout<<"analysis="<<result.analysis.status<<"\npath_found="<<path.found<<"\npath_edges="<<path.links.size()<<"\nvisited="<<path.visited
+                        <<"\nStored static graph only; missing paths do not prove runtime unreachability.\n";
+                    for(std::size_t i=0;i<path.nodes.size();++i){const auto& node=path.nodes[i];std::cout<<"path_node\t"<<i<<'\t'<<tsv(node.id)<<'\t'<<tsv(node.label)<<'\t'<<tsv(node.file)<<':'<<node.line<<':'<<node.column<<'\n';
+                        if(i<path.links.size()){const auto& edge=path.links[i];std::cout<<"path_edge\t"<<tsv(edge.evidence.source)<<'\t'<<tsv(edge.evidence.target)<<'\t'<<tsv(edge.evidence.file)<<':'<<edge.evidence.line<<':'<<edge.evidence.column<<'\t'<<edge.location_count<<'\n';}}
+                    return result.analysis.status=="complete"?0:2;
+                }
                 const auto graph = codeguard::project_graph(result, kind);
                 std::cout << "nodes=" << graph.nodes.size() << "\nedges=" << graph.edge_count << "\nscc=" << graph.components.size()
                           << "\ncyclic_components=" << graph.cycles.size() << '\n';

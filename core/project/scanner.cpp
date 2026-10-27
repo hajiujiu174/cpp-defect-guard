@@ -1,4 +1,5 @@
 #include "codeguard/application.hpp"
+#include "path_filter.hpp"
 
 #include <algorithm>
 #include <array>
@@ -71,6 +72,7 @@ ScanResult scan_project(const fs::path& input, const ScanOptions& options) {
     const auto root = fs::canonical(input);
     for(const auto& item:options.ignored_paths)validate_relative_directory(item);
     if (!fs::is_directory(root)) throw std::invalid_argument("project root must be a directory");
+    const detail::PathExclusions exclusions(root,options.ignored_paths);
     ScanResult result;
     result.root = utf8_path(root);
     result.scanned_at = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -103,7 +105,7 @@ ScanResult scan_project(const fs::path& input, const ScanOptions& options) {
             options.context.check();
             if (error) break;
             const auto path = it->path();
-            if(std::any_of(options.ignored_paths.begin(),options.ignored_paths.end(),[&](const auto& p){return project_path_inside(path,root/from_utf8(p));}))continue;
+            if(exclusions.contains(path))continue;
             try {
                 if (fs::is_symlink(it->symlink_status())) continue;
                 if (it->is_directory()) {
@@ -121,6 +123,8 @@ ScanResult scan_project(const fs::path& input, const ScanOptions& options) {
         }
         if (error) result.diagnostics.push_back({utf8_path(directory), error.message()});
     }
+    options.context.check();
+    exclusions.check_unchanged();
     std::sort(result.files.begin(), result.files.end(),
               [](const auto& a, const auto& b) { return a.path < b.path; });
     options.context.report(options.scan_phase, {}, result.files.size(), result.files.size());

@@ -1,0 +1,856 @@
+{
+  "schema": 1,
+  "date": "2026-10-26",
+  "stage": "P2-2 interactive graphs and directed paths",
+  "recorded_at": "2026-10-26T19:30:00.594391+08:00",
+  "base_commit": "68a3490508deece1bfa6c2bc29a375d69ddbb00e",
+  "worktree": "Uncommitted continuation; source hashes include untracked graph modules and tests.",
+  "test_sequence": "Full regression, then 14 relevant checks after scroll layout changes, final compact geometry assertion and CLI empty-endpoint regression.",
+  "local_tests": [
+    {
+      "path": "artifacts/p2-2-graph-20261026/core-tests.xml",
+      "sha256": "d99aefb5d0f63c1b02d8c485fc71fa2d199a2456b983197b8d4a510c53ae5988",
+      "tests": 61,
+      "failures": 0,
+      "disabled": 0,
+      "skipped": 1,
+      "passed": 60
+    },
+    {
+      "path": "artifacts/p2-2-graph-20261026/analysis-tests.xml",
+      "sha256": "73771f10d4338fe8a43009148a5d3144b5ffc4eccd1ca077c591dcb03ddb91da",
+      "tests": 120,
+      "failures": 0,
+      "disabled": 0,
+      "skipped": 1,
+      "passed": 119
+    },
+    {
+      "path": "artifacts/p2-2-graph-20261026/final-qt-tests.xml",
+      "sha256": "c35d558150394765797f18f8e4d03ba1dbea60c7191777d51cee440aeac63252",
+      "tests": 14,
+      "failures": 0,
+      "disabled": 0,
+      "skipped": 0,
+      "passed": 14
+    },
+    {
+      "path": "artifacts/p2-2-graph-20261026/compact-layout-test.xml",
+      "sha256": "f1672df7256ac55bead882a59aa4fccd4aea64512de32a6d159a4a13d493b32a",
+      "tests": 1,
+      "failures": 0,
+      "disabled": 0,
+      "skipped": 0,
+      "passed": 1
+    },
+    {
+      "path": "artifacts/p2-2-graph-20261026/final-cli-tests.xml",
+      "sha256": "face6bd2ec5d27093110c93c1467e32cfbff39add825b7000c91ab6a25b5ff98",
+      "tests": 1,
+      "failures": 0,
+      "disabled": 0,
+      "skipped": 0,
+      "passed": 1
+    }
+  ],
+  "sources": [
+    {
+      "path": "cli/main.cpp",
+      "sha256": "64ed45796d30a16cc4f86033fe77f3c1d3761b58d3885eeeec25a17f36384ed8"
+    },
+    {
+      "path": "cli/report_commands.cpp",
+      "sha256": "96edce32ecb0269d1a43259b2b204020f04a07a422ad8cfeda30b2729621c821"
+    },
+    {
+      "path": "cli/report_commands.hpp",
+      "sha256": "4cbc72c534907884dcd6e06b51d363163230cc3909d4949cc4a65c117efe248d"
+    },
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "8640696a3ce994e7a2ba964fe806182c1315691e88331adccf21873e4994aa34"
+    },
+    {
+      "path": "config/windows-toolchain.lock.json",
+      "sha256": "eea718ec1b22b719053e52161ab6a0a3774be42fa7e2bc79daba8345feb45083"
+    },
+    {
+      "path": "core/analyzer/clang_rules/array_bounds.cpp",
+      "sha256": "6c97105fac908aedb2e90f0640221309b614b038931bef5e185340885f296fbf"
+    },
+    {
+      "path": "core/analyzer/clang_rules/assignment_condition.cpp",
+      "sha256": "1ab995ce17e5d42ef2fe6c3b05d7af43777ec12b3d75a23aa6fb50052bfdbdfd"
+    },
+    {
+      "path": "core/analyzer/clang_rules/engine.cpp",
+      "sha256": "98a6a53130107e962175d6a4b2bf0fe89536fdcdadec5afbb467a28081a7dc42"
+    },
+    {
+      "path": "core/analyzer/clang_rules/local_flow.cpp",
+      "sha256": "cfffb22e80ff37e23b7d49b83ab532aa9de14d82796a2cefee708d249ace3c5b"
+    },
+    {
+      "path": "core/analyzer/clang_rules/local_lifetime.cpp",
+      "sha256": "45d12802906efb5d9fb1b94131f50fd32a85331a927707899714d64905f66ad5"
+    },
+    {
+      "path": "core/analyzer/clang_rules/null_dereference.cpp",
+      "sha256": "b1e6873ecef9bad3b81469d32dd76b8f96e8470027f190d5b637d98313504193"
+    },
+    {
+      "path": "core/analyzer/clang_rules/rule.hpp",
+      "sha256": "b0170f5de5944c390241b2ae76222d0ce21e661b4e053426c28f224d50f1808c"
+    },
+    {
+      "path": "core/analyzer/clang_rules/unbounded_call.cpp",
+      "sha256": "10f1a90dd267185a8e4edfffd872c1dc65d403d20d99b24656ccd9267cf5d69c"
+    },
+    {
+      "path": "core/analyzer/rules.cpp",
+      "sha256": "eea57f1082a4d7a200ea7b04e550a68cf45288f512927aace0b29182c8af478c"
+    },
+    {
+      "path": "core/application.cpp",
+      "sha256": "f1a5300cc500114021e36ac2453dcd666d136152b10479a226795b42139cf864"
+    },
+    {
+      "path": "core/database/sqlite_database.cpp",
+      "sha256": "95b8e6b6c1ab50ce04f891014e2e9a64170a00387d673dbd4cd3a2ba61d25b3c"
+    },
+    {
+      "path": "core/graph/explorer.cpp",
+      "sha256": "5fcae049f027f96d6cfbbfef98fbca520e9e36d492c3ec7632d6f5902474d9b6"
+    },
+    {
+      "path": "core/graph/graph.cpp",
+      "sha256": "19912b2754cca6db3acee2da4ea35721d4de785612563b5d23993ce1270706b2"
+    },
+    {
+      "path": "core/include/codeguard/analysis.hpp",
+      "sha256": "57c97b63b5500313f392e8166b54d3150739021ea72ab1d6b3ecadfb79c5378f"
+    },
+    {
+      "path": "core/include/codeguard/application.hpp",
+      "sha256": "e7d34ddc1ebb0ff451814f1eaaaaaba0d5a5f9a4fa827fdcacf020f5f4366b2c"
+    },
+    {
+      "path": "core/include/codeguard/configuration.hpp",
+      "sha256": "8142de8bedfbf30568ad570d120a94186d1d3bdf4d6cec48f6ea2dbbf9c66b1c"
+    },
+    {
+      "path": "core/include/codeguard/engineering.hpp",
+      "sha256": "fe5e624503367918100ef6bfa310cb5b9fd08adefb30d9d9ff886f37ea18a3d1"
+    },
+    {
+      "path": "core/include/codeguard/graph_explorer.hpp",
+      "sha256": "740d4f1bf11144d53a46abfec05165402087e9d6042b121c2e46c1356ca22400"
+    },
+    {
+      "path": "core/include/codeguard/process.hpp",
+      "sha256": "5ca674084d3bdef2a7233dca69b15b9d15d4c469abd67a776a9da407e1b0ba99"
+    },
+    {
+      "path": "core/include/codeguard/query.hpp",
+      "sha256": "4e1ad92a2331ee08dec1a628d3cfdcdf5a88654be6969f168c87e3b48a8be1e5"
+    },
+    {
+      "path": "core/include/codeguard/report.hpp",
+      "sha256": "f9b3d8da7a38d0d637ba3c55a967bb8cb8db0358f067a8d11d86e7dc980dbce5"
+    },
+    {
+      "path": "core/include/codeguard/rules.hpp",
+      "sha256": "a98cd33bd6b8ab768717e3d3654a9c5ac19d4610388db224cb961feb3c0ce859"
+    },
+    {
+      "path": "core/include/codeguard/scan_control.hpp",
+      "sha256": "fe66ab2e6a9135f4d2102a7a7b41cbbaa46a3185c5d2f4696d3c51ce6e619464"
+    },
+    {
+      "path": "core/include/codeguard/thread_pool.hpp",
+      "sha256": "e3d669332e5af2f614bae32f3e67408c1de23d013638bafa487b6bc35d5d2e4a"
+    },
+    {
+      "path": "core/parser/analysis_cache.hpp",
+      "sha256": "93e3ad6b671f07447337a13b9f9e516b176960925a3e44e03c082829a8e97cc6"
+    },
+    {
+      "path": "core/parser/clang_analysis.cpp",
+      "sha256": "88c5ace8fb163ae8539e063bc07944f32cd9cb63f23d606f04b6cccfd0626047"
+    },
+    {
+      "path": "core/parser/CMakeLists.txt",
+      "sha256": "e0b960daaf3fa6cb7c8203160fc1826568d0221f47542ddd86603ad5d43e373c"
+    },
+    {
+      "path": "core/parser/unavailable.cpp",
+      "sha256": "533e4d8b4d62cc2479266efcedb00c95360abe1e0c6d594842b2834044219c49"
+    },
+    {
+      "path": "core/process/process.cpp",
+      "sha256": "eaf40132791249102cdc5942fc4b26acf41af316cf909ae68f8be3fd1972a5b8"
+    },
+    {
+      "path": "core/project/configuration.cpp",
+      "sha256": "baf1a37218b5b5637fdd2a13a42d9c4f39e4917d48b4492d8998611a981e696b"
+    },
+    {
+      "path": "core/project/scanner.cpp",
+      "sha256": "72a82918cfe3ec08e9120bf810d8f6882466b441742c0fd09292b31260fbfff6"
+    },
+    {
+      "path": "core/query/query.cpp",
+      "sha256": "2f22fa67ee16137f507bdc863d59729d5ffc392487f7b9d58867d3161a60d876"
+    },
+    {
+      "path": "core/report/comparison.cpp",
+      "sha256": "d42a9ab8e6fffa4a82e7f8d27b138ab7258d917291a138a7f6b12a4fd8c5cfe8"
+    },
+    {
+      "path": "core/report/export.cpp",
+      "sha256": "1b67eddeb571d7971f360f2f82300a148a4be3e1a9460316f0fcca917d29d1eb"
+    },
+    {
+      "path": "core/testing/engineering.cpp",
+      "sha256": "f0297398d75824df62f90546e9b87a2dd21644bce5d265a5fc7dfd714cf34022"
+    },
+    {
+      "path": "gui/qt/build_task.cpp",
+      "sha256": "8dbd2a5a5a53988abb1c6b0cbb78716015f5813e8b503fab9deb6b121a41dca9"
+    },
+    {
+      "path": "gui/qt/build_task.hpp",
+      "sha256": "4d7f28363df5c372005d2b3edccdf5244c8387f15c5f0221226a58bfe9cdaa27"
+    },
+    {
+      "path": "gui/qt/CMakeLists.txt",
+      "sha256": "e1b649c2647f0252c6fa1f57cf71466014585f0508cfd7b1f4be1db14ff1dcd2"
+    },
+    {
+      "path": "gui/qt/graph_panel.cpp",
+      "sha256": "92e80b1bd2670fc93336955448b15f01341dbe2b233ec04c1370aa70613d6fb1"
+    },
+    {
+      "path": "gui/qt/graph_panel.hpp",
+      "sha256": "779e7f9ed23b0a516a1554184d105ce1c95d9f3d9c81a43bc06899ed6b682d85"
+    },
+    {
+      "path": "gui/qt/history_read.hpp",
+      "sha256": "376db5a5b23500133939b6fad177b4e0629a38ea3123cad3a61c859804681b67"
+    },
+    {
+      "path": "gui/qt/main.cpp",
+      "sha256": "6744f2f6af5736a496a20619180ac9cd383315627a4706e0c8d6f3da3d0d8fb5"
+    },
+    {
+      "path": "gui/qt/project_settings.cpp",
+      "sha256": "4ed4b502444239e42a6d04e7dacd0d82426319490195a85fdd19368236fc8c63"
+    },
+    {
+      "path": "gui/qt/project_settings.hpp",
+      "sha256": "3a1488d2042a064f5165f6cc226d5803a027ad822cc98fc198cb81846066301c"
+    },
+    {
+      "path": "gui/qt/query_model.hpp",
+      "sha256": "14cdf556a77c3fbadd3bcbcf096eaa935752dccb1bc7add7267a68b1c541cac9"
+    },
+    {
+      "path": "gui/qt/read_task.hpp",
+      "sha256": "bba809cd32a167278f4d1331236c82e5b82ccf1f140743eda3ba6d2d5da1e113"
+    },
+    {
+      "path": "gui/qt/report_dialog.cpp",
+      "sha256": "1151c8f4a8712bdf900015fa43ea7daa9fab9e49cbccb5da1fd1596a8d559fda"
+    },
+    {
+      "path": "gui/qt/report_dialog.hpp",
+      "sha256": "e17f140e3094d1a17ba583a466425ef8380b243d53b0e6aaaf61b607eebce8ea"
+    },
+    {
+      "path": "gui/qt/scan_task.cpp",
+      "sha256": "5012a9ea24787b0419da9b3ebb967524ff030544af253cd8547a38c8965e15a1"
+    },
+    {
+      "path": "gui/qt/scan_task.hpp",
+      "sha256": "f1463a585260d3ef637a9841077235e3914c730946c3c13222593a04c88d9d8f"
+    },
+    {
+      "path": "gui/qt/source_editor.cpp",
+      "sha256": "08e9c7606de4175bac12715ecb33ca3c51ea209b765b448d9515a76cbd33e387"
+    },
+    {
+      "path": "gui/qt/source_editor.hpp",
+      "sha256": "c66be84cd58f1f550ae4d548f4351c1e3844384b10d2fd05c3202cf8d826268f"
+    },
+    {
+      "path": "scripts/verify_codeguard_package.ps1",
+      "sha256": "b0336acb9afe30a5d0b41b3402c76be63f040445986e465ec13e7ba850438671"
+    },
+    {
+      "path": "tests/codeguard/analysis_tests.cpp",
+      "sha256": "b53e700fc66901089b35106cc1e5fd9e9d4cbd150ba14cdaed39a1a4665d6ee4"
+    },
+    {
+      "path": "tests/codeguard/cache_tests.cpp",
+      "sha256": "df4caab37d8a77c76699eeed03047745c51e1d5269d3655772205255354c8f75"
+    },
+    {
+      "path": "tests/codeguard/cancellation_tests.cpp",
+      "sha256": "8131a7508bb4f18eff90a2171fd1f6a2635401a82a7693222747fac01493460b"
+    },
+    {
+      "path": "tests/codeguard/cli_analysis.cmake",
+      "sha256": "33fa671e0577de77de43e4ce93f5b9a00c21b633d49e9d2e4fb1a7ef4bff263f"
+    },
+    {
+      "path": "tests/codeguard/CMakeLists.txt",
+      "sha256": "ecbbb484905ec0f2b3bcae236ca1de8a004afc8191b2c0bf707934e7c10a4884"
+    },
+    {
+      "path": "tests/codeguard/configuration_tests.cpp",
+      "sha256": "9aea8079fbbc6ae2082091b2e687925a537f4248c0dad76f722d38c8edce1928"
+    },
+    {
+      "path": "tests/codeguard/contracts_gtest.cpp",
+      "sha256": "df23966098318b7e776dff2584b7e5d35bc3e09bedf480e095b9adc02967103e"
+    },
+    {
+      "path": "tests/codeguard/core_tests.cpp",
+      "sha256": "db46d2b5d8dfd4d67a97e23ab32074eab4ae6fe8278e302c6c55b15a4cfb6b5c"
+    },
+    {
+      "path": "tests/codeguard/graph_explorer_tests.cpp",
+      "sha256": "56dd07b1cd0061828db80ed53048e7ff616dfd47683928d62771389fd9606795"
+    },
+    {
+      "path": "tests/codeguard/level3_cli.cmake",
+      "sha256": "8927465785ffa1ea9b7eb45d313204152f63694e5098ef4a46ec65046914d591"
+    },
+    {
+      "path": "tests/codeguard/level3_tests.cpp",
+      "sha256": "4001a65addc81b4bcd2d6c85e1c2cdeae0a878d584e0a31ec0ea18c2993559d1"
+    },
+    {
+      "path": "tests/codeguard/local_flow_tests.cpp",
+      "sha256": "9d6f84621f46423ee0f1ee3ed9ed950c636cb80633e2308b9904098ba71e61c1"
+    },
+    {
+      "path": "tests/codeguard/navigation_tests.cpp",
+      "sha256": "01033feaf21a11ef5183872bf69040d9bfbeb50dcae140438099a24f6b3b4223"
+    },
+    {
+      "path": "tests/codeguard/process_helper.cpp",
+      "sha256": "28754fd7b0232e3be484bf46a99d1cf27a0a7e63479b5df3c0feeedfe158e19d"
+    },
+    {
+      "path": "tests/codeguard/qt_configuration_tests.cpp",
+      "sha256": "e48a886ba189f53c2fc7f32e1921ab6ac5fa4ba04af0e5570fd2cbcefbe236ba"
+    },
+    {
+      "path": "tests/codeguard/qt_graph_tests.cpp",
+      "sha256": "8724d128caa9eb35d33778e0bc5db0c177f7bfbc90d07445ca2b66b45b89b80f"
+    },
+    {
+      "path": "tests/codeguard/qt_read_tests.cpp",
+      "sha256": "67a0ea67f0acba83118d28337cc911abb54137f5292d6df60bf2b5d3521e53e4"
+    },
+    {
+      "path": "tests/codeguard/qt_scale_tests.cpp",
+      "sha256": "60c7d661d3363a5c7c7ba95e62fcfae677a96018b2c41dc4b62f3979b47e7d2a"
+    },
+    {
+      "path": "tests/codeguard/qt_task_tests.cpp",
+      "sha256": "39816a7891d17453b08227b59fa08e99e857cdbb69c318f2c8b2d7f375a42829"
+    },
+    {
+      "path": "tests/codeguard/query_tests.cpp",
+      "sha256": "e97d87ea64cf3c0e67a184d3bcfef806753e89f30aaad85dd4e240d84b98cbbd"
+    },
+    {
+      "path": "tests/codeguard/report_tests.cpp",
+      "sha256": "e36eddb1ecdec6c186c87a2bdc925d2f79be8f511e6ab52900208608c400880d"
+    },
+    {
+      "path": "tests/codeguard/rule_policy_tests.cpp",
+      "sha256": "1fc95c4f0cf1ff6dab2739734ddcf30132bc513fff5bfe57919ba9fb3fde3877"
+    }
+  ],
+  "real_graphs": [
+    {
+      "project": "cjson",
+      "kind": "call",
+      "source_database": "artifacts\\p2-2-flow-20261026\\real-projects\\cjson\\threads-4.sqlite3",
+      "database_sha256": "1e2310a99b81500de5a2159cc3808c5f1fd56ae8ffbca836741ebdb53c0ce9ba",
+      "scan_id": 1,
+      "stored_positions": 6255,
+      "unique_links": 4214,
+      "from": "c:misc_tests.c@F@cjson_functions_should_not_crash_with_null_pointers@file=tests/misc_tests.c@tu=tests/misc_tests.c",
+      "to": "c:cJSON.c@F@parse_hex4@file=cJSON.c@tu=tests/readme_examples.c",
+      "path_edges": 6,
+      "independent_bfs_matches": true,
+      "analysis": "partial",
+      "exit_code": 2,
+      "wall_ms": 202,
+      "log": "artifacts\\p2-2-graph-20261026\\cjson-call-path.log"
+    },
+    {
+      "project": "cjson",
+      "kind": "include",
+      "source_database": "artifacts\\p2-2-flow-20261026\\real-projects\\cjson\\threads-4.sqlite3",
+      "database_sha256": "1e2310a99b81500de5a2159cc3808c5f1fd56ae8ffbca836741ebdb53c0ce9ba",
+      "scan_id": 1,
+      "stored_positions": 152,
+      "unique_links": 151,
+      "from": "tests/cjson_add.c",
+      "to": "d:/work/workdone/cpp-defect-guard/build/p0-windows/toolchain-4/mingw64/lib/clang/22/include/stddef.h",
+      "path_edges": 4,
+      "independent_bfs_matches": true,
+      "analysis": "partial",
+      "exit_code": 2,
+      "wall_ms": 234,
+      "log": "artifacts\\p2-2-graph-20261026\\cjson-include-path.log"
+    },
+    {
+      "project": "tinyxml2",
+      "kind": "call",
+      "source_database": "artifacts\\p2-2-flow-20261026\\real-projects\\tinyxml2\\threads-4.sqlite3",
+      "database_sha256": "3ef556deb21a64c0b072819fa4e34d972cb008da5a0db36fd2b26210fdbedc11",
+      "scan_id": 1,
+      "stored_positions": 2666,
+      "unique_links": 1050,
+      "from": "c:@F@example_3#",
+      "to": "c:@N@tinyxml2@S@DynArray>#*$@N@tinyxml2@S@MemPoolT>#VI120@S@Block#VI10@F@EnsureCapacity#I#",
+      "path_edges": 8,
+      "independent_bfs_matches": true,
+      "analysis": "partial",
+      "exit_code": 2,
+      "wall_ms": 136,
+      "log": "artifacts\\p2-2-graph-20261026\\tinyxml2-call-path.log"
+    },
+    {
+      "project": "tinyxml2",
+      "kind": "include",
+      "source_database": "artifacts\\p2-2-flow-20261026\\real-projects\\tinyxml2\\threads-4.sqlite3",
+      "database_sha256": "3ef556deb21a64c0b072819fa4e34d972cb008da5a0db36fd2b26210fdbedc11",
+      "scan_id": 1,
+      "stored_positions": 18,
+      "unique_links": 18,
+      "from": "xmltest.cpp",
+      "to": "d:/work/workdone/cpp-defect-guard/build/p0-windows/toolchain-4/mingw64/lib/clang/22/include/stdint.h",
+      "path_edges": 2,
+      "independent_bfs_matches": true,
+      "analysis": "partial",
+      "exit_code": 2,
+      "wall_ms": 92,
+      "log": "artifacts\\p2-2-graph-20261026\\tinyxml2-include-path.log"
+    },
+    {
+      "project": "fmt",
+      "kind": "call",
+      "source_database": "artifacts\\p2-2-flow-20261026\\real-projects\\fmt\\threads-4.sqlite3",
+      "database_sha256": "fb5e42545a83515df4dd687e82ab09c3cacd95d6a11803f87d7cdfa870ecb51d",
+      "scan_id": 1,
+      "stored_positions": 98202,
+      "unique_links": 66168,
+      "from": "c:@S@format_test_precision_Test@F@TestBody#",
+      "to": "c:@N@fmt@N@v11@N@detail@F@write_int<#$@N@fmt@N@v11@S@basic_appender>#C#k#C>#S0_#k#i#&1$@N@fmt@N@v11@S@format_specs#&1$@N@fmt@N@v11@N@detail@S@digit_grouping>#C#@Sa@F@operator()#S0_#1@file=include/fmt/format.h",
+      "path_edges": 16,
+      "independent_bfs_matches": true,
+      "analysis": "partial",
+      "exit_code": 2,
+      "wall_ms": 2225,
+      "log": "artifacts\\p2-2-graph-20261026\\fmt-call-path.log"
+    },
+    {
+      "project": "fmt",
+      "kind": "include",
+      "source_database": "artifacts\\p2-2-flow-20261026\\real-projects\\fmt\\threads-4.sqlite3",
+      "database_sha256": "fb5e42545a83515df4dd687e82ab09c3cacd95d6a11803f87d7cdfa870ecb51d",
+      "scan_id": 1,
+      "stored_positions": 508,
+      "unique_links": 403,
+      "from": "test/format-test.cc",
+      "to": "d:/work/workdone/cpp-defect-guard/build/p0-windows/toolchain-4/mingw64/lib/clang/22/include/float.h",
+      "path_edges": 4,
+      "independent_bfs_matches": true,
+      "analysis": "partial",
+      "exit_code": 2,
+      "wall_ms": 1912,
+      "log": "artifacts\\p2-2-graph-20261026\\fmt-include-path.log"
+    }
+  ],
+  "core_real_graphs": [
+    {
+      "project": "cjson",
+      "kind": "call",
+      "source_database": "artifacts\\p2-2-flow-20261026\\real-projects\\cjson\\threads-4.sqlite3",
+      "database_sha256": "1e2310a99b81500de5a2159cc3808c5f1fd56ae8ffbca836741ebdb53c0ce9ba",
+      "scan_id": 1,
+      "stored_positions": 6255,
+      "unique_links": 4214,
+      "from": "c:misc_tests.c@F@cjson_functions_should_not_crash_with_null_pointers@file=tests/misc_tests.c@tu=tests/misc_tests.c",
+      "to": "c:cJSON.c@F@parse_hex4@file=cJSON.c@tu=tests/readme_examples.c",
+      "path_edges": 6,
+      "independent_bfs_matches": true,
+      "analysis": "partial",
+      "exit_code": 2,
+      "wall_ms": 265,
+      "log": "artifacts\\p2-2-graph-20261026\\core-cjson-call-path.log"
+    },
+    {
+      "project": "cjson",
+      "kind": "include",
+      "source_database": "artifacts\\p2-2-flow-20261026\\real-projects\\cjson\\threads-4.sqlite3",
+      "database_sha256": "1e2310a99b81500de5a2159cc3808c5f1fd56ae8ffbca836741ebdb53c0ce9ba",
+      "scan_id": 1,
+      "stored_positions": 152,
+      "unique_links": 151,
+      "from": "tests/cjson_add.c",
+      "to": "d:/work/workdone/cpp-defect-guard/build/p0-windows/toolchain-4/mingw64/lib/clang/22/include/stddef.h",
+      "path_edges": 4,
+      "independent_bfs_matches": true,
+      "analysis": "partial",
+      "exit_code": 2,
+      "wall_ms": 214,
+      "log": "artifacts\\p2-2-graph-20261026\\core-cjson-include-path.log"
+    },
+    {
+      "project": "tinyxml2",
+      "kind": "call",
+      "source_database": "artifacts\\p2-2-flow-20261026\\real-projects\\tinyxml2\\threads-4.sqlite3",
+      "database_sha256": "3ef556deb21a64c0b072819fa4e34d972cb008da5a0db36fd2b26210fdbedc11",
+      "scan_id": 1,
+      "stored_positions": 2666,
+      "unique_links": 1050,
+      "from": "c:@F@example_3#",
+      "to": "c:@N@tinyxml2@S@DynArray>#*$@N@tinyxml2@S@MemPoolT>#VI120@S@Block#VI10@F@EnsureCapacity#I#",
+      "path_edges": 8,
+      "independent_bfs_matches": true,
+      "analysis": "partial",
+      "exit_code": 2,
+      "wall_ms": 89,
+      "log": "artifacts\\p2-2-graph-20261026\\core-tinyxml2-call-path.log"
+    },
+    {
+      "project": "tinyxml2",
+      "kind": "include",
+      "source_database": "artifacts\\p2-2-flow-20261026\\real-projects\\tinyxml2\\threads-4.sqlite3",
+      "database_sha256": "3ef556deb21a64c0b072819fa4e34d972cb008da5a0db36fd2b26210fdbedc11",
+      "scan_id": 1,
+      "stored_positions": 18,
+      "unique_links": 18,
+      "from": "xmltest.cpp",
+      "to": "d:/work/workdone/cpp-defect-guard/build/p0-windows/toolchain-4/mingw64/lib/clang/22/include/stdint.h",
+      "path_edges": 2,
+      "independent_bfs_matches": true,
+      "analysis": "partial",
+      "exit_code": 2,
+      "wall_ms": 90,
+      "log": "artifacts\\p2-2-graph-20261026\\core-tinyxml2-include-path.log"
+    },
+    {
+      "project": "fmt",
+      "kind": "call",
+      "source_database": "artifacts\\p2-2-flow-20261026\\real-projects\\fmt\\threads-4.sqlite3",
+      "database_sha256": "fb5e42545a83515df4dd687e82ab09c3cacd95d6a11803f87d7cdfa870ecb51d",
+      "scan_id": 1,
+      "stored_positions": 98202,
+      "unique_links": 66168,
+      "from": "c:@S@format_test_precision_Test@F@TestBody#",
+      "to": "c:@N@fmt@N@v11@N@detail@F@write_int<#$@N@fmt@N@v11@S@basic_appender>#C#k#C>#S0_#k#i#&1$@N@fmt@N@v11@S@format_specs#&1$@N@fmt@N@v11@N@detail@S@digit_grouping>#C#@Sa@F@operator()#S0_#1@file=include/fmt/format.h",
+      "path_edges": 16,
+      "independent_bfs_matches": true,
+      "analysis": "partial",
+      "exit_code": 2,
+      "wall_ms": 3326,
+      "log": "artifacts\\p2-2-graph-20261026\\core-fmt-call-path.log"
+    },
+    {
+      "project": "fmt",
+      "kind": "include",
+      "source_database": "artifacts\\p2-2-flow-20261026\\real-projects\\fmt\\threads-4.sqlite3",
+      "database_sha256": "fb5e42545a83515df4dd687e82ab09c3cacd95d6a11803f87d7cdfa870ecb51d",
+      "scan_id": 1,
+      "stored_positions": 508,
+      "unique_links": 403,
+      "from": "test/format-test.cc",
+      "to": "d:/work/workdone/cpp-defect-guard/build/p0-windows/toolchain-4/mingw64/lib/clang/22/include/float.h",
+      "path_edges": 4,
+      "independent_bfs_matches": true,
+      "analysis": "partial",
+      "exit_code": 2,
+      "wall_ms": 2650,
+      "log": "artifacts\\p2-2-graph-20261026\\core-fmt-include-path.log"
+    }
+  ],
+  "core_cli": {
+    "path": "build/p2-2-flow-20261026-core/codeguard-cli.exe",
+    "sha256": "8c59a93f00b5850c3221351ade3bb4277f2f5f0e8e37e7c0480d5541f6e2a564"
+  },
+  "real_graph_runner": {
+    "path": "artifacts/p2-2-graph-20261026/accept-real-graphs.py",
+    "sha256": "6e42d545675b2ee20fd7eaf21b4a8c2c45130967af22720f49ac53dacbcb7809"
+  },
+  "real_graph_scope": "Read existing local-dataflow-stage databases, independently compare node sequences against Python BFS; no new upstream rebuild or scan.",
+  "prior_index_ci": {
+    "conclusion": "success",
+    "databaseId": 35759818037,
+    "headSha": "68a3490508deece1bfa6c2bc29a375d69ddbb00e",
+    "jobs": [
+      {
+        "completedAt": "2026-09-22T17:33:18Z",
+        "conclusion": "success",
+        "databaseId": 106855253502,
+        "name": "Windows x64 build, test and package",
+        "startedAt": "2026-09-22T17:19:54Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-09-22T17:19:56Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-09-22T17:19:55Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-22T17:20:07Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+            "number": 2,
+            "startedAt": "2026-09-22T17:19:56Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-22T17:20:08Z",
+            "conclusion": "success",
+            "name": "Cache verified dependency archives",
+            "number": 3,
+            "startedAt": "2026-09-22T17:20:07Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-22T17:22:08Z",
+            "conclusion": "success",
+            "name": "Restore locked native toolchain",
+            "number": 4,
+            "startedAt": "2026-09-22T17:20:08Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-22T17:22:19Z",
+            "conclusion": "success",
+            "name": "Save verified package archives before building",
+            "number": 5,
+            "startedAt": "2026-09-22T17:22:08Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-22T17:22:21Z",
+            "conclusion": "success",
+            "name": "Verify toolchain restore guards",
+            "number": 6,
+            "startedAt": "2026-09-22T17:22:19Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-22T17:22:21Z",
+            "conclusion": "success",
+            "name": "Verify failed builds preserve caller environment",
+            "number": 7,
+            "startedAt": "2026-09-22T17:22:21Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-22T17:23:07Z",
+            "conclusion": "success",
+            "name": "Core debug build and tests",
+            "number": 8,
+            "startedAt": "2026-09-22T17:22:21Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-22T17:26:31Z",
+            "conclusion": "success",
+            "name": "Clang and Qt release build, tests and package",
+            "number": 9,
+            "startedAt": "2026-09-22T17:23:07Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-22T17:32:35Z",
+            "conclusion": "success",
+            "name": "Real C and C++ project acceptance",
+            "number": 10,
+            "startedAt": "2026-09-22T17:26:31Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-22T17:33:06Z",
+            "conclusion": "success",
+            "name": "Preserve real project acceptance evidence",
+            "number": 11,
+            "startedAt": "2026-09-22T17:32:35Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-22T17:33:08Z",
+            "conclusion": "success",
+            "name": "Preserve diagnostics even on failure",
+            "number": 12,
+            "startedAt": "2026-09-22T17:33:06Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-22T17:33:12Z",
+            "conclusion": "success",
+            "name": "Upload tested Windows package",
+            "number": 13,
+            "startedAt": "2026-09-22T17:33:08Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-22T17:33:14Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+            "number": 26,
+            "startedAt": "2026-09-22T17:33:12Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-22T17:33:14Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 27,
+            "startedAt": "2026-09-22T17:33:14Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/hajiujiu174/cpp-defect-guard/actions/runs/35759818037/job/106855253502"
+      },
+      {
+        "completedAt": "2026-09-22T17:33:43Z",
+        "conclusion": "success",
+        "databaseId": 106860242824,
+        "name": "Fresh Windows runner package smoke test",
+        "startedAt": "2026-09-22T17:33:21Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-09-22T17:33:23Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-09-22T17:33:22Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-22T17:33:29Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+            "number": 2,
+            "startedAt": "2026-09-22T17:33:23Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-22T17:33:32Z",
+            "conclusion": "success",
+            "name": "Run actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093",
+            "number": 3,
+            "startedAt": "2026-09-22T17:33:29Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-22T17:33:35Z",
+            "conclusion": "success",
+            "name": "Verify and unpack package",
+            "number": 4,
+            "startedAt": "2026-09-22T17:33:32Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-22T17:33:38Z",
+            "conclusion": "success",
+            "name": "Run without the build toolchain",
+            "number": 5,
+            "startedAt": "2026-09-22T17:33:35Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-22T17:33:40Z",
+            "conclusion": "success",
+            "name": "Preserve runtime verification",
+            "number": 6,
+            "startedAt": "2026-09-22T17:33:38Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-22T17:33:41Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+            "number": 12,
+            "startedAt": "2026-09-22T17:33:40Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-22T17:33:41Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 13,
+            "startedAt": "2026-09-22T17:33:41Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/hajiujiu174/cpp-defect-guard/actions/runs/35759818037/job/106860242824"
+      }
+    ],
+    "status": "completed"
+  },
+  "prior_ci_scope": "Only commit 68a3490; does not cover these uncommitted changes.",
+  "package": {
+    "path": "artifacts/p2-2-graph-20261026/CodeGuard-Windows-x64.zip",
+    "sha256": "0736859c128bef181df37c4a005109804ac2c07010954093cfbe48e15417610e",
+    "bytes": 134447465,
+    "cli": {
+      "path": "artifacts/p2-2-graph-20261026/CodeGuard-Windows-x64/codeguard-cli.exe",
+      "sha256": "e4a2a46a8e2c1a1efc67d9e40f3b755ecd190eede83c09d1e34b2ddba53fd534"
+    },
+    "gui": {
+      "path": "artifacts/p2-2-graph-20261026/CodeGuard-Windows-x64/codeguard-gui.exe",
+      "sha256": "a3d1e93b5a25c6ac93f14042cd65676b46bdc033ce10fe27946319918ead49b5"
+    },
+    "qa": {
+      "package": "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p2-2-graph-20261026\\CodeGuard-Windows-x64",
+      "template_initializer": true,
+      "graph_path": true,
+      "packaged_resource_header": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p2-2-graph-20261026/CodeGuard-Windows-x64/resources/clang/include/stddef.h",
+      "chinese_font": true,
+      "cli": true,
+      "clang": true,
+      "gui": true,
+      "timestamp": "2026-10-26T19:26:35.7103214+08:00",
+      "local_flow": true,
+      "clean_path": true
+    },
+    "qa_record": {
+      "path": "artifacts/p2-2-graph-20261026/package-qa-delivery/result.json",
+      "sha256": "55aeef5876894618e6537a898adfd2add9c7740806ab828d71837bb5fc0af500"
+    },
+    "screenshots_reviewed": [
+      {
+        "path": "artifacts/p2-2-graph-20261026/package-qa-delivery/gui-graph.png",
+        "sha256": "79d2e9878f0238f8d76fa6353e4b64e8f567fe6778607954acec10a7c7dc2822"
+      },
+      {
+        "path": "artifacts/p2-2-graph-20261026/package-qa-delivery/gui-graph-compact.png",
+        "sha256": "1a0773631ccf72ce4dde1371f9f11e61be8e009d2cc9fdc43d0b71b676f61cdd"
+      }
+    ]
+  },
+  "known_limits": [
+    "No new independent remote CI or second physical Windows machine acceptance",
+    "Stored static paths do not prove executable runtime paths",
+    "Graph projection is bounded; complete paths are retained by a virtual table model",
+    "Full snapshot and graph index remain in memory; no database-streaming claim"
+  ]
+}

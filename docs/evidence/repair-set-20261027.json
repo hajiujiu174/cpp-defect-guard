@@ -1,0 +1,1032 @@
+{
+  "timestamp": "2026-10-27T04:13:55.360027+08:00",
+  "stage": "P3 explicit repair sets and shared proposed-copy verification",
+  "head": "68a3490508deece1bfa6c2bc29a375d69ddbb00e",
+  "uncommitted": true,
+  "remote_ci_for_current_code": "not_run",
+  "other_physical_windows_machine": "not_tested",
+  "build": "Existing locked-toolchain Windows Release Clang/Qt and Debug Core incremental builds; no clean-build or remote-CI claim",
+  "binaries": {
+    "analysis_cli": {
+      "path": "build/p2-2-flow-20261026-analysis/codeguard-cli.exe",
+      "sha256": "50caf81e21db17565b2fc589c2bcb8dc403a0ec2f4e5a2aa10320613dc0aa7c4"
+    },
+    "gui": {
+      "path": "build/p2-2-flow-20261026-analysis/gui/qt/codeguard-gui.exe",
+      "sha256": "8455f316207ec3a99fff601ad34696412c64243d9658c4866f068083ca607ccd"
+    },
+    "core_cli": {
+      "path": "build/p2-2-flow-20261026-core/codeguard-cli.exe",
+      "sha256": "ef29656ee8a77081714281158f9c0ba69b42be45baa7d3f59a615e305152a685"
+    }
+  },
+  "source_inventory": {
+    "path": "artifacts/p3-set-20261026/build-source-sha256.json",
+    "sha256": "a9d26e001ac68f551eeeccaa523f2147af70c8aa700966c2d5a5053743e08cef"
+  },
+  "tests": {
+    "core_full": {
+      "path": "artifacts/p3-set-20261026/core-full.xml",
+      "sha256": "ec9b2e4d58d36024dfe2517eadfec83500f01c11b80b4aa9e1dd06ccee02b10a",
+      "total": 66,
+      "passed": 65,
+      "failed": [],
+      "skipped": [
+        "codeguard.symlink"
+      ],
+      "timestamp": "2026-10-27T03:59:25",
+      "names": [
+        "codeguard.repair_set_codec",
+        "codeguard.repair_coverage_ranking",
+        "codeguard.repair_coverage_reset",
+        "codeguard.repair_batch_ranking",
+        "codeguard.repair_copy",
+        "codeguard.graph_explorer_index",
+        "codeguard.graph_explorer_path",
+        "codeguard.graph_explorer_slice",
+        "codeguard.graph_explorer_validation",
+        "codeguard.graph_explorer_deep",
+        "codeguard.report_history",
+        "codeguard.report_legacy",
+        "codeguard.report_comparison",
+        "codeguard.report_export",
+        "codeguard.report_cli",
+        "codeguard.rule_policy",
+        "codeguard.rule_migration",
+        "codeguard.profiles",
+        "codeguard.invalid_profile",
+        "codeguard.discovery",
+        "codeguard.config_migration",
+        "codeguard.google_contracts",
+        "codeguard.pool",
+        "codeguard.git",
+        "codeguard.build_pass",
+        "codeguard.build_failure",
+        "codeguard.build_testfail",
+        "codeguard.build_notests",
+        "codeguard.build_timeout",
+        "codeguard.build_cancel",
+        "codeguard.build_stale",
+        "codeguard.build_configuration",
+        "codeguard.process_args",
+        "codeguard.process_flood",
+        "codeguard.process_failure",
+        "codeguard.process_timeout",
+        "codeguard.process_cancel",
+        "codeguard.scan",
+        "codeguard.empty",
+        "codeguard.ignore",
+        "codeguard.missing",
+        "codeguard.persistence",
+        "codeguard.changes",
+        "codeguard.rollback",
+        "codeguard.readonly",
+        "codeguard.foreign_db",
+        "codeguard.source_protection",
+        "codeguard.unicode",
+        "codeguard.symlink",
+        "codeguard.cli_help",
+        "codeguard.query_pipeline",
+        "codeguard.query_precedence",
+        "codeguard.query_ordering",
+        "codeguard.query_errors",
+        "codeguard.query_bounds",
+        "codeguard.query_coverage",
+        "codeguard.query_cancel",
+        "codeguard.cli_reject",
+        "codeguard.cancel_new",
+        "codeguard.cancel_scan",
+        "codeguard.cancel_transaction",
+        "codeguard.cancel_new_transaction",
+        "codeguard.cancel_fence",
+        "codeguard.cancel_after_commit",
+        "codeguard.graphs",
+        "codeguard.migration"
+      ]
+    },
+    "analysis_full": {
+      "path": "artifacts/p3-set-20261026/analysis-full.xml",
+      "sha256": "c0ba5ea5202d75a8c38efb582ee56b4e52a017f9b75dbd42929b89e73619a74b",
+      "total": 165,
+      "passed": 164,
+      "failed": [],
+      "skipped": [
+        "codeguard.symlink"
+      ],
+      "timestamp": "2026-10-27T04:01:07",
+      "names": [
+        "codeguard.repair_set_codec",
+        "codeguard.repair_set_samefile",
+        "codeguard.repair_set_multifile",
+        "codeguard.repair_set_conflicts",
+        "codeguard.repair_set_mapping",
+        "codeguard.repair_set_rewrite",
+        "codeguard.repair_set_baseline",
+        "codeguard.repair_set_policy",
+        "codeguard.repair_set_cancel",
+        "codeguard.repair_set_cli",
+        "codeguard.repair_set_coverage",
+        "codeguard.repair_coverage_ranking",
+        "codeguard.repair_coverage_reset",
+        "codeguard.repair_coverage_validate",
+        "codeguard.repair_coverage_target",
+        "codeguard.repair_coverage_failures",
+        "codeguard.repair_coverage_safety",
+        "codeguard.repair_coverage_cli",
+        "codeguard.repair_batch_ranking",
+        "codeguard.repair_batch_workflow",
+        "codeguard.repair_batch_cancel",
+        "codeguard.repair_batch_source_changed",
+        "codeguard.repair_batch_cli",
+        "codeguard.repair_copy",
+        "codeguard.repair_propose",
+        "codeguard.repair_roundtrip",
+        "codeguard.repair_validate",
+        "codeguard.repair_failures",
+        "codeguard.repair_printf",
+        "codeguard.repair_policy",
+        "codeguard.repair_cancel",
+        "codeguard.repair_c",
+        "codeguard.repair_baseline",
+        "codeguard.repair_cli",
+        "codeguard.graph_explorer_index",
+        "codeguard.graph_explorer_path",
+        "codeguard.graph_explorer_slice",
+        "codeguard.graph_explorer_validation",
+        "codeguard.graph_explorer_deep",
+        "codeguard.report_history",
+        "codeguard.report_legacy",
+        "codeguard.report_comparison",
+        "codeguard.report_export",
+        "codeguard.report_cli",
+        "codeguard.local_flow_boundaries",
+        "codeguard.local_flow_disabled",
+        "codeguard.local_flow_policy",
+        "codeguard.local_flow_cache",
+        "codeguard.navigation_references",
+        "codeguard.navigation_metrics",
+        "codeguard.navigation_persistence",
+        "codeguard.navigation_dedup",
+        "codeguard.navigation_legacy",
+        "codeguard.navigation_cli",
+        "codeguard.cache_reuse",
+        "codeguard.cache_dependencies",
+        "codeguard.cache_policy",
+        "codeguard.cache_failures",
+        "codeguard.cache_stability",
+        "codeguard.cache_cli",
+        "codeguard.report_provenance",
+        "codeguard.report_gui",
+        "codeguard.rule_policy",
+        "codeguard.rule_migration",
+        "codeguard.evaluate_CG001",
+        "codeguard.evaluate_CG002",
+        "codeguard.evaluate_CG003",
+        "codeguard.evaluate_CG004",
+        "codeguard.evaluate_CG005",
+        "codeguard.rule_cli",
+        "codeguard.rule_coverage",
+        "codeguard.rule_gui",
+        "codeguard.profiles",
+        "codeguard.invalid_profile",
+        "codeguard.discovery",
+        "codeguard.config_migration",
+        "codeguard.command_selection",
+        "codeguard.prepare_config",
+        "codeguard.configuration_cli",
+        "codeguard.google_contracts",
+        "codeguard.pool",
+        "codeguard.git",
+        "codeguard.build_pass",
+        "codeguard.build_failure",
+        "codeguard.build_testfail",
+        "codeguard.build_notests",
+        "codeguard.build_timeout",
+        "codeguard.build_cancel",
+        "codeguard.build_stale",
+        "codeguard.build_configuration",
+        "codeguard.process_args",
+        "codeguard.process_flood",
+        "codeguard.process_failure",
+        "codeguard.process_timeout",
+        "codeguard.process_cancel",
+        "codeguard.rules",
+        "codeguard.parallel",
+        "codeguard.scan",
+        "codeguard.empty",
+        "codeguard.ignore",
+        "codeguard.missing",
+        "codeguard.persistence",
+        "codeguard.changes",
+        "codeguard.rollback",
+        "codeguard.readonly",
+        "codeguard.foreign_db",
+        "codeguard.source_protection",
+        "codeguard.unicode",
+        "codeguard.symlink",
+        "codeguard.cli_help",
+        "codeguard.query_pipeline",
+        "codeguard.query_precedence",
+        "codeguard.query_ordering",
+        "codeguard.query_errors",
+        "codeguard.query_bounds",
+        "codeguard.query_coverage",
+        "codeguard.query_cancel",
+        "codeguard.cli_reject",
+        "codeguard.cancel_new",
+        "codeguard.cancel_scan",
+        "codeguard.cancel_transaction",
+        "codeguard.cancel_new_transaction",
+        "codeguard.cancel_fence",
+        "codeguard.cancel_after_commit",
+        "codeguard.graphs",
+        "codeguard.migration",
+        "codeguard.cancel_analysis",
+        "codeguard.clang",
+        "codeguard.partial",
+        "codeguard.missing_command",
+        "codeguard.ambiguous",
+        "codeguard.unsafe",
+        "codeguard.identity",
+        "codeguard.fixture_configure",
+        "codeguard.analysis_cli",
+        "codeguard.level3_configure",
+        "codeguard.level3_cli",
+        "codeguard.level3_gui",
+        "codeguard.repair_gui",
+        "codeguard.repair_set_configure",
+        "codeguard.repair_set_gui",
+        "codeguard.analysis_gui",
+        "codeguard.qt_repair_set_workflow",
+        "codeguard.qt_repair_set_cancel",
+        "codeguard.qt_repair_set_coverage",
+        "codeguard.qt_repair_coverage",
+        "codeguard.qt_repair_workflow",
+        "codeguard.qt_repair_cancel",
+        "codeguard.qt_repair_batch",
+        "codeguard.qt_repair_batch_cancel",
+        "codeguard.qt_graph_workflow",
+        "codeguard.qt_graph_scale",
+        "codeguard.qt_graph_stale",
+        "codeguard.qt_read_query",
+        "codeguard.qt_read_history",
+        "codeguard.qt_read_report",
+        "codeguard.qt_configuration_choices",
+        "codeguard.configuration_gui",
+        "codeguard.qt_lock_cancel",
+        "codeguard.qt_read_lock_cancel",
+        "codeguard.qt_scale_inventory",
+        "codeguard.qt_scale_clang",
+        "codeguard.qt_scale_window",
+        "codeguard.qt_background",
+        "codeguard.gui_smoke"
+      ]
+    },
+    "set_focused": {
+      "path": "artifacts/p3-set-20261026/set-final-tests.xml",
+      "sha256": "8e253732e59dd31e4d76e1e358c9d0bc305be358cb3879ff514297552d6bd98b",
+      "total": 16,
+      "passed": 16,
+      "failed": [],
+      "skipped": [],
+      "timestamp": "2026-10-27T03:57:26",
+      "names": [
+        "codeguard.repair_set_codec",
+        "codeguard.repair_set_samefile",
+        "codeguard.repair_set_multifile",
+        "codeguard.repair_set_conflicts",
+        "codeguard.repair_set_mapping",
+        "codeguard.repair_set_rewrite",
+        "codeguard.repair_set_baseline",
+        "codeguard.repair_set_policy",
+        "codeguard.repair_set_cancel",
+        "codeguard.repair_set_cli",
+        "codeguard.repair_set_coverage",
+        "codeguard.repair_set_configure",
+        "codeguard.repair_set_gui",
+        "codeguard.qt_repair_set_workflow",
+        "codeguard.qt_repair_set_cancel",
+        "codeguard.qt_repair_set_coverage"
+      ]
+    }
+  },
+  "regression": {
+    "initial_expected_failure": {
+      "path": "artifacts/p3-set-20261026/unselected-rewrite-initial.xml",
+      "sha256": "1e3d685a83601947def0c58fb089b71ddd3f4c3a967c83feee6ce7581e4e36f1",
+      "total": 1,
+      "passed": 0,
+      "failed": [
+        "codeguard.repair_set_rewrite"
+      ],
+      "skipped": [],
+      "timestamp": "2026-10-26T23:00:42",
+      "names": [
+        "codeguard.repair_set_rewrite"
+      ]
+    },
+    "fixed_test": "codeguard.repair_set_rewrite",
+    "shared_by_single_and_set": true
+  },
+  "cli_delivery": {
+    "evidence": {
+      "path": "artifacts/p3-set-20261026/cli-delivery-final/result.json",
+      "sha256": "84d795f49de2fcfa93c4810e4b50b2668085d38290afb4c15f1600c73ee23e46"
+    },
+    "runner": {
+      "path": "scripts/accept_repair_set.py",
+      "sha256": "544300c7e82c021999a06e59fb55cc16c57b4521097e5b011c303d9d6976f494"
+    },
+    "single_results": [
+      "tests_failed",
+      "tests_failed"
+    ],
+    "combined": {
+      "candidate_id": "cgset-8aebe1125bec136e",
+      "status": "gates_passed",
+      "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-set-20261026/cli-delivery-final/validation/cgset-8aebe1125bec136e-8623191966000-0",
+      "error": "",
+      "build_run_id": 3,
+      "build_status": "passed",
+      "test_status": "passed",
+      "tests_total": 1,
+      "tests_failed": 0,
+      "tests_skipped": 0,
+      "source_unchanged": true,
+      "analysis_status": "complete",
+      "baseline_status": "complete",
+      "baseline_target_reproduced": true,
+      "target_not_detected": true,
+      "gates_passed": true,
+      "before_issues": 2,
+      "after_issues": 0,
+      "new_or_unmasked_issues": 0,
+      "coverage": {
+        "status": "collected",
+        "error": "",
+        "tool": "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\p0-windows\\toolchain-4\\mingw64\\bin\\gcov.exe",
+        "tool_version": "gcov (Rev3, Built by MSYS2 project) 16.2.0",
+        "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-set-20261026/cli-delivery-final/validation/cgset-8aebe1125bec136e-8623191966000-0/coverage",
+        "scope_signature": "gcov-project-lines-v1:6559326b2089b6ff",
+        "target_line_status": "recorded",
+        "lines_total": 9,
+        "lines_hit": 9,
+        "branch_records": 12,
+        "branch_records_taken": 8,
+        "notes_files": 3,
+        "data_files": 3,
+        "scope": "Instrumented project lines only; headers unioned by file/line; branch records counted per object and emission; uninstrumented files excluded from denominator",
+        "files": [
+          {
+            "file": "main.cpp",
+            "branch_records": 8,
+            "branch_records_taken": 4,
+            "lines": [
+              {
+                "line": 3,
+                "recorded": true
+              },
+              {
+                "line": 4,
+                "recorded": true
+              },
+              {
+                "line": 5,
+                "recorded": true
+              }
+            ]
+          },
+          {
+            "file": "one.cpp",
+            "branch_records": 2,
+            "branch_records_taken": 2,
+            "lines": [
+              {
+                "line": 1,
+                "recorded": true
+              },
+              {
+                "line": 2,
+                "recorded": true
+              },
+              {
+                "line": 3,
+                "recorded": true
+              }
+            ]
+          },
+          {
+            "file": "zero.cpp",
+            "branch_records": 2,
+            "branch_records_taken": 2,
+            "lines": [
+              {
+                "line": 1,
+                "recorded": true
+              },
+              {
+                "line": 2,
+                "recorded": true
+              },
+              {
+                "line": 3,
+                "recorded": true
+              }
+            ]
+          }
+        ],
+        "unmeasured_files": []
+      },
+      "coverage_commands_normalized": true,
+      "proposed_copy_verified": true,
+      "targets": [
+        {
+          "candidate_id": "cgfix-bb3c7a276282335b",
+          "rule_id": "CG003",
+          "file": "one.cpp",
+          "line": 2,
+          "column": 9,
+          "revised_line": 2,
+          "revised_column": 9,
+          "baseline_reproduced": true,
+          "target_not_detected": true,
+          "coverage_line_status": "recorded"
+        },
+        {
+          "candidate_id": "cgfix-5413f3ae6bc11098",
+          "rule_id": "CG003",
+          "file": "zero.cpp",
+          "line": 2,
+          "column": 9,
+          "revised_line": 2,
+          "revised_column": 9,
+          "baseline_reproduced": true,
+          "target_not_detected": true,
+          "coverage_line_status": "recorded"
+        }
+      ],
+      "correctness": "not_assessed"
+    },
+    "behavioral_counterexample": {
+      "candidate_id": "cgset-a71dc102d195e503",
+      "status": "tests_failed",
+      "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-set-20261026/cli-delivery-final/rejected/cgset-a71dc102d195e503-8629483516400-0",
+      "error": "",
+      "build_run_id": 4,
+      "build_status": "passed",
+      "test_status": "failed",
+      "tests_total": 1,
+      "tests_failed": 1,
+      "tests_skipped": 0,
+      "source_unchanged": true,
+      "analysis_status": "complete",
+      "baseline_status": "complete",
+      "baseline_target_reproduced": true,
+      "target_not_detected": true,
+      "gates_passed": false,
+      "before_issues": 2,
+      "after_issues": 0,
+      "new_or_unmasked_issues": 0,
+      "coverage": {
+        "status": "not_measured",
+        "error": "",
+        "tool": "",
+        "tool_version": "",
+        "workspace": "",
+        "scope_signature": "",
+        "target_line_status": "unknown",
+        "lines_total": 0,
+        "lines_hit": 0,
+        "branch_records": 0,
+        "branch_records_taken": 0,
+        "notes_files": 0,
+        "data_files": 0,
+        "scope": "Instrumented project lines only; headers unioned by file/line; branch records counted per object and emission; uninstrumented files excluded from denominator",
+        "files": [],
+        "unmeasured_files": []
+      },
+      "coverage_commands_normalized": false,
+      "proposed_copy_verified": true,
+      "targets": [
+        {
+          "candidate_id": "cgfix-bb3c7a276282335b",
+          "rule_id": "CG003",
+          "file": "one.cpp",
+          "line": 2,
+          "column": 9,
+          "revised_line": 2,
+          "revised_column": 9,
+          "baseline_reproduced": true,
+          "target_not_detected": true,
+          "coverage_line_status": "unknown"
+        },
+        {
+          "candidate_id": "cgfix-9d15c912c113ae18",
+          "rule_id": "CG003",
+          "file": "zero.cpp",
+          "line": 2,
+          "column": 9,
+          "revised_line": 2,
+          "revised_column": 10,
+          "baseline_reproduced": true,
+          "target_not_detected": true,
+          "coverage_line_status": "unknown"
+        }
+      ],
+      "correctness": "not_assessed"
+    },
+    "core": {
+      "candidate_id": "cgset-8aebe1125bec136e",
+      "status": "analysis_unavailable",
+      "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-set-20261026/cli-delivery-final/core/cgset-8aebe1125bec136e-8635112569700-0",
+      "error": "",
+      "build_run_id": 5,
+      "build_status": "passed",
+      "test_status": "passed",
+      "tests_total": 1,
+      "tests_failed": 0,
+      "tests_skipped": 0,
+      "source_unchanged": true,
+      "analysis_status": "unavailable",
+      "baseline_status": "unavailable",
+      "baseline_target_reproduced": false,
+      "target_not_detected": false,
+      "gates_passed": false,
+      "before_issues": -1,
+      "after_issues": -1,
+      "new_or_unmasked_issues": -1,
+      "coverage": {
+        "status": "not_measured",
+        "error": "",
+        "tool": "",
+        "tool_version": "",
+        "workspace": "",
+        "scope_signature": "",
+        "target_line_status": "unknown",
+        "lines_total": 0,
+        "lines_hit": 0,
+        "branch_records": 0,
+        "branch_records_taken": 0,
+        "notes_files": 0,
+        "data_files": 0,
+        "scope": "Instrumented project lines only; headers unioned by file/line; branch records counted per object and emission; uninstrumented files excluded from denominator",
+        "files": [],
+        "unmeasured_files": []
+      },
+      "coverage_commands_normalized": false,
+      "proposed_copy_verified": true,
+      "targets": [
+        {
+          "candidate_id": "cgfix-bb3c7a276282335b",
+          "rule_id": "CG003",
+          "file": "one.cpp",
+          "line": 2,
+          "column": 9,
+          "revised_line": 2,
+          "revised_column": 9,
+          "baseline_reproduced": false,
+          "target_not_detected": false,
+          "coverage_line_status": "unknown"
+        },
+        {
+          "candidate_id": "cgfix-5413f3ae6bc11098",
+          "rule_id": "CG003",
+          "file": "zero.cpp",
+          "line": 2,
+          "column": 9,
+          "revised_line": 2,
+          "revised_column": 9,
+          "baseline_reproduced": false,
+          "target_not_detected": false,
+          "coverage_line_status": "unknown"
+        }
+      ],
+      "correctness": "not_assessed"
+    },
+    "mixed_recipe_mapping": {
+      "candidate_id": "cgset-18d705bd684689ff",
+      "status": "gates_passed",
+      "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-set-20261026/cli-delivery-final/mixed-validation/cgset-18d705bd684689ff-8643093541500-0",
+      "error": "",
+      "build_run_id": 1,
+      "build_status": "passed",
+      "test_status": "passed",
+      "tests_total": 1,
+      "tests_failed": 0,
+      "tests_skipped": 0,
+      "source_unchanged": true,
+      "analysis_status": "complete",
+      "baseline_status": "complete",
+      "baseline_target_reproduced": true,
+      "target_not_detected": true,
+      "gates_passed": true,
+      "before_issues": 3,
+      "after_issues": 1,
+      "new_or_unmasked_issues": 0,
+      "coverage": {
+        "status": "not_measured",
+        "error": "",
+        "tool": "",
+        "tool_version": "",
+        "workspace": "",
+        "scope_signature": "",
+        "target_line_status": "unknown",
+        "lines_total": 0,
+        "lines_hit": 0,
+        "branch_records": 0,
+        "branch_records_taken": 0,
+        "notes_files": 0,
+        "data_files": 0,
+        "scope": "Instrumented project lines only; headers unioned by file/line; branch records counted per object and emission; uninstrumented files excluded from denominator",
+        "files": [],
+        "unmeasured_files": []
+      },
+      "coverage_commands_normalized": false,
+      "proposed_copy_verified": true,
+      "targets": [
+        {
+          "candidate_id": "cgfix-e71abaaae72184ef",
+          "rule_id": "CG001",
+          "file": "main.cpp",
+          "line": 2,
+          "column": 47,
+          "revised_line": 2,
+          "revised_column": 47,
+          "baseline_reproduced": true,
+          "target_not_detected": true,
+          "coverage_line_status": "unknown"
+        },
+        {
+          "candidate_id": "cgfix-0c562646ad6f81d3",
+          "rule_id": "CG003",
+          "file": "main.cpp",
+          "line": 2,
+          "column": 84,
+          "revised_line": 2,
+          "revised_column": 96,
+          "baseline_reproduced": true,
+          "target_not_detected": true,
+          "coverage_line_status": "unknown"
+        }
+      ],
+      "correctness": "not_assessed"
+    },
+    "reverse_order_identical": true,
+    "all_original_files_unchanged": true,
+    "source_sha256": {
+      "CMakeLists.txt": "390fcfd686500237482b77d689cc37f0a99ecff04219681941d2ba567656cb24",
+      "main.cpp": "c78a234c736eb79f522231cf10ac3e6e6bb3d16418a82ba6d91cdb95f4fab1ab",
+      "one.cpp": "940137152291ef906fa4123b488e65a172482a5f1808747409e8a098689fa1ca",
+      "README.md": "02a03328844c3baea16d280aa925d983659bdb8a2c926d8c29b8cffc13e7fb8e",
+      "zero.cpp": "8823765b200b57d089533b7e2834215bb607a5e2b034733fd09b139f7cdb579e"
+    }
+  },
+  "real_projects": {
+    "evidence": {
+      "path": "artifacts/p3-set-20261026/real-projects/results.json",
+      "sha256": "3a382e3cd5a7c7753ccfc60fa9be8381b1443d30cb6402a4339e0a1b04e4600e"
+    },
+    "environment": {
+      "path": "artifacts/p3-set-20261026/real-projects/environment.json",
+      "sha256": "1143b50c29399dc9b0423ac20a672bf92618a6628035464eea08d01f511295c9"
+    },
+    "projects": [
+      {
+        "project": "cjson",
+        "commit": "c859b25da02955fef659d658b8f324b5cde87be3",
+        "selected_tus": 27,
+        "successful_tus": 27,
+        "upstream_tests": 22,
+        "thread_equivalent": true,
+        "source_unchanged": true,
+        "cache": {
+          "cold": {
+            "command": [
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\p2-2-flow-20261026-analysis\\codeguard-cli.exe",
+              "scan",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p3-set-20261026\\real-projects\\cjson\\source",
+              "--database",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p3-set-20261026\\real-projects\\cjson\\cache.sqlite3",
+              "--compile-commands",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p3-set-20261026\\real-projects\\cjson\\selected",
+              "--threads",
+              "4",
+              "--cache",
+              "on"
+            ],
+            "exit_code": 2,
+            "timed_out": false,
+            "wall_ms": 4517,
+            "peak_working_set_bytes_sampled": 89894912,
+            "memory_scope": "parent process only, sampled every 20ms; scan includes its worker threads"
+          },
+          "warm": {
+            "command": [
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\p2-2-flow-20261026-analysis\\codeguard-cli.exe",
+              "scan",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p3-set-20261026\\real-projects\\cjson\\source",
+              "--database",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p3-set-20261026\\real-projects\\cjson\\cache.sqlite3",
+              "--compile-commands",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p3-set-20261026\\real-projects\\cjson\\selected",
+              "--threads",
+              "4",
+              "--cache",
+              "on"
+            ],
+            "exit_code": 2,
+            "timed_out": false,
+            "wall_ms": 2371,
+            "peak_working_set_bytes_sampled": 110772224,
+            "memory_scope": "parent process only, sampled every 20ms; scan includes its worker threads"
+          },
+          "warm_counts": {
+            "hits": 27,
+            "misses": 0,
+            "bypassed": 49,
+            "errors": 0
+          },
+          "equivalent_to_full": true
+        },
+        "analysis": {
+          "analysis": {
+            "scan_id": 1,
+            "status": "partial",
+            "compile_commands": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-set-20261026/real-projects/cjson/selected/compile_commands.json",
+            "workers": 4,
+            "elapsed_ms": 2000,
+            "configuration": "CodeGuardProjectConfig 2\n1 0 4 0 120000\n\"D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-set-20261026/real-projects/cjson/selected\"\n\"\"\n\"cmake\"\n\"ctest\"\n\"git\"\n\"Ninja\"\n\"\"\n\"\"\n\"\"\n\"Debug\"\n0\n0\n0\n0\n0\n0\n0\n",
+            "analyzer_revision": "sha256:61f707ebff313076206b5c9022927eae4777e34294ed675ea4e672dea5289a1d;clang:clang version 22.1.8 (https://github.com/msys2/MINGW-packages 6e4e79c2f86eeb534e324e583f2057dc9fd5ecab)",
+            "reference_index": "resolved_ast_v1"
+          },
+          "reference_observations": 73929,
+          "function_metrics": {
+            "count": 1105,
+            "max_nesting": 5,
+            "max_fan_in": 145,
+            "max_fan_out": 89
+          },
+          "unit_status_counts": {
+            "success": 27,
+            "missing_command": 49
+          },
+          "file_count": 99,
+          "physical_lines": 22367,
+          "covered_files": 33,
+          "issue_counts": {
+            "CG001": 26
+          }
+        },
+        "issue_review_matches": true,
+        "summary": {
+          "path": "artifacts/p3-set-20261026/real-projects/cjson/summary.json",
+          "sha256": "be50b070253e5f32aee4df21117f71a516cac39060c0f649788bde7b079f324a"
+        }
+      },
+      {
+        "project": "tinyxml2",
+        "commit": "321ea883b7190d4e85cae5512a12e5eaa8f8731f",
+        "selected_tus": 2,
+        "successful_tus": 2,
+        "upstream_tests": 1,
+        "thread_equivalent": true,
+        "source_unchanged": true,
+        "cache": {
+          "cold": {
+            "command": [
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\p2-2-flow-20261026-analysis\\codeguard-cli.exe",
+              "scan",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p3-set-20261026\\real-projects\\tinyxml2\\source",
+              "--database",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p3-set-20261026\\real-projects\\tinyxml2\\cache.sqlite3",
+              "--compile-commands",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p3-set-20261026\\real-projects\\tinyxml2\\selected",
+              "--threads",
+              "4",
+              "--cache",
+              "on"
+            ],
+            "exit_code": 2,
+            "timed_out": false,
+            "wall_ms": 3057,
+            "peak_working_set_bytes_sampled": 98914304,
+            "memory_scope": "parent process only, sampled every 20ms; scan includes its worker threads"
+          },
+          "warm": {
+            "command": [
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\p2-2-flow-20261026-analysis\\codeguard-cli.exe",
+              "scan",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p3-set-20261026\\real-projects\\tinyxml2\\source",
+              "--database",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p3-set-20261026\\real-projects\\tinyxml2\\cache.sqlite3",
+              "--compile-commands",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p3-set-20261026\\real-projects\\tinyxml2\\selected",
+              "--threads",
+              "4",
+              "--cache",
+              "on"
+            ],
+            "exit_code": 2,
+            "timed_out": false,
+            "wall_ms": 1002,
+            "peak_working_set_bytes_sampled": 49844224,
+            "memory_scope": "parent process only, sampled every 20ms; scan includes its worker threads"
+          },
+          "warm_counts": {
+            "hits": 2,
+            "misses": 0,
+            "bypassed": 1,
+            "errors": 0
+          },
+          "equivalent_to_full": true
+        },
+        "analysis": {
+          "analysis": {
+            "scan_id": 1,
+            "status": "partial",
+            "compile_commands": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-set-20261026/real-projects/tinyxml2/selected/compile_commands.json",
+            "workers": 3,
+            "elapsed_ms": 1459,
+            "configuration": "CodeGuardProjectConfig 2\n1 0 4 0 120000\n\"D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-set-20261026/real-projects/tinyxml2/selected\"\n\"\"\n\"cmake\"\n\"ctest\"\n\"git\"\n\"Ninja\"\n\"\"\n\"\"\n\"\"\n\"Debug\"\n0\n0\n0\n0\n0\n0\n0\n",
+            "analyzer_revision": "sha256:61f707ebff313076206b5c9022927eae4777e34294ed675ea4e672dea5289a1d;clang:clang version 22.1.8 (https://github.com/msys2/MINGW-packages 6e4e79c2f86eeb534e324e583f2057dc9fd5ecab)",
+            "reference_index": "resolved_ast_v1"
+          },
+          "reference_observations": 9065,
+          "function_metrics": {
+            "count": 515,
+            "max_nesting": 9,
+            "max_fan_in": 25,
+            "max_fan_out": 191
+          },
+          "unit_status_counts": {
+            "missing_command": 1,
+            "success": 2
+          },
+          "file_count": 4,
+          "physical_lines": 8266,
+          "covered_files": 3,
+          "issue_counts": {}
+        },
+        "issue_review_matches": true,
+        "summary": {
+          "path": "artifacts/p3-set-20261026/real-projects/tinyxml2/summary.json",
+          "sha256": "e4997fd256f19a928f4ca74590293ed18f9d588af0c5fe8e105d43206dd07551"
+        }
+      },
+      {
+        "project": "fmt",
+        "commit": "123913715afeb8a437e6388b4473fcc4753e1c9a",
+        "selected_tus": 30,
+        "successful_tus": 30,
+        "upstream_tests": 21,
+        "thread_equivalent": true,
+        "source_unchanged": true,
+        "cache": {
+          "cold": {
+            "command": [
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\p2-2-flow-20261026-analysis\\codeguard-cli.exe",
+              "scan",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p3-set-20261026\\real-projects\\fmt\\source",
+              "--database",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p3-set-20261026\\real-projects\\fmt\\cache.sqlite3",
+              "--compile-commands",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p3-set-20261026\\real-projects\\fmt\\selected",
+              "--threads",
+              "4",
+              "--cache",
+              "on"
+            ],
+            "exit_code": 2,
+            "timed_out": false,
+            "wall_ms": 65442,
+            "peak_working_set_bytes_sampled": 1241313280,
+            "memory_scope": "parent process only, sampled every 20ms; scan includes its worker threads"
+          },
+          "warm": {
+            "command": [
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\p2-2-flow-20261026-analysis\\codeguard-cli.exe",
+              "scan",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p3-set-20261026\\real-projects\\fmt\\source",
+              "--database",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p3-set-20261026\\real-projects\\fmt\\cache.sqlite3",
+              "--compile-commands",
+              "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p3-set-20261026\\real-projects\\fmt\\selected",
+              "--threads",
+              "4",
+              "--cache",
+              "on"
+            ],
+            "exit_code": 2,
+            "timed_out": false,
+            "wall_ms": 26521,
+            "peak_working_set_bytes_sampled": 1511493632,
+            "memory_scope": "parent process only, sampled every 20ms; scan includes its worker threads"
+          },
+          "warm_counts": {
+            "hits": 30,
+            "misses": 0,
+            "bypassed": 16,
+            "errors": 0
+          },
+          "equivalent_to_full": true
+        },
+        "analysis": {
+          "analysis": {
+            "scan_id": 1,
+            "status": "partial",
+            "compile_commands": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-set-20261026/real-projects/fmt/selected/compile_commands.json",
+            "workers": 4,
+            "elapsed_ms": 30034,
+            "configuration": "CodeGuardProjectConfig 2\n1 0 4 0 120000\n\"D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-set-20261026/real-projects/fmt/selected\"\n\"\"\n\"cmake\"\n\"ctest\"\n\"git\"\n\"Ninja\"\n\"\"\n\"\"\n\"\"\n\"Debug\"\n0\n0\n0\n0\n0\n0\n0\n",
+            "analyzer_revision": "sha256:61f707ebff313076206b5c9022927eae4777e34294ed675ea4e672dea5289a1d;clang:clang version 22.1.8 (https://github.com/msys2/MINGW-packages 6e4e79c2f86eeb534e324e583f2057dc9fd5ecab)",
+            "reference_index": "resolved_ast_v1"
+          },
+          "reference_observations": 782610,
+          "function_metrics": {
+            "count": 24773,
+            "max_nesting": 8,
+            "max_fan_in": 1078,
+            "max_fan_out": 108
+          },
+          "unit_status_counts": {
+            "missing_command": 16,
+            "success": 30
+          },
+          "file_count": 70,
+          "physical_lines": 68025,
+          "covered_files": 52,
+          "issue_counts": {}
+        },
+        "issue_review_matches": true,
+        "summary": {
+          "path": "artifacts/p3-set-20261026/real-projects/fmt/summary.json",
+          "sha256": "a9822a7d3a78495714fd6dddc91dd3a0c85290425c039e36d68eb7f6523b2f89"
+        }
+      }
+    ],
+    "successful_selected_tus": 59,
+    "upstream_tests": 44,
+    "boundary": "Selected compile configurations only; repository-wide uncompiled files remain partial; no full defect truth"
+  },
+  "package": {
+    "directory": "artifacts/p3-set-20261026/CodeGuard-Windows-x64",
+    "qa": {
+      "path": "artifacts/p3-set-20261026/package-qa/result.json",
+      "sha256": "3c2a6d86760727fded940a475c7713bcbb10e78e427d34230a033636d0ab18f9"
+    },
+    "qa_result": {
+      "repair_preview": true,
+      "chinese_font": true,
+      "repair_set_source_unchanged": true,
+      "repair_batch_cancel_ledger": true,
+      "repair_set_preview": true,
+      "clang": true,
+      "gui": true,
+      "repair_set_cancel_targets": 2,
+      "graph_path": true,
+      "package": "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p3-set-20261026\\CodeGuard-Windows-x64",
+      "clean_path": true,
+      "packaged_resource_header": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-set-20261026/CodeGuard-Windows-x64/resources/clang/include/stddef.h",
+      "template_initializer": true,
+      "cli": true,
+      "local_flow": true,
+      "timestamp": "2026-10-27T04:03:18.1601541+08:00"
+    },
+    "zip": "artifacts/p3-set-20261026/CodeGuard-Windows-x64-P3-Set.zip",
+    "checksum": "Adjacent .zip.sha256 file",
+    "executable_and_sdk_match_current_build": true
+  },
+  "gui_screenshots": {
+    "files": [
+      {
+        "path": "artifacts/p3-set-20261026/screenshots/repair-set-compact.png",
+        "sha256": "14c7a9f31bb74beb484ec7f16e35ec04c5d748abda750819faa5fdfdcdd14bfd"
+      },
+      {
+        "path": "artifacts/p3-set-20261026/screenshots/repair-set-coverage-compact.png",
+        "sha256": "bebf1fb5fc7c198a1b77e1489c9a17dddb7b618e1dd7b11060b8552d70d1e840"
+      },
+      {
+        "path": "artifacts/p3-set-20261026/screenshots/repair-set-coverage.png",
+        "sha256": "9e82fabf067dcc8d40abb0517a35cd1610404de884bea5d088077ee2aac15fb3"
+      },
+      {
+        "path": "artifacts/p3-set-20261026/screenshots/repair-set-verified.png",
+        "sha256": "0fbb77764131115438bf6b2fd24f1e69c63f64ea1e050ed83902a7f8fe79dac1"
+      }
+    ],
+    "inspected": "Normal and 760x600 scrollable windows; combined diff, selections and result controls checked; packaged Noto CJK preview inspected separately"
+  },
+  "limits": {
+    "components": "2..16 explicit nonoverlapping components",
+    "bytes_per_combined_file": 2097152,
+    "component_payload_bytes": 33554432,
+    "set_manifest_bytes": 67108864,
+    "preview_bytes": 512000,
+    "source_verification": "Scanned C/C++ inventory only; resources, build scripts and external dependencies are not locked",
+    "coverage": "Optional gcov; all selected revised lines need execution records; same-line expression execution is not distinguished",
+    "correctness": "not_assessed",
+    "automatic_original_application": false,
+    "operating_system_sandbox": false
+  }
+}

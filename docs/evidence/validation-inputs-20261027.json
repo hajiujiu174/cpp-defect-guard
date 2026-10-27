@@ -1,0 +1,359 @@
+{
+  "phase": "P3 tenth phase: typed validation input projection",
+  "status": "passed_local",
+  "timestamp": "2026-10-27T12:58:04.140833+00:00",
+  "committed": false,
+  "pushed": false,
+  "remote_ci": false,
+  "correctness": "not_assessed",
+  "core_full": {
+    "path": "artifacts/p3-validation-inputs-20261027/a1/core-full.xml",
+    "bytes": 27457,
+    "sha256": "42fdc1473b3ac76c6723585e06c9da0fa8cf26de77ad1048640a16752c66703c",
+    "total": 105,
+    "passed": 104,
+    "failed": [],
+    "skipped": [
+      "codeguard.symlink"
+    ]
+  },
+  "clang_qt_full": {
+    "path": "artifacts/p3-validation-inputs-20261027/a1/analysis-full.xml",
+    "bytes": 79381,
+    "sha256": "6f2a1473a895794141535a3140328a085a00682d43fde96f8480e7b9e4e79585",
+    "total": 236,
+    "passed": 235,
+    "failed": [],
+    "skipped": [
+      "codeguard.symlink"
+    ]
+  },
+  "functional": {
+    "path": "artifacts/p3-validation-inputs-20261027/a1/analysis-inputs.xml",
+    "bytes": 3101,
+    "sha256": "1df248430e3bb5dab115f859e82bb73f30d698d7d5a0e3954048be75be53e2d0",
+    "total": 10,
+    "passed": 10,
+    "failed": [],
+    "skipped": []
+  },
+  "measurements": {
+    "status": "passed",
+    "metadata_equal": true,
+    "files": 599,
+    "physical_lines": 271818,
+    "units": 244,
+    "issues": 23,
+    "database_sha256": "cf1f1d930e5335860030cf42d61d412b0dbad9e30d6a6fe3847294799a1bea1b",
+    "probe_sha256": "cee05e943809e73cd3b8d061518c4913caddc74914a460b201ff2711c1059063",
+    "records": {
+      "full-1": {
+        "driver_pid": 32708,
+        "status": "completed",
+        "command": [
+          "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\p2-2-flow-20261026-core\\tests\\codeguard\\codeguard-validation-inputs-probe.exe",
+          "full",
+          "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\r7\\s",
+          "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\r7\\a3\\scan.db"
+        ],
+        "started": 1793102958.9141386,
+        "pid": 32080,
+        "exit_code": 0,
+        "elapsed_seconds": 1.7319021000002977,
+        "peak_working_set": 353599488,
+        "peak_private_bytes": 421359616,
+        "finished": 1793102960.6465662
+      },
+      "inputs-1": {
+        "driver_pid": 6256,
+        "status": "completed",
+        "command": [
+          "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\p2-2-flow-20261026-core\\tests\\codeguard\\codeguard-validation-inputs-probe.exe",
+          "inputs",
+          "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\r7\\s",
+          "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\r7\\a3\\scan.db"
+        ],
+        "started": 1793102960.7419899,
+        "pid": 19928,
+        "exit_code": 0,
+        "elapsed_seconds": 0.32767669999975624,
+        "peak_working_set": 11612160,
+        "peak_private_bytes": 6414336,
+        "finished": 1793102961.0703502
+      },
+      "full-2": {
+        "driver_pid": 32868,
+        "status": "completed",
+        "command": [
+          "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\p2-2-flow-20261026-core\\tests\\codeguard\\codeguard-validation-inputs-probe.exe",
+          "full",
+          "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\r7\\s",
+          "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\r7\\a3\\scan.db"
+        ],
+        "started": 1793102961.176094,
+        "pid": 32932,
+        "exit_code": 0,
+        "elapsed_seconds": 1.5321213999995962,
+        "peak_working_set": 353095680,
+        "peak_private_bytes": 421351424,
+        "finished": 1793102962.708771
+      },
+      "inputs-2": {
+        "driver_pid": 33236,
+        "status": "completed",
+        "command": [
+          "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\p2-2-flow-20261026-core\\tests\\codeguard\\codeguard-validation-inputs-probe.exe",
+          "inputs",
+          "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\r7\\s",
+          "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\r7\\a3\\scan.db"
+        ],
+        "started": 1793102962.864337,
+        "pid": 33284,
+        "exit_code": 0,
+        "elapsed_seconds": 0.34533749999991414,
+        "peak_working_set": 11599872,
+        "peak_private_bytes": 6393856,
+        "finished": 1793102963.2107008
+      }
+    },
+    "note": "Serial full/typed input reads, not AST or total application memory. Probe has a fixed 200 ms post-read hold for reliable peak sampling; internal seconds exclude serialization and hold."
+  },
+  "real_repair": {
+    "report": {
+      "path": "build/r7/a4/acceptance.json",
+      "bytes": 85631,
+      "sha256": "eb9314b504ae81024eee7357f919891910abb4d5d8054bf32bab4a7cb1c4198c"
+    },
+    "native_tests": {
+      "buggy": {
+        "path": "artifacts/p3-validation-inputs-20261027/a1/buggy-tests.xml",
+        "bytes": 1517,
+        "sha256": "f584b7db4f0a362d55306ecd7a91023d2ef138d5846c4c43d4a48af078e21e79",
+        "total": 4,
+        "passed": 1,
+        "failed": [
+          "codeguard-real.tree-invalid-options",
+          "codeguard-real.index-invalid-options",
+          "codeguard-real.merge-corrupt-index"
+        ],
+        "skipped": []
+      },
+      "fixed": {
+        "path": "artifacts/p3-validation-inputs-20261027/a1/fixed-tests.xml",
+        "bytes": 1189,
+        "sha256": "ba5a31a20c0507bc5a4cdbc24feccbc588667103b1fa1bdc14bb1872a1e4e438",
+        "total": 4,
+        "passed": 4,
+        "failed": [],
+        "skipped": []
+      },
+      "fix": {
+        "path": "build/r7/a4/v/cgset-e515a9b777f96916-7712144712400-0/build-runs/run-7712173181100-0/tests.xml",
+        "bytes": 1187,
+        "sha256": "f6c7e659c3a96fa7ca0446361ca8881bd899f71d8e24ba6f8ebfee413c24995f",
+        "total": 4,
+        "passed": 4,
+        "failed": [],
+        "skipped": []
+      },
+      "intent": {
+        "path": "build/r7/a4/v/cgset-48eab726400eabc3-8231322994700-0/build-runs/run-8231352771400-0/tests.xml",
+        "bytes": 1518,
+        "sha256": "acb512186f839dd01e63979d0015f2602d8e5e53ab9368a4aaa21b078ff6535d",
+        "total": 4,
+        "passed": 1,
+        "failed": [
+          "codeguard-real.tree-invalid-options",
+          "codeguard-real.index-invalid-options",
+          "codeguard-real.merge-corrupt-index"
+        ],
+        "skipped": []
+      }
+    },
+    "static_databases": [
+      {
+        "variant": "fix",
+        "stage": "baseline.sqlite3",
+        "record": {
+          "path": "build/r7/a4/v/cgset-e515a9b777f96916-7712144712400-0/baseline.sqlite3",
+          "bytes": 346054656,
+          "sha256": "ce7fd62e6122eaf45cefaad1384ab37fc8e85ea595c59d28c5483b0a6fb0e464"
+        },
+        "success_units": 244,
+        "status": "complete",
+        "workers": 4,
+        "analysis_ms": 136528
+      },
+      {
+        "variant": "fix",
+        "stage": "after.sqlite3",
+        "record": {
+          "path": "build/r7/a4/v/cgset-e515a9b777f96916-7712144712400-0/after.sqlite3",
+          "bytes": 346050560,
+          "sha256": "03432060841617df92f02463ff0a8c44556e510af34907de9bdac7e385e70e16"
+        },
+        "success_units": 244,
+        "status": "complete",
+        "workers": 4,
+        "analysis_ms": 174065
+      },
+      {
+        "variant": "intent",
+        "stage": "baseline.sqlite3",
+        "record": {
+          "path": "build/r7/a4/v/cgset-48eab726400eabc3-8231322994700-0/baseline.sqlite3",
+          "bytes": 346054656,
+          "sha256": "f3eaa0ee521018ad2ccff3289ddfd911aecd714bc4288e51b52b1f1e333104ac"
+        },
+        "success_units": 244,
+        "status": "complete",
+        "workers": 4,
+        "analysis_ms": 269253
+      },
+      {
+        "variant": "intent",
+        "stage": "after.sqlite3",
+        "record": {
+          "path": "build/r7/a4/v/cgset-48eab726400eabc3-8231322994700-0/after.sqlite3",
+          "bytes": 346050560,
+          "sha256": "36fd1c067687d6e377f6d80473d6a3238bd4616d509b1359219300c73e56e3e0"
+        },
+        "success_units": 244,
+        "status": "complete",
+        "workers": 4,
+        "analysis_ms": 279379
+      }
+    ],
+    "typed_ast_digests": {
+      "buggy": [
+        "a1adcfc3dcef7cb0ab1c244c357526f260b8c38bc44e572a56125d9c3a073b2b",
+        "3c643006ef7d13ab8f28ea9fee5a73ad84ec05691778354137d7e4138653f22d",
+        "d8080eda5e786624433cc79bf2a1dea8c95e3ab2b84b5a4dd650d7fd55ebc498"
+      ],
+      "fixed": [
+        "eef465673cafb6d24947c6928bdebfa44fe6328b8805be17cb3344182b99bbc0",
+        "cfd386738a8a7233d5ccffd9038f9567147e2a5a746483a93c1d063f2bb0277f",
+        "755057d212983060ccb47b19931c9bfc739ebbe51d4dbe0f3560703cabc78792"
+      ],
+      "fix": [
+        "eef465673cafb6d24947c6928bdebfa44fe6328b8805be17cb3344182b99bbc0",
+        "cfd386738a8a7233d5ccffd9038f9567147e2a5a746483a93c1d063f2bb0277f",
+        "755057d212983060ccb47b19931c9bfc739ebbe51d4dbe0f3560703cabc78792"
+      ],
+      "intent": [
+        "a1adcfc3dcef7cb0ab1c244c357526f260b8c38bc44e572a56125d9c3a073b2b",
+        "3c643006ef7d13ab8f28ea9fee5a73ad84ec05691778354137d7e4138653f22d",
+        "d8080eda5e786624433cc79bf2a1dea8c95e3ab2b84b5a4dd650d7fd55ebc498"
+      ]
+    },
+    "reused_scan": {
+      "path": "build/r7/a4/reused-scan.json",
+      "bytes": 269,
+      "sha256": "c3e6623d5f5c4c92f7e44e95d15765d9d51c85d4503ac3b309aa7f91854f5a1c"
+    },
+    "reused_proposals": {
+      "path": "build/r7/a4/reused-proposals.json",
+      "bytes": 397,
+      "sha256": "34fd93f467059d8467ec94674c9727fb253de4189ee11e1daaae6d85ccd4bb19"
+    },
+    "proposal_generation_repeated": false
+  },
+  "initial_fixture_failure": {
+    "path": "artifacts/p3-validation-inputs-20261027/core-inputs.xml",
+    "bytes": 2972,
+    "sha256": "2242d13702791b6ac30e528f7c7408b8b86ce0b84fd019600b60bbae47971df5"
+  },
+  "initial_driver": {
+    "path": "artifacts/p3-validation-inputs-20261027/checks-process.json",
+    "bytes": 1289,
+    "sha256": "288ff3ef8a8fa886a116efbb81830f498a61da31891affc85f2aa259dec38825"
+  },
+  "final_driver": {
+    "path": "artifacts/p3-validation-inputs-20261027/a1/checks-process.json",
+    "bytes": 8303,
+    "sha256": "7a461ca8649b6f75db3ba2bd562d023746e917e5a9c7bc5fd8c91cede92f266a"
+  },
+  "source_inventory": {
+    "path": "artifacts/p3-validation-inputs-20261027/verified-source-sha256.json",
+    "bytes": 12806,
+    "sha256": "b6fcaa2d7ad3bb3ba447f49e1e1871fa1fc44272bcd6b1e94bb984d76d38be52"
+  },
+  "analyzer_sources_unchanged": [
+    "core/analyzer/rules.cpp",
+    "core/parser/analysis_cache.hpp",
+    "core/parser/clang_analysis.cpp",
+    "core/parser/CMakeLists.txt",
+    "core/parser/repair_hints.hpp",
+    "core/parser/unavailable.cpp",
+    "core/analyzer/clang_rules/array_bounds.cpp",
+    "core/analyzer/clang_rules/assignment_condition.cpp",
+    "core/analyzer/clang_rules/condition_assignment.hpp",
+    "core/analyzer/clang_rules/engine.cpp",
+    "core/analyzer/clang_rules/local_flow.cpp",
+    "core/analyzer/clang_rules/local_lifetime.cpp",
+    "core/analyzer/clang_rules/null_dereference.cpp",
+    "core/analyzer/clang_rules/rule.hpp",
+    "core/analyzer/clang_rules/unbounded_call.cpp"
+  ],
+  "package_qa": {
+    "path": "artifacts/p3-validation-inputs-20261027/package-qa/result.json",
+    "bytes": 802,
+    "sha256": "0e04733dee61b0af6bea176e3750bf09255e384fcc404be65efaed1dd69170b5"
+  },
+  "binaries": {
+    "cli": {
+      "build": {
+        "path": "build/p2-2-flow-20261026-analysis/codeguard-cli.exe",
+        "bytes": 74185205,
+        "sha256": "47f108ed8506dc8ab4ecd9fead1119a6ba02e52872087446c2fbe4eac59e6816"
+      },
+      "shipped": {
+        "path": "artifacts/p3-validation-inputs-20261027/CodeGuard-Windows-x64/codeguard-cli.exe",
+        "bytes": 74185205,
+        "sha256": "47f108ed8506dc8ab4ecd9fead1119a6ba02e52872087446c2fbe4eac59e6816"
+      }
+    },
+    "gui": {
+      "build": {
+        "path": "build/p2-2-flow-20261026-analysis/gui/qt/codeguard-gui.exe",
+        "bytes": 75396365,
+        "sha256": "36f688980d0c95def3721941815c12974e5757f2ee97c5e725129987e8b3c60d"
+      },
+      "shipped": {
+        "path": "artifacts/p3-validation-inputs-20261027/CodeGuard-Windows-x64/codeguard-gui.exe",
+        "bytes": 75396365,
+        "sha256": "36f688980d0c95def3721941815c12974e5757f2ee97c5e725129987e8b3c60d"
+      }
+    },
+    "sdk": {
+      "build": {
+        "path": "build/p2-2-flow-20261026-analysis/libcodeguard-core.a",
+        "bytes": 6221990,
+        "sha256": "058d07d8451acf5fd503a542c40f8119248622525c945e4da0357c8a68108b37"
+      },
+      "shipped": {
+        "path": "artifacts/p3-validation-inputs-20261027/CodeGuard-Windows-x64/sdk/libcodeguard-core.a",
+        "bytes": 6221990,
+        "sha256": "058d07d8451acf5fd503a542c40f8119248622525c945e4da0357c8a68108b37"
+      }
+    },
+    "helper": {
+      "build": {
+        "path": "build/p2-2-flow-20261026-analysis/tests/codeguard/codeguard-real-proposal-helper.exe",
+        "bytes": 73192079,
+        "sha256": "f50471bc5c23a857dc908f02e2213e03e61ec71de9f5e00838e0d25e681dc1be"
+      },
+      "shipped": {
+        "path": "artifacts/p3-validation-inputs-20261027/CodeGuard-Windows-x64/codeguard-real-proposal-helper.exe",
+        "bytes": 73192079,
+        "sha256": "f50471bc5c23a857dc908f02e2213e03e61ec71de9f5e00838e0d25e681dc1be"
+      }
+    }
+  },
+  "limitations": [
+    "Memory numbers cover the same standalone input-reader process and serialization, with a fixed 200 ms sampling hold; not total GUI/AST or universal memory usage.",
+    "Both full and typed input readers preserve all validation metadata; full latest/history/query/report paths remain complete. Schema format is unchanged.",
+    "One pinned libgit2 repair/configuration, three reproduced failure sites across four reference edits; not a general correctness rate. Original and patched static analyses still run in full.",
+    "Initial synthetic legacy fixture lacked the application ID; only the fixture was corrected. Failure records remain. No model training/deployment, commit/push or independent CI."
+  ]
+}

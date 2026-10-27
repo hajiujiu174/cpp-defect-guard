@@ -1,0 +1,2445 @@
+{
+  "timestamp": "2026-10-27T05:31:00.815485+08:00",
+  "stage": "P3 per-CTest-group gcov attribution",
+  "head": "68a3490508deece1bfa6c2bc29a375d69ddbb00e",
+  "uncommitted": true,
+  "build": "Incremental existing locked-toolchain Windows Release Clang/Qt and Debug Core directories; no clean build claim",
+  "remote_ci_for_current_code": "not_run",
+  "other_physical_windows_machine": "not_tested",
+  "binaries": {
+    "analysis_cli": {
+      "path": "build/p2-2-flow-20261026-analysis/codeguard-cli.exe",
+      "sha256": "dd18574664260604735d7251cc9c83de41db9fb5d6f43cc98ab949d77ad59bc9"
+    },
+    "gui": {
+      "path": "build/p2-2-flow-20261026-analysis/gui/qt/codeguard-gui.exe",
+      "sha256": "f9ff32b251c018ce636263b455c2236bff6057156ef75169df03ed5de3402509"
+    },
+    "core_cli": {
+      "path": "build/p2-2-flow-20261026-core/codeguard-cli.exe",
+      "sha256": "4005891f44ea562fcc0527c73120cd26fc34ca748d8dcba48e422670acaabd31"
+    }
+  },
+  "source_inventory": {
+    "path": "artifacts/p3-test-coverage-20261027/build-source-sha256.json",
+    "sha256": "7f7ff35839e6c52748d53165d59b791acee2cd605387a5a71bdb3c242069dd7d"
+  },
+  "tests": {
+    "core_full_final": {
+      "path": "artifacts/p3-test-coverage-20261027/core-final.xml",
+      "sha256": "aae67557d4628b1a0ed9ba394357076e4f301132960ee62c5eacec8ad5d8c83c",
+      "total": 66,
+      "passed": 65,
+      "failed": [],
+      "skipped": [
+        "codeguard.symlink"
+      ],
+      "timestamp": "2026-10-27T04:51:53",
+      "names": [
+        "codeguard.repair_set_codec",
+        "codeguard.repair_coverage_ranking",
+        "codeguard.repair_coverage_reset",
+        "codeguard.repair_batch_ranking",
+        "codeguard.repair_copy",
+        "codeguard.graph_explorer_index",
+        "codeguard.graph_explorer_path",
+        "codeguard.graph_explorer_slice",
+        "codeguard.graph_explorer_validation",
+        "codeguard.graph_explorer_deep",
+        "codeguard.report_history",
+        "codeguard.report_legacy",
+        "codeguard.report_comparison",
+        "codeguard.report_export",
+        "codeguard.report_cli",
+        "codeguard.rule_policy",
+        "codeguard.rule_migration",
+        "codeguard.profiles",
+        "codeguard.invalid_profile",
+        "codeguard.discovery",
+        "codeguard.config_migration",
+        "codeguard.google_contracts",
+        "codeguard.pool",
+        "codeguard.git",
+        "codeguard.build_pass",
+        "codeguard.build_failure",
+        "codeguard.build_testfail",
+        "codeguard.build_notests",
+        "codeguard.build_timeout",
+        "codeguard.build_cancel",
+        "codeguard.build_stale",
+        "codeguard.build_configuration",
+        "codeguard.process_args",
+        "codeguard.process_flood",
+        "codeguard.process_failure",
+        "codeguard.process_timeout",
+        "codeguard.process_cancel",
+        "codeguard.scan",
+        "codeguard.empty",
+        "codeguard.ignore",
+        "codeguard.missing",
+        "codeguard.persistence",
+        "codeguard.changes",
+        "codeguard.rollback",
+        "codeguard.readonly",
+        "codeguard.foreign_db",
+        "codeguard.source_protection",
+        "codeguard.unicode",
+        "codeguard.symlink",
+        "codeguard.cli_help",
+        "codeguard.query_pipeline",
+        "codeguard.query_precedence",
+        "codeguard.query_ordering",
+        "codeguard.query_errors",
+        "codeguard.query_bounds",
+        "codeguard.query_coverage",
+        "codeguard.query_cancel",
+        "codeguard.cli_reject",
+        "codeguard.cancel_new",
+        "codeguard.cancel_scan",
+        "codeguard.cancel_transaction",
+        "codeguard.cancel_new_transaction",
+        "codeguard.cancel_fence",
+        "codeguard.cancel_after_commit",
+        "codeguard.graphs",
+        "codeguard.migration"
+      ]
+    },
+    "analysis_full_final": {
+      "path": "artifacts/p3-test-coverage-20261027/analysis-final-full.xml",
+      "sha256": "d29ac15b1753089a4d60187bb6c62ade29c93bc1e6c1592b8e9bd6057ca39ca6",
+      "total": 178,
+      "passed": 176,
+      "failed": [
+        "codeguard.local_flow_cache"
+      ],
+      "skipped": [
+        "codeguard.symlink"
+      ],
+      "timestamp": "2026-10-27T05:02:10",
+      "names": [
+        "codeguard.repair_set_codec",
+        "codeguard.repair_test_coverage_isolation",
+        "codeguard.repair_test_coverage_fixtures",
+        "codeguard.repair_test_coverage_failures",
+        "codeguard.repair_test_coverage_skip",
+        "codeguard.repair_test_coverage_mutation",
+        "codeguard.repair_test_coverage_metadata",
+        "codeguard.repair_test_coverage_mismatch",
+        "codeguard.repair_test_coverage_longname",
+        "codeguard.repair_test_coverage_limit",
+        "codeguard.repair_test_coverage_cancel",
+        "codeguard.repair_test_coverage_cli",
+        "codeguard.repair_set_samefile",
+        "codeguard.repair_set_multifile",
+        "codeguard.repair_set_conflicts",
+        "codeguard.repair_set_mapping",
+        "codeguard.repair_set_rewrite",
+        "codeguard.repair_set_baseline",
+        "codeguard.repair_set_policy",
+        "codeguard.repair_set_cancel",
+        "codeguard.repair_set_cli",
+        "codeguard.repair_set_coverage",
+        "codeguard.repair_coverage_ranking",
+        "codeguard.repair_coverage_reset",
+        "codeguard.repair_coverage_validate",
+        "codeguard.repair_coverage_target",
+        "codeguard.repair_coverage_failures",
+        "codeguard.repair_coverage_safety",
+        "codeguard.repair_coverage_cli",
+        "codeguard.repair_batch_ranking",
+        "codeguard.repair_batch_workflow",
+        "codeguard.repair_batch_cancel",
+        "codeguard.repair_batch_source_changed",
+        "codeguard.repair_batch_cli",
+        "codeguard.repair_copy",
+        "codeguard.repair_propose",
+        "codeguard.repair_roundtrip",
+        "codeguard.repair_validate",
+        "codeguard.repair_failures",
+        "codeguard.repair_printf",
+        "codeguard.repair_policy",
+        "codeguard.repair_cancel",
+        "codeguard.repair_c",
+        "codeguard.repair_baseline",
+        "codeguard.repair_cli",
+        "codeguard.graph_explorer_index",
+        "codeguard.graph_explorer_path",
+        "codeguard.graph_explorer_slice",
+        "codeguard.graph_explorer_validation",
+        "codeguard.graph_explorer_deep",
+        "codeguard.report_history",
+        "codeguard.report_legacy",
+        "codeguard.report_comparison",
+        "codeguard.report_export",
+        "codeguard.report_cli",
+        "codeguard.local_flow_boundaries",
+        "codeguard.local_flow_disabled",
+        "codeguard.local_flow_policy",
+        "codeguard.local_flow_cache",
+        "codeguard.navigation_references",
+        "codeguard.navigation_metrics",
+        "codeguard.navigation_persistence",
+        "codeguard.navigation_dedup",
+        "codeguard.navigation_legacy",
+        "codeguard.navigation_cli",
+        "codeguard.cache_reuse",
+        "codeguard.cache_dependencies",
+        "codeguard.cache_policy",
+        "codeguard.cache_failures",
+        "codeguard.cache_stability",
+        "codeguard.cache_cli",
+        "codeguard.report_provenance",
+        "codeguard.report_gui",
+        "codeguard.rule_policy",
+        "codeguard.rule_migration",
+        "codeguard.evaluate_CG001",
+        "codeguard.evaluate_CG002",
+        "codeguard.evaluate_CG003",
+        "codeguard.evaluate_CG004",
+        "codeguard.evaluate_CG005",
+        "codeguard.rule_cli",
+        "codeguard.rule_coverage",
+        "codeguard.rule_gui",
+        "codeguard.profiles",
+        "codeguard.invalid_profile",
+        "codeguard.discovery",
+        "codeguard.config_migration",
+        "codeguard.command_selection",
+        "codeguard.prepare_config",
+        "codeguard.configuration_cli",
+        "codeguard.google_contracts",
+        "codeguard.pool",
+        "codeguard.git",
+        "codeguard.build_pass",
+        "codeguard.build_failure",
+        "codeguard.build_testfail",
+        "codeguard.build_notests",
+        "codeguard.build_timeout",
+        "codeguard.build_cancel",
+        "codeguard.build_stale",
+        "codeguard.build_configuration",
+        "codeguard.process_args",
+        "codeguard.process_flood",
+        "codeguard.process_failure",
+        "codeguard.process_timeout",
+        "codeguard.process_cancel",
+        "codeguard.rules",
+        "codeguard.parallel",
+        "codeguard.scan",
+        "codeguard.empty",
+        "codeguard.ignore",
+        "codeguard.missing",
+        "codeguard.persistence",
+        "codeguard.changes",
+        "codeguard.rollback",
+        "codeguard.readonly",
+        "codeguard.foreign_db",
+        "codeguard.source_protection",
+        "codeguard.unicode",
+        "codeguard.symlink",
+        "codeguard.cli_help",
+        "codeguard.query_pipeline",
+        "codeguard.query_precedence",
+        "codeguard.query_ordering",
+        "codeguard.query_errors",
+        "codeguard.query_bounds",
+        "codeguard.query_coverage",
+        "codeguard.query_cancel",
+        "codeguard.cli_reject",
+        "codeguard.cancel_new",
+        "codeguard.cancel_scan",
+        "codeguard.cancel_transaction",
+        "codeguard.cancel_new_transaction",
+        "codeguard.cancel_fence",
+        "codeguard.cancel_after_commit",
+        "codeguard.graphs",
+        "codeguard.migration",
+        "codeguard.cancel_analysis",
+        "codeguard.clang",
+        "codeguard.partial",
+        "codeguard.missing_command",
+        "codeguard.ambiguous",
+        "codeguard.unsafe",
+        "codeguard.identity",
+        "codeguard.fixture_configure",
+        "codeguard.analysis_cli",
+        "codeguard.level3_configure",
+        "codeguard.level3_cli",
+        "codeguard.level3_gui",
+        "codeguard.repair_gui",
+        "codeguard.repair_set_configure",
+        "codeguard.repair_set_gui",
+        "codeguard.analysis_gui",
+        "codeguard.qt_repair_set_workflow",
+        "codeguard.qt_repair_set_cancel",
+        "codeguard.qt_repair_set_pertest",
+        "codeguard.qt_repair_set_coverage",
+        "codeguard.qt_repair_pertest",
+        "codeguard.qt_repair_coverage",
+        "codeguard.qt_repair_workflow",
+        "codeguard.qt_repair_cancel",
+        "codeguard.qt_repair_batch",
+        "codeguard.qt_repair_batch_cancel",
+        "codeguard.qt_graph_workflow",
+        "codeguard.qt_graph_scale",
+        "codeguard.qt_graph_stale",
+        "codeguard.qt_read_query",
+        "codeguard.qt_read_history",
+        "codeguard.qt_read_report",
+        "codeguard.qt_configuration_choices",
+        "codeguard.configuration_gui",
+        "codeguard.qt_lock_cancel",
+        "codeguard.qt_read_lock_cancel",
+        "codeguard.qt_scale_inventory",
+        "codeguard.qt_scale_clang",
+        "codeguard.qt_scale_window",
+        "codeguard.qt_background",
+        "codeguard.gui_smoke"
+      ]
+    },
+    "local_flow_cache_after_diagnosis": {
+      "path": "artifacts/p3-test-coverage-20261027/flow-cache-recheck.xml",
+      "sha256": "b8c2bd5d33e365814313667580d5cb4bd62b83e40fe64eeff28b27e2d7153b4b",
+      "total": 1,
+      "passed": 1,
+      "failed": [],
+      "skipped": [],
+      "timestamp": "2026-10-27T05:24:05",
+      "names": [
+        "codeguard.local_flow_cache"
+      ]
+    },
+    "combined_same_product_coverage": {
+      "total": 178,
+      "passed": 177,
+      "skipped": [
+        "codeguard.symlink"
+      ],
+      "unverified": [],
+      "note": "Coverage across the complete 178-case run and the diagnosed cache rerun; not a single all-green run. Only cache-test timing/progress diagnostics changed after the complete run; product sources and assertions unchanged."
+    },
+    "first_analysis_full_before_linear_junit_reader": {
+      "path": "artifacts/p3-test-coverage-20261027/analysis-full.xml",
+      "sha256": "dc301323c525a0d69061004c709f0afe7aa6387c8540ba88eb8890fc017f318c",
+      "total": 177,
+      "passed": 174,
+      "failed": [
+        "codeguard.repair_test_coverage_limit",
+        "codeguard.build_pass"
+      ],
+      "skipped": [
+        "codeguard.symlink"
+      ],
+      "timestamp": "2026-10-27T04:36:45",
+      "names": [
+        "codeguard.repair_set_codec",
+        "codeguard.repair_test_coverage_isolation",
+        "codeguard.repair_test_coverage_fixtures",
+        "codeguard.repair_test_coverage_failures",
+        "codeguard.repair_test_coverage_skip",
+        "codeguard.repair_test_coverage_mutation",
+        "codeguard.repair_test_coverage_metadata",
+        "codeguard.repair_test_coverage_mismatch",
+        "codeguard.repair_test_coverage_limit",
+        "codeguard.repair_test_coverage_cancel",
+        "codeguard.repair_test_coverage_cli",
+        "codeguard.repair_set_samefile",
+        "codeguard.repair_set_multifile",
+        "codeguard.repair_set_conflicts",
+        "codeguard.repair_set_mapping",
+        "codeguard.repair_set_rewrite",
+        "codeguard.repair_set_baseline",
+        "codeguard.repair_set_policy",
+        "codeguard.repair_set_cancel",
+        "codeguard.repair_set_cli",
+        "codeguard.repair_set_coverage",
+        "codeguard.repair_coverage_ranking",
+        "codeguard.repair_coverage_reset",
+        "codeguard.repair_coverage_validate",
+        "codeguard.repair_coverage_target",
+        "codeguard.repair_coverage_failures",
+        "codeguard.repair_coverage_safety",
+        "codeguard.repair_coverage_cli",
+        "codeguard.repair_batch_ranking",
+        "codeguard.repair_batch_workflow",
+        "codeguard.repair_batch_cancel",
+        "codeguard.repair_batch_source_changed",
+        "codeguard.repair_batch_cli",
+        "codeguard.repair_copy",
+        "codeguard.repair_propose",
+        "codeguard.repair_roundtrip",
+        "codeguard.repair_validate",
+        "codeguard.repair_failures",
+        "codeguard.repair_printf",
+        "codeguard.repair_policy",
+        "codeguard.repair_cancel",
+        "codeguard.repair_c",
+        "codeguard.repair_baseline",
+        "codeguard.repair_cli",
+        "codeguard.graph_explorer_index",
+        "codeguard.graph_explorer_path",
+        "codeguard.graph_explorer_slice",
+        "codeguard.graph_explorer_validation",
+        "codeguard.graph_explorer_deep",
+        "codeguard.report_history",
+        "codeguard.report_legacy",
+        "codeguard.report_comparison",
+        "codeguard.report_export",
+        "codeguard.report_cli",
+        "codeguard.local_flow_boundaries",
+        "codeguard.local_flow_disabled",
+        "codeguard.local_flow_policy",
+        "codeguard.local_flow_cache",
+        "codeguard.navigation_references",
+        "codeguard.navigation_metrics",
+        "codeguard.navigation_persistence",
+        "codeguard.navigation_dedup",
+        "codeguard.navigation_legacy",
+        "codeguard.navigation_cli",
+        "codeguard.cache_reuse",
+        "codeguard.cache_dependencies",
+        "codeguard.cache_policy",
+        "codeguard.cache_failures",
+        "codeguard.cache_stability",
+        "codeguard.cache_cli",
+        "codeguard.report_provenance",
+        "codeguard.report_gui",
+        "codeguard.rule_policy",
+        "codeguard.rule_migration",
+        "codeguard.evaluate_CG001",
+        "codeguard.evaluate_CG002",
+        "codeguard.evaluate_CG003",
+        "codeguard.evaluate_CG004",
+        "codeguard.evaluate_CG005",
+        "codeguard.rule_cli",
+        "codeguard.rule_coverage",
+        "codeguard.rule_gui",
+        "codeguard.profiles",
+        "codeguard.invalid_profile",
+        "codeguard.discovery",
+        "codeguard.config_migration",
+        "codeguard.command_selection",
+        "codeguard.prepare_config",
+        "codeguard.configuration_cli",
+        "codeguard.google_contracts",
+        "codeguard.pool",
+        "codeguard.git",
+        "codeguard.build_pass",
+        "codeguard.build_failure",
+        "codeguard.build_testfail",
+        "codeguard.build_notests",
+        "codeguard.build_timeout",
+        "codeguard.build_cancel",
+        "codeguard.build_stale",
+        "codeguard.build_configuration",
+        "codeguard.process_args",
+        "codeguard.process_flood",
+        "codeguard.process_failure",
+        "codeguard.process_timeout",
+        "codeguard.process_cancel",
+        "codeguard.rules",
+        "codeguard.parallel",
+        "codeguard.scan",
+        "codeguard.empty",
+        "codeguard.ignore",
+        "codeguard.missing",
+        "codeguard.persistence",
+        "codeguard.changes",
+        "codeguard.rollback",
+        "codeguard.readonly",
+        "codeguard.foreign_db",
+        "codeguard.source_protection",
+        "codeguard.unicode",
+        "codeguard.symlink",
+        "codeguard.cli_help",
+        "codeguard.query_pipeline",
+        "codeguard.query_precedence",
+        "codeguard.query_ordering",
+        "codeguard.query_errors",
+        "codeguard.query_bounds",
+        "codeguard.query_coverage",
+        "codeguard.query_cancel",
+        "codeguard.cli_reject",
+        "codeguard.cancel_new",
+        "codeguard.cancel_scan",
+        "codeguard.cancel_transaction",
+        "codeguard.cancel_new_transaction",
+        "codeguard.cancel_fence",
+        "codeguard.cancel_after_commit",
+        "codeguard.graphs",
+        "codeguard.migration",
+        "codeguard.cancel_analysis",
+        "codeguard.clang",
+        "codeguard.partial",
+        "codeguard.missing_command",
+        "codeguard.ambiguous",
+        "codeguard.unsafe",
+        "codeguard.identity",
+        "codeguard.fixture_configure",
+        "codeguard.analysis_cli",
+        "codeguard.level3_configure",
+        "codeguard.level3_cli",
+        "codeguard.level3_gui",
+        "codeguard.repair_gui",
+        "codeguard.repair_set_configure",
+        "codeguard.repair_set_gui",
+        "codeguard.analysis_gui",
+        "codeguard.qt_repair_set_workflow",
+        "codeguard.qt_repair_set_cancel",
+        "codeguard.qt_repair_set_pertest",
+        "codeguard.qt_repair_set_coverage",
+        "codeguard.qt_repair_pertest",
+        "codeguard.qt_repair_coverage",
+        "codeguard.qt_repair_workflow",
+        "codeguard.qt_repair_cancel",
+        "codeguard.qt_repair_batch",
+        "codeguard.qt_repair_batch_cancel",
+        "codeguard.qt_graph_workflow",
+        "codeguard.qt_graph_scale",
+        "codeguard.qt_graph_stale",
+        "codeguard.qt_read_query",
+        "codeguard.qt_read_history",
+        "codeguard.qt_read_report",
+        "codeguard.qt_configuration_choices",
+        "codeguard.configuration_gui",
+        "codeguard.qt_lock_cancel",
+        "codeguard.qt_read_lock_cancel",
+        "codeguard.qt_scale_inventory",
+        "codeguard.qt_scale_clang",
+        "codeguard.qt_scale_window",
+        "codeguard.qt_background",
+        "codeguard.gui_smoke"
+      ]
+    },
+    "same_binary_recheck_of_two_initial_failures": {
+      "path": "artifacts/p3-test-coverage-20261027/failures-recheck-before-linear.xml",
+      "sha256": "a60b87ef89a1a570ed5c245ca65d0af68c38cccd25e582afb1be433692b8f622",
+      "total": 2,
+      "passed": 2,
+      "failed": [],
+      "skipped": [],
+      "timestamp": "2026-10-27T04:54:26",
+      "names": [
+        "codeguard.repair_test_coverage_limit",
+        "codeguard.build_pass"
+      ]
+    },
+    "focused_before_additive_ctest_version_and_limit_metadata": {
+      "path": "artifacts/p3-test-coverage-20261027/replays-qt.xml",
+      "sha256": "7f530c8a0f18a3802ed2398a82980f3f5eee158c85bb041d533ec19cc2f13df1",
+      "total": 12,
+      "passed": 12,
+      "failed": [],
+      "skipped": [],
+      "timestamp": "2026-10-27T04:29:45",
+      "names": [
+        "codeguard.repair_test_coverage_isolation",
+        "codeguard.repair_test_coverage_fixtures",
+        "codeguard.repair_test_coverage_failures",
+        "codeguard.repair_test_coverage_skip",
+        "codeguard.repair_test_coverage_mutation",
+        "codeguard.repair_test_coverage_metadata",
+        "codeguard.repair_test_coverage_mismatch",
+        "codeguard.repair_test_coverage_limit",
+        "codeguard.repair_test_coverage_cancel",
+        "codeguard.repair_test_coverage_cli",
+        "codeguard.qt_repair_set_pertest",
+        "codeguard.qt_repair_pertest"
+      ]
+    },
+    "focused_final_after_linear_junit_reader": {
+      "path": "artifacts/p3-test-coverage-20261027/replays-final.xml",
+      "sha256": "c6e75469f41f85a8d2819133efb121c8750a7d026ba9945f3e10d8050df17b12",
+      "total": 14,
+      "passed": 14,
+      "failed": [],
+      "skipped": [],
+      "timestamp": "2026-10-27T04:57:36",
+      "names": [
+        "codeguard.repair_test_coverage_isolation",
+        "codeguard.repair_test_coverage_fixtures",
+        "codeguard.repair_test_coverage_failures",
+        "codeguard.repair_test_coverage_skip",
+        "codeguard.repair_test_coverage_mutation",
+        "codeguard.repair_test_coverage_metadata",
+        "codeguard.repair_test_coverage_mismatch",
+        "codeguard.repair_test_coverage_longname",
+        "codeguard.repair_test_coverage_limit",
+        "codeguard.repair_test_coverage_cancel",
+        "codeguard.repair_test_coverage_cli",
+        "codeguard.build_pass",
+        "codeguard.qt_repair_set_pertest",
+        "codeguard.qt_repair_pertest"
+      ]
+    }
+  },
+  "final_refinement": "Bounded linear JUnit tag/attribute reader and bounded version regex; pressure case with 2048 ampersands plus a Unicode test name. Final replay/Qt and build-pass checks plus complete analysis run and diagnosed cache rerun cover the final product. Build/test failure diagnostics retain fixtures and stage logs. The 64-TU three-scan cache integration timeout was raised 120->300 seconds; production process timeouts and assertions unchanged.",
+  "cache_timeout_diagnosis": {
+    "inspection": {
+      "path": "artifacts/p3-test-coverage-20261027/local-flow-timeout-inspection.json",
+      "sha256": "f80bad75fde975b5c26183f33013e35633a6fefd862ba4b4e8b333e46e4175f0"
+    },
+    "changed_files": {
+      "path": "artifacts/p3-test-coverage-20261027/test-only-cache-diagnostic-changes.json",
+      "sha256": "7f06cf42bbacbf7f0318e7f6e9c79f0241d61e832b437ca59d3c1e6ed32ac008"
+    },
+    "source_before": {
+      "path": "artifacts/p3-test-coverage-20261027/build-source-before-cache-diagnostic.json",
+      "sha256": "bcfde584b51b8c4844c9110b43f9589c2dcb131ae3b742742ba220a0113379c9"
+    },
+    "facts": "One serial baseline snapshot committed, 43/64 cold-cache entries written at timeout; warm scan not reached. Max path 202. Diagnostic rerun: baseline 44.984s, cold complete 89.541s, warm complete 105.953s; 64 cache hits and issue equivalence passed. Test wall time 107.53s.",
+    "scope": "Test-only progress logging, failure retention, flushing and outer integration budget; no production algorithm or testcase content reduced."
+  },
+  "initial_full_failures": "Two unusually slow initial failures (limit 63s and build_pass 31s). Same binaries passed in 7s and 4s on immediate isolated recheck. Initial root cause was not established; raw failures retained. Final complete suite run separately with parallel=1 and direct log capture.",
+  "initial_junit_category_check": {
+    "evidence": {
+      "path": "artifacts/p3-test-coverage-20261027/core-replays.xml",
+      "sha256": "7056cd3591a4246db732f9b811a7a085ccdacd08885265eadefffa6eadb89a11",
+      "total": 9,
+      "passed": 8,
+      "failed": [
+        "codeguard.repair_test_coverage_skip"
+      ],
+      "skipped": [],
+      "timestamp": "2026-10-27T04:24:59",
+      "names": [
+        "codeguard.repair_test_coverage_isolation",
+        "codeguard.repair_test_coverage_fixtures",
+        "codeguard.repair_test_coverage_failures",
+        "codeguard.repair_test_coverage_skip",
+        "codeguard.repair_test_coverage_mutation",
+        "codeguard.repair_test_coverage_metadata",
+        "codeguard.repair_test_coverage_limit",
+        "codeguard.repair_test_coverage_cancel",
+        "codeguard.repair_test_coverage_cli"
+      ]
+    },
+    "explanation": "Test expected disabled to be counted as skipped; actual JUnit used disabled=1, skipped=0, status=notrun. Product already rejected the replay. Added separate disabled and not-run counts and corrected assertion."
+  },
+  "cli_delivery": {
+    "evidence": {
+      "path": "artifacts/p3-test-coverage-20261027/cli-delivery-final/result.json",
+      "sha256": "82a1afa6ed1e52e90547f28074bef055b412689d71f065f28d4846627fa7ebe9"
+    },
+    "runner": {
+      "path": "scripts/accept_repair_set.py",
+      "sha256": "9a0fb9fc0caee968cec80095c6f6e1167204ada4e5156c790bb93df2edcdbf30"
+    },
+    "result": {
+      "cli": "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p3-test-coverage-20261027\\CodeGuard-Windows-x64\\codeguard-cli.exe",
+      "cli_sha256": "dd18574664260604735d7251cc9c83de41db9fb5d6f43cc98ab949d77ad59bc9",
+      "scan_id": 1,
+      "set_id": "cgset-166069d3b8aa568b",
+      "manifest": "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p3-test-coverage-20261027\\cli-delivery-final\\sets\\cgset-166069d3b8aa568b-13430753627700-0\\repair.cgset",
+      "source_hashes": {
+        "CMakeLists.txt": "b82787d70fc21dc891daea963e7fa848fb680bc4855a3d494d4f80eecbd86364",
+        "main.cpp": "b297669895eb5851963aaa49676a22519fb2a1d52a6156827f971131be73af3b",
+        "one.cpp": "940137152291ef906fa4123b488e65a172482a5f1808747409e8a098689fa1ca",
+        "README.md": "4542c7d52504c2358a5822244ca7d444e35ae1938f3c0fc6a09a470f5ba853f8",
+        "zero.cpp": "8823765b200b57d089533b7e2834215bb607a5e2b034733fd09b139f7cdb579e"
+      },
+      "source_unchanged": true,
+      "reverse_order_identical": true,
+      "singles": [
+        {
+          "candidate_id": "cgfix-63b64336d086a18b",
+          "status": "tests_failed",
+          "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/singles/cgfix-63b64336d086a18b-13418178997000-0",
+          "error": "",
+          "build_run_id": 1,
+          "build_status": "passed",
+          "test_status": "failed",
+          "tests_total": 5,
+          "tests_failed": 1,
+          "tests_skipped": 0,
+          "source_unchanged": true,
+          "analysis_status": "complete",
+          "baseline_status": "complete",
+          "baseline_target_reproduced": true,
+          "target_not_detected": true,
+          "gates_passed": false,
+          "before_issues": 2,
+          "after_issues": 1,
+          "new_or_unmasked_issues": 0,
+          "coverage": {
+            "status": "not_measured",
+            "error": "",
+            "tool": "",
+            "tool_version": "",
+            "workspace": "",
+            "scope_signature": "",
+            "target_line_status": "unknown",
+            "lines_total": 0,
+            "lines_hit": 0,
+            "branch_records": 0,
+            "branch_records_taken": 0,
+            "notes_files": 0,
+            "data_files": 0,
+            "scope": "Instrumented project lines only; headers unioned by file/line; branch records counted per object and emission; uninstrumented files excluded from denominator",
+            "files": [],
+            "unmeasured_files": []
+          },
+          "coverage_commands_normalized": false,
+          "proposed_copy_verified": true,
+          "test_coverage": {
+            "status": "not_measured",
+            "workspace": "",
+            "error": "",
+            "ctest_version": "",
+            "test_limit": 0,
+            "declared_tests": 0,
+            "line_union_matches_aggregate": false,
+            "semantics": "One requested CTest test with its transitive DEPENDS and automatic fixtures per group; counters reset between groups; repeated in one build workspace, not a clean environment per test",
+            "entries": []
+          },
+          "targets": [
+            {
+              "candidate_id": "cgfix-63b64336d086a18b",
+              "rule_id": "CG003",
+              "file": "one.cpp",
+              "line": 2,
+              "column": 9,
+              "revised_line": 2,
+              "revised_column": 9,
+              "baseline_reproduced": true,
+              "target_not_detected": true,
+              "coverage_line_status": "unknown"
+            }
+          ],
+          "correctness": "not_assessed"
+        },
+        {
+          "candidate_id": "cgfix-7672023a3ea22ba8",
+          "status": "tests_failed",
+          "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/singles/cgfix-7672023a3ea22ba8-13424491290900-0",
+          "error": "",
+          "build_run_id": 2,
+          "build_status": "passed",
+          "test_status": "failed",
+          "tests_total": 5,
+          "tests_failed": 1,
+          "tests_skipped": 0,
+          "source_unchanged": true,
+          "analysis_status": "complete",
+          "baseline_status": "complete",
+          "baseline_target_reproduced": true,
+          "target_not_detected": true,
+          "gates_passed": false,
+          "before_issues": 2,
+          "after_issues": 1,
+          "new_or_unmasked_issues": 0,
+          "coverage": {
+            "status": "not_measured",
+            "error": "",
+            "tool": "",
+            "tool_version": "",
+            "workspace": "",
+            "scope_signature": "",
+            "target_line_status": "unknown",
+            "lines_total": 0,
+            "lines_hit": 0,
+            "branch_records": 0,
+            "branch_records_taken": 0,
+            "notes_files": 0,
+            "data_files": 0,
+            "scope": "Instrumented project lines only; headers unioned by file/line; branch records counted per object and emission; uninstrumented files excluded from denominator",
+            "files": [],
+            "unmeasured_files": []
+          },
+          "coverage_commands_normalized": false,
+          "proposed_copy_verified": true,
+          "test_coverage": {
+            "status": "not_measured",
+            "workspace": "",
+            "error": "",
+            "ctest_version": "",
+            "test_limit": 0,
+            "declared_tests": 0,
+            "line_union_matches_aggregate": false,
+            "semantics": "One requested CTest test with its transitive DEPENDS and automatic fixtures per group; counters reset between groups; repeated in one build workspace, not a clean environment per test",
+            "entries": []
+          },
+          "targets": [
+            {
+              "candidate_id": "cgfix-7672023a3ea22ba8",
+              "rule_id": "CG003",
+              "file": "zero.cpp",
+              "line": 2,
+              "column": 9,
+              "revised_line": 2,
+              "revised_column": 9,
+              "baseline_reproduced": true,
+              "target_not_detected": true,
+              "coverage_line_status": "unknown"
+            }
+          ],
+          "correctness": "not_assessed"
+        }
+      ],
+      "combined": {
+        "candidate_id": "cgset-166069d3b8aa568b",
+        "status": "gates_passed",
+        "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/validation/cgset-166069d3b8aa568b-13431038552100-0",
+        "error": "",
+        "build_run_id": 3,
+        "build_status": "passed",
+        "test_status": "passed",
+        "tests_total": 5,
+        "tests_failed": 0,
+        "tests_skipped": 0,
+        "source_unchanged": true,
+        "analysis_status": "complete",
+        "baseline_status": "complete",
+        "baseline_target_reproduced": true,
+        "target_not_detected": true,
+        "gates_passed": true,
+        "before_issues": 2,
+        "after_issues": 0,
+        "new_or_unmasked_issues": 0,
+        "coverage": {
+          "status": "collected",
+          "error": "",
+          "tool": "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\p0-windows\\toolchain-4\\mingw64\\bin\\gcov.exe",
+          "tool_version": "gcov (Rev3, Built by MSYS2 project) 16.2.0",
+          "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/validation/cgset-166069d3b8aa568b-13431038552100-0/coverage",
+          "scope_signature": "gcov-project-lines-v1:047d3d76e0ad93c0",
+          "target_line_status": "recorded",
+          "lines_total": 11,
+          "lines_hit": 11,
+          "branch_records": 20,
+          "branch_records_taken": 14,
+          "notes_files": 3,
+          "data_files": 3,
+          "scope": "Instrumented project lines only; headers unioned by file/line; branch records counted per object and emission; uninstrumented files excluded from denominator",
+          "files": [
+            {
+              "file": "main.cpp",
+              "branch_records": 16,
+              "branch_records_taken": 10,
+              "lines": [
+                {
+                  "line": 3,
+                  "recorded": true
+                },
+                {
+                  "line": 4,
+                  "recorded": true
+                },
+                {
+                  "line": 5,
+                  "recorded": true
+                },
+                {
+                  "line": 6,
+                  "recorded": true
+                },
+                {
+                  "line": 7,
+                  "recorded": true
+                }
+              ]
+            },
+            {
+              "file": "one.cpp",
+              "branch_records": 2,
+              "branch_records_taken": 2,
+              "lines": [
+                {
+                  "line": 1,
+                  "recorded": true
+                },
+                {
+                  "line": 2,
+                  "recorded": true
+                },
+                {
+                  "line": 3,
+                  "recorded": true
+                }
+              ]
+            },
+            {
+              "file": "zero.cpp",
+              "branch_records": 2,
+              "branch_records_taken": 2,
+              "lines": [
+                {
+                  "line": 1,
+                  "recorded": true
+                },
+                {
+                  "line": 2,
+                  "recorded": true
+                },
+                {
+                  "line": 3,
+                  "recorded": true
+                }
+              ]
+            }
+          ],
+          "unmeasured_files": []
+        },
+        "coverage_commands_normalized": true,
+        "proposed_copy_verified": true,
+        "test_coverage": {
+          "status": "collected",
+          "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/validation/cgset-166069d3b8aa568b-13431038552100-0/test-coverage",
+          "error": "",
+          "ctest_version": "ctest version 4.4.2",
+          "test_limit": 64,
+          "declared_tests": 5,
+          "line_union_matches_aggregate": true,
+          "semantics": "One requested CTest test with its transitive DEPENDS and automatic fixtures per group; counters reset between groups; repeated in one build workspace, not a clean environment per test",
+          "entries": [
+            {
+              "name": "zero [sample]",
+              "status": "collected",
+              "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/validation/cgset-166069d3b8aa568b-13431038552100-0/test-coverage/t0",
+              "error": "",
+              "tests_total": 1,
+              "tests_failed": 0,
+              "tests_skipped": 0,
+              "tests_disabled": 0,
+              "tests_not_run": 0,
+              "selected_tests": [
+                "zero [sample]"
+              ],
+              "coverage": {
+                "status": "collected",
+                "error": "",
+                "tool": "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\p0-windows\\toolchain-4\\mingw64\\bin\\gcov.exe",
+                "tool_version": "gcov (Rev3, Built by MSYS2 project) 16.2.0",
+                "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/validation/cgset-166069d3b8aa568b-13431038552100-0/test-coverage/t0/coverage",
+                "scope_signature": "gcov-project-lines-v1:047d3d76e0ad93c0",
+                "target_line_status": "no_recorded_execution",
+                "lines_total": 11,
+                "lines_hit": 6,
+                "branch_records": 20,
+                "branch_records_taken": 6,
+                "notes_files": 3,
+                "data_files": 3,
+                "scope": "Instrumented project lines only; headers unioned by file/line; branch records counted per object and emission; uninstrumented files excluded from denominator",
+                "files": [
+                  {
+                    "file": "main.cpp",
+                    "branch_records": 16,
+                    "branch_records_taken": 4,
+                    "lines": [
+                      {
+                        "line": 3,
+                        "recorded": true
+                      },
+                      {
+                        "line": 4,
+                        "recorded": true
+                      },
+                      {
+                        "line": 5,
+                        "recorded": true
+                      },
+                      {
+                        "line": 6,
+                        "recorded": false
+                      },
+                      {
+                        "line": 7,
+                        "recorded": false
+                      }
+                    ]
+                  },
+                  {
+                    "file": "one.cpp",
+                    "branch_records": 2,
+                    "branch_records_taken": 0,
+                    "lines": [
+                      {
+                        "line": 1,
+                        "recorded": false
+                      },
+                      {
+                        "line": 2,
+                        "recorded": false
+                      },
+                      {
+                        "line": 3,
+                        "recorded": false
+                      }
+                    ]
+                  },
+                  {
+                    "file": "zero.cpp",
+                    "branch_records": 2,
+                    "branch_records_taken": 2,
+                    "lines": [
+                      {
+                        "line": 1,
+                        "recorded": true
+                      },
+                      {
+                        "line": 2,
+                        "recorded": true
+                      },
+                      {
+                        "line": 3,
+                        "recorded": true
+                      }
+                    ]
+                  }
+                ],
+                "unmeasured_files": []
+              },
+              "targets": [
+                {
+                  "file": "one.cpp",
+                  "line": 2,
+                  "status": "no_recorded_execution"
+                },
+                {
+                  "file": "zero.cpp",
+                  "line": 2,
+                  "status": "recorded"
+                }
+              ]
+            },
+            {
+              "name": "one.sample",
+              "status": "collected",
+              "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/validation/cgset-166069d3b8aa568b-13431038552100-0/test-coverage/t1",
+              "error": "",
+              "tests_total": 3,
+              "tests_failed": 0,
+              "tests_skipped": 0,
+              "tests_disabled": 0,
+              "tests_not_run": 0,
+              "selected_tests": [
+                "one.sample",
+                "ready",
+                "cleanup"
+              ],
+              "coverage": {
+                "status": "collected",
+                "error": "",
+                "tool": "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\p0-windows\\toolchain-4\\mingw64\\bin\\gcov.exe",
+                "tool_version": "gcov (Rev3, Built by MSYS2 project) 16.2.0",
+                "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/validation/cgset-166069d3b8aa568b-13431038552100-0/test-coverage/t1/coverage",
+                "scope_signature": "gcov-project-lines-v1:047d3d76e0ad93c0",
+                "target_line_status": "recorded",
+                "lines_total": 11,
+                "lines_hit": 7,
+                "branch_records": 20,
+                "branch_records_taken": 7,
+                "notes_files": 3,
+                "data_files": 3,
+                "scope": "Instrumented project lines only; headers unioned by file/line; branch records counted per object and emission; uninstrumented files excluded from denominator",
+                "files": [
+                  {
+                    "file": "main.cpp",
+                    "branch_records": 16,
+                    "branch_records_taken": 5,
+                    "lines": [
+                      {
+                        "line": 3,
+                        "recorded": true
+                      },
+                      {
+                        "line": 4,
+                        "recorded": true
+                      },
+                      {
+                        "line": 5,
+                        "recorded": true
+                      },
+                      {
+                        "line": 6,
+                        "recorded": true
+                      },
+                      {
+                        "line": 7,
+                        "recorded": false
+                      }
+                    ]
+                  },
+                  {
+                    "file": "one.cpp",
+                    "branch_records": 2,
+                    "branch_records_taken": 2,
+                    "lines": [
+                      {
+                        "line": 1,
+                        "recorded": true
+                      },
+                      {
+                        "line": 2,
+                        "recorded": true
+                      },
+                      {
+                        "line": 3,
+                        "recorded": true
+                      }
+                    ]
+                  },
+                  {
+                    "file": "zero.cpp",
+                    "branch_records": 2,
+                    "branch_records_taken": 0,
+                    "lines": [
+                      {
+                        "line": 1,
+                        "recorded": false
+                      },
+                      {
+                        "line": 2,
+                        "recorded": false
+                      },
+                      {
+                        "line": 3,
+                        "recorded": false
+                      }
+                    ]
+                  }
+                ],
+                "unmeasured_files": []
+              },
+              "targets": [
+                {
+                  "file": "one.cpp",
+                  "line": 2,
+                  "status": "recorded"
+                },
+                {
+                  "file": "zero.cpp",
+                  "line": 2,
+                  "status": "no_recorded_execution"
+                }
+              ]
+            },
+            {
+              "name": "idle",
+              "status": "collected",
+              "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/validation/cgset-166069d3b8aa568b-13431038552100-0/test-coverage/t2",
+              "error": "",
+              "tests_total": 1,
+              "tests_failed": 0,
+              "tests_skipped": 0,
+              "tests_disabled": 0,
+              "tests_not_run": 0,
+              "selected_tests": [
+                "idle"
+              ],
+              "coverage": {
+                "status": "collected",
+                "error": "",
+                "tool": "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\p0-windows\\toolchain-4\\mingw64\\bin\\gcov.exe",
+                "tool_version": "gcov (Rev3, Built by MSYS2 project) 16.2.0",
+                "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/validation/cgset-166069d3b8aa568b-13431038552100-0/test-coverage/t2/coverage",
+                "scope_signature": "gcov-project-lines-v1:047d3d76e0ad93c0",
+                "target_line_status": "no_recorded_execution",
+                "lines_total": 11,
+                "lines_hit": 5,
+                "branch_records": 20,
+                "branch_records_taken": 4,
+                "notes_files": 3,
+                "data_files": 3,
+                "scope": "Instrumented project lines only; headers unioned by file/line; branch records counted per object and emission; uninstrumented files excluded from denominator",
+                "files": [
+                  {
+                    "file": "main.cpp",
+                    "branch_records": 16,
+                    "branch_records_taken": 4,
+                    "lines": [
+                      {
+                        "line": 3,
+                        "recorded": true
+                      },
+                      {
+                        "line": 4,
+                        "recorded": true
+                      },
+                      {
+                        "line": 5,
+                        "recorded": true
+                      },
+                      {
+                        "line": 6,
+                        "recorded": true
+                      },
+                      {
+                        "line": 7,
+                        "recorded": true
+                      }
+                    ]
+                  },
+                  {
+                    "file": "one.cpp",
+                    "branch_records": 2,
+                    "branch_records_taken": 0,
+                    "lines": [
+                      {
+                        "line": 1,
+                        "recorded": false
+                      },
+                      {
+                        "line": 2,
+                        "recorded": false
+                      },
+                      {
+                        "line": 3,
+                        "recorded": false
+                      }
+                    ]
+                  },
+                  {
+                    "file": "zero.cpp",
+                    "branch_records": 2,
+                    "branch_records_taken": 0,
+                    "lines": [
+                      {
+                        "line": 1,
+                        "recorded": false
+                      },
+                      {
+                        "line": 2,
+                        "recorded": false
+                      },
+                      {
+                        "line": 3,
+                        "recorded": false
+                      }
+                    ]
+                  }
+                ],
+                "unmeasured_files": []
+              },
+              "targets": [
+                {
+                  "file": "one.cpp",
+                  "line": 2,
+                  "status": "no_recorded_execution"
+                },
+                {
+                  "file": "zero.cpp",
+                  "line": 2,
+                  "status": "no_recorded_execution"
+                }
+              ]
+            },
+            {
+              "name": "ready",
+              "status": "collected",
+              "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/validation/cgset-166069d3b8aa568b-13431038552100-0/test-coverage/t3",
+              "error": "",
+              "tests_total": 1,
+              "tests_failed": 0,
+              "tests_skipped": 0,
+              "tests_disabled": 0,
+              "tests_not_run": 0,
+              "selected_tests": [
+                "ready"
+              ],
+              "coverage": {
+                "status": "collected",
+                "error": "",
+                "tool": "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\p0-windows\\toolchain-4\\mingw64\\bin\\gcov.exe",
+                "tool_version": "gcov (Rev3, Built by MSYS2 project) 16.2.0",
+                "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/validation/cgset-166069d3b8aa568b-13431038552100-0/test-coverage/t3/coverage",
+                "scope_signature": "gcov-project-lines-v1:047d3d76e0ad93c0",
+                "target_line_status": "no_recorded_execution",
+                "lines_total": 11,
+                "lines_hit": 0,
+                "branch_records": 20,
+                "branch_records_taken": 0,
+                "notes_files": 3,
+                "data_files": 0,
+                "scope": "Instrumented project lines only; headers unioned by file/line; branch records counted per object and emission; uninstrumented files excluded from denominator",
+                "files": [
+                  {
+                    "file": "main.cpp",
+                    "branch_records": 16,
+                    "branch_records_taken": 0,
+                    "lines": [
+                      {
+                        "line": 3,
+                        "recorded": false
+                      },
+                      {
+                        "line": 4,
+                        "recorded": false
+                      },
+                      {
+                        "line": 5,
+                        "recorded": false
+                      },
+                      {
+                        "line": 6,
+                        "recorded": false
+                      },
+                      {
+                        "line": 7,
+                        "recorded": false
+                      }
+                    ]
+                  },
+                  {
+                    "file": "one.cpp",
+                    "branch_records": 2,
+                    "branch_records_taken": 0,
+                    "lines": [
+                      {
+                        "line": 1,
+                        "recorded": false
+                      },
+                      {
+                        "line": 2,
+                        "recorded": false
+                      },
+                      {
+                        "line": 3,
+                        "recorded": false
+                      }
+                    ]
+                  },
+                  {
+                    "file": "zero.cpp",
+                    "branch_records": 2,
+                    "branch_records_taken": 0,
+                    "lines": [
+                      {
+                        "line": 1,
+                        "recorded": false
+                      },
+                      {
+                        "line": 2,
+                        "recorded": false
+                      },
+                      {
+                        "line": 3,
+                        "recorded": false
+                      }
+                    ]
+                  }
+                ],
+                "unmeasured_files": []
+              },
+              "targets": [
+                {
+                  "file": "one.cpp",
+                  "line": 2,
+                  "status": "no_recorded_execution"
+                },
+                {
+                  "file": "zero.cpp",
+                  "line": 2,
+                  "status": "no_recorded_execution"
+                }
+              ]
+            },
+            {
+              "name": "cleanup",
+              "status": "collected",
+              "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/validation/cgset-166069d3b8aa568b-13431038552100-0/test-coverage/t4",
+              "error": "",
+              "tests_total": 3,
+              "tests_failed": 0,
+              "tests_skipped": 0,
+              "tests_disabled": 0,
+              "tests_not_run": 0,
+              "selected_tests": [
+                "one.sample",
+                "ready",
+                "cleanup"
+              ],
+              "coverage": {
+                "status": "collected",
+                "error": "",
+                "tool": "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\p0-windows\\toolchain-4\\mingw64\\bin\\gcov.exe",
+                "tool_version": "gcov (Rev3, Built by MSYS2 project) 16.2.0",
+                "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/validation/cgset-166069d3b8aa568b-13431038552100-0/test-coverage/t4/coverage",
+                "scope_signature": "gcov-project-lines-v1:047d3d76e0ad93c0",
+                "target_line_status": "recorded",
+                "lines_total": 11,
+                "lines_hit": 7,
+                "branch_records": 20,
+                "branch_records_taken": 7,
+                "notes_files": 3,
+                "data_files": 3,
+                "scope": "Instrumented project lines only; headers unioned by file/line; branch records counted per object and emission; uninstrumented files excluded from denominator",
+                "files": [
+                  {
+                    "file": "main.cpp",
+                    "branch_records": 16,
+                    "branch_records_taken": 5,
+                    "lines": [
+                      {
+                        "line": 3,
+                        "recorded": true
+                      },
+                      {
+                        "line": 4,
+                        "recorded": true
+                      },
+                      {
+                        "line": 5,
+                        "recorded": true
+                      },
+                      {
+                        "line": 6,
+                        "recorded": true
+                      },
+                      {
+                        "line": 7,
+                        "recorded": false
+                      }
+                    ]
+                  },
+                  {
+                    "file": "one.cpp",
+                    "branch_records": 2,
+                    "branch_records_taken": 2,
+                    "lines": [
+                      {
+                        "line": 1,
+                        "recorded": true
+                      },
+                      {
+                        "line": 2,
+                        "recorded": true
+                      },
+                      {
+                        "line": 3,
+                        "recorded": true
+                      }
+                    ]
+                  },
+                  {
+                    "file": "zero.cpp",
+                    "branch_records": 2,
+                    "branch_records_taken": 0,
+                    "lines": [
+                      {
+                        "line": 1,
+                        "recorded": false
+                      },
+                      {
+                        "line": 2,
+                        "recorded": false
+                      },
+                      {
+                        "line": 3,
+                        "recorded": false
+                      }
+                    ]
+                  }
+                ],
+                "unmeasured_files": []
+              },
+              "targets": [
+                {
+                  "file": "one.cpp",
+                  "line": 2,
+                  "status": "recorded"
+                },
+                {
+                  "file": "zero.cpp",
+                  "line": 2,
+                  "status": "no_recorded_execution"
+                }
+              ]
+            }
+          ]
+        },
+        "targets": [
+          {
+            "candidate_id": "cgfix-63b64336d086a18b",
+            "rule_id": "CG003",
+            "file": "one.cpp",
+            "line": 2,
+            "column": 9,
+            "revised_line": 2,
+            "revised_column": 9,
+            "baseline_reproduced": true,
+            "target_not_detected": true,
+            "coverage_line_status": "recorded"
+          },
+          {
+            "candidate_id": "cgfix-7672023a3ea22ba8",
+            "rule_id": "CG003",
+            "file": "zero.cpp",
+            "line": 2,
+            "column": 9,
+            "revised_line": 2,
+            "revised_column": 9,
+            "baseline_reproduced": true,
+            "target_not_detected": true,
+            "coverage_line_status": "recorded"
+          }
+        ],
+        "correctness": "not_assessed"
+      },
+      "behavioral_counterexample": {
+        "candidate_id": "cgset-2910f511f454f2fb",
+        "status": "tests_failed",
+        "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/rejected/cgset-2910f511f454f2fb-13444970993300-0",
+        "error": "",
+        "build_run_id": 4,
+        "build_status": "passed",
+        "test_status": "failed",
+        "tests_total": 5,
+        "tests_failed": 1,
+        "tests_skipped": 0,
+        "source_unchanged": true,
+        "analysis_status": "complete",
+        "baseline_status": "complete",
+        "baseline_target_reproduced": true,
+        "target_not_detected": true,
+        "gates_passed": false,
+        "before_issues": 2,
+        "after_issues": 0,
+        "new_or_unmasked_issues": 0,
+        "coverage": {
+          "status": "not_measured",
+          "error": "",
+          "tool": "",
+          "tool_version": "",
+          "workspace": "",
+          "scope_signature": "",
+          "target_line_status": "unknown",
+          "lines_total": 0,
+          "lines_hit": 0,
+          "branch_records": 0,
+          "branch_records_taken": 0,
+          "notes_files": 0,
+          "data_files": 0,
+          "scope": "Instrumented project lines only; headers unioned by file/line; branch records counted per object and emission; uninstrumented files excluded from denominator",
+          "files": [],
+          "unmeasured_files": []
+        },
+        "coverage_commands_normalized": false,
+        "proposed_copy_verified": true,
+        "test_coverage": {
+          "status": "not_measured",
+          "workspace": "",
+          "error": "",
+          "ctest_version": "",
+          "test_limit": 0,
+          "declared_tests": 0,
+          "line_union_matches_aggregate": false,
+          "semantics": "One requested CTest test with its transitive DEPENDS and automatic fixtures per group; counters reset between groups; repeated in one build workspace, not a clean environment per test",
+          "entries": []
+        },
+        "targets": [
+          {
+            "candidate_id": "cgfix-63b64336d086a18b",
+            "rule_id": "CG003",
+            "file": "one.cpp",
+            "line": 2,
+            "column": 9,
+            "revised_line": 2,
+            "revised_column": 9,
+            "baseline_reproduced": true,
+            "target_not_detected": true,
+            "coverage_line_status": "unknown"
+          },
+          {
+            "candidate_id": "cgfix-54e147607dfba1c8",
+            "rule_id": "CG003",
+            "file": "zero.cpp",
+            "line": 2,
+            "column": 9,
+            "revised_line": 2,
+            "revised_column": 10,
+            "baseline_reproduced": true,
+            "target_not_detected": true,
+            "coverage_line_status": "unknown"
+          }
+        ],
+        "correctness": "not_assessed"
+      },
+      "core": {
+        "candidate_id": "cgset-166069d3b8aa568b",
+        "status": "analysis_unavailable",
+        "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/core/cgset-166069d3b8aa568b-13451301925500-0",
+        "error": "",
+        "build_run_id": 5,
+        "build_status": "passed",
+        "test_status": "passed",
+        "tests_total": 5,
+        "tests_failed": 0,
+        "tests_skipped": 0,
+        "source_unchanged": true,
+        "analysis_status": "unavailable",
+        "baseline_status": "unavailable",
+        "baseline_target_reproduced": false,
+        "target_not_detected": false,
+        "gates_passed": false,
+        "before_issues": -1,
+        "after_issues": -1,
+        "new_or_unmasked_issues": -1,
+        "coverage": {
+          "status": "collected",
+          "error": "",
+          "tool": "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\p0-windows\\toolchain-4\\mingw64\\bin\\gcov.exe",
+          "tool_version": "gcov (Rev3, Built by MSYS2 project) 16.2.0",
+          "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/core/cgset-166069d3b8aa568b-13451301925500-0/coverage",
+          "scope_signature": "gcov-project-lines-v1:047d3d76e0ad93c0",
+          "target_line_status": "recorded",
+          "lines_total": 11,
+          "lines_hit": 11,
+          "branch_records": 20,
+          "branch_records_taken": 14,
+          "notes_files": 3,
+          "data_files": 3,
+          "scope": "Instrumented project lines only; headers unioned by file/line; branch records counted per object and emission; uninstrumented files excluded from denominator",
+          "files": [
+            {
+              "file": "main.cpp",
+              "branch_records": 16,
+              "branch_records_taken": 10,
+              "lines": [
+                {
+                  "line": 3,
+                  "recorded": true
+                },
+                {
+                  "line": 4,
+                  "recorded": true
+                },
+                {
+                  "line": 5,
+                  "recorded": true
+                },
+                {
+                  "line": 6,
+                  "recorded": true
+                },
+                {
+                  "line": 7,
+                  "recorded": true
+                }
+              ]
+            },
+            {
+              "file": "one.cpp",
+              "branch_records": 2,
+              "branch_records_taken": 2,
+              "lines": [
+                {
+                  "line": 1,
+                  "recorded": true
+                },
+                {
+                  "line": 2,
+                  "recorded": true
+                },
+                {
+                  "line": 3,
+                  "recorded": true
+                }
+              ]
+            },
+            {
+              "file": "zero.cpp",
+              "branch_records": 2,
+              "branch_records_taken": 2,
+              "lines": [
+                {
+                  "line": 1,
+                  "recorded": true
+                },
+                {
+                  "line": 2,
+                  "recorded": true
+                },
+                {
+                  "line": 3,
+                  "recorded": true
+                }
+              ]
+            }
+          ],
+          "unmeasured_files": []
+        },
+        "coverage_commands_normalized": false,
+        "proposed_copy_verified": true,
+        "test_coverage": {
+          "status": "collected",
+          "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/core/cgset-166069d3b8aa568b-13451301925500-0/test-coverage",
+          "error": "",
+          "ctest_version": "ctest version 4.4.2",
+          "test_limit": 64,
+          "declared_tests": 5,
+          "line_union_matches_aggregate": true,
+          "semantics": "One requested CTest test with its transitive DEPENDS and automatic fixtures per group; counters reset between groups; repeated in one build workspace, not a clean environment per test",
+          "entries": [
+            {
+              "name": "zero [sample]",
+              "status": "collected",
+              "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/core/cgset-166069d3b8aa568b-13451301925500-0/test-coverage/t0",
+              "error": "",
+              "tests_total": 1,
+              "tests_failed": 0,
+              "tests_skipped": 0,
+              "tests_disabled": 0,
+              "tests_not_run": 0,
+              "selected_tests": [
+                "zero [sample]"
+              ],
+              "coverage": {
+                "status": "collected",
+                "error": "",
+                "tool": "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\p0-windows\\toolchain-4\\mingw64\\bin\\gcov.exe",
+                "tool_version": "gcov (Rev3, Built by MSYS2 project) 16.2.0",
+                "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/core/cgset-166069d3b8aa568b-13451301925500-0/test-coverage/t0/coverage",
+                "scope_signature": "gcov-project-lines-v1:047d3d76e0ad93c0",
+                "target_line_status": "no_recorded_execution",
+                "lines_total": 11,
+                "lines_hit": 6,
+                "branch_records": 20,
+                "branch_records_taken": 6,
+                "notes_files": 3,
+                "data_files": 3,
+                "scope": "Instrumented project lines only; headers unioned by file/line; branch records counted per object and emission; uninstrumented files excluded from denominator",
+                "files": [
+                  {
+                    "file": "main.cpp",
+                    "branch_records": 16,
+                    "branch_records_taken": 4,
+                    "lines": [
+                      {
+                        "line": 3,
+                        "recorded": true
+                      },
+                      {
+                        "line": 4,
+                        "recorded": true
+                      },
+                      {
+                        "line": 5,
+                        "recorded": true
+                      },
+                      {
+                        "line": 6,
+                        "recorded": false
+                      },
+                      {
+                        "line": 7,
+                        "recorded": false
+                      }
+                    ]
+                  },
+                  {
+                    "file": "one.cpp",
+                    "branch_records": 2,
+                    "branch_records_taken": 0,
+                    "lines": [
+                      {
+                        "line": 1,
+                        "recorded": false
+                      },
+                      {
+                        "line": 2,
+                        "recorded": false
+                      },
+                      {
+                        "line": 3,
+                        "recorded": false
+                      }
+                    ]
+                  },
+                  {
+                    "file": "zero.cpp",
+                    "branch_records": 2,
+                    "branch_records_taken": 2,
+                    "lines": [
+                      {
+                        "line": 1,
+                        "recorded": true
+                      },
+                      {
+                        "line": 2,
+                        "recorded": true
+                      },
+                      {
+                        "line": 3,
+                        "recorded": true
+                      }
+                    ]
+                  }
+                ],
+                "unmeasured_files": []
+              },
+              "targets": [
+                {
+                  "file": "one.cpp",
+                  "line": 2,
+                  "status": "no_recorded_execution"
+                },
+                {
+                  "file": "zero.cpp",
+                  "line": 2,
+                  "status": "recorded"
+                }
+              ]
+            },
+            {
+              "name": "one.sample",
+              "status": "collected",
+              "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/core/cgset-166069d3b8aa568b-13451301925500-0/test-coverage/t1",
+              "error": "",
+              "tests_total": 3,
+              "tests_failed": 0,
+              "tests_skipped": 0,
+              "tests_disabled": 0,
+              "tests_not_run": 0,
+              "selected_tests": [
+                "one.sample",
+                "ready",
+                "cleanup"
+              ],
+              "coverage": {
+                "status": "collected",
+                "error": "",
+                "tool": "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\p0-windows\\toolchain-4\\mingw64\\bin\\gcov.exe",
+                "tool_version": "gcov (Rev3, Built by MSYS2 project) 16.2.0",
+                "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/core/cgset-166069d3b8aa568b-13451301925500-0/test-coverage/t1/coverage",
+                "scope_signature": "gcov-project-lines-v1:047d3d76e0ad93c0",
+                "target_line_status": "recorded",
+                "lines_total": 11,
+                "lines_hit": 7,
+                "branch_records": 20,
+                "branch_records_taken": 7,
+                "notes_files": 3,
+                "data_files": 3,
+                "scope": "Instrumented project lines only; headers unioned by file/line; branch records counted per object and emission; uninstrumented files excluded from denominator",
+                "files": [
+                  {
+                    "file": "main.cpp",
+                    "branch_records": 16,
+                    "branch_records_taken": 5,
+                    "lines": [
+                      {
+                        "line": 3,
+                        "recorded": true
+                      },
+                      {
+                        "line": 4,
+                        "recorded": true
+                      },
+                      {
+                        "line": 5,
+                        "recorded": true
+                      },
+                      {
+                        "line": 6,
+                        "recorded": true
+                      },
+                      {
+                        "line": 7,
+                        "recorded": false
+                      }
+                    ]
+                  },
+                  {
+                    "file": "one.cpp",
+                    "branch_records": 2,
+                    "branch_records_taken": 2,
+                    "lines": [
+                      {
+                        "line": 1,
+                        "recorded": true
+                      },
+                      {
+                        "line": 2,
+                        "recorded": true
+                      },
+                      {
+                        "line": 3,
+                        "recorded": true
+                      }
+                    ]
+                  },
+                  {
+                    "file": "zero.cpp",
+                    "branch_records": 2,
+                    "branch_records_taken": 0,
+                    "lines": [
+                      {
+                        "line": 1,
+                        "recorded": false
+                      },
+                      {
+                        "line": 2,
+                        "recorded": false
+                      },
+                      {
+                        "line": 3,
+                        "recorded": false
+                      }
+                    ]
+                  }
+                ],
+                "unmeasured_files": []
+              },
+              "targets": [
+                {
+                  "file": "one.cpp",
+                  "line": 2,
+                  "status": "recorded"
+                },
+                {
+                  "file": "zero.cpp",
+                  "line": 2,
+                  "status": "no_recorded_execution"
+                }
+              ]
+            },
+            {
+              "name": "idle",
+              "status": "collected",
+              "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/core/cgset-166069d3b8aa568b-13451301925500-0/test-coverage/t2",
+              "error": "",
+              "tests_total": 1,
+              "tests_failed": 0,
+              "tests_skipped": 0,
+              "tests_disabled": 0,
+              "tests_not_run": 0,
+              "selected_tests": [
+                "idle"
+              ],
+              "coverage": {
+                "status": "collected",
+                "error": "",
+                "tool": "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\p0-windows\\toolchain-4\\mingw64\\bin\\gcov.exe",
+                "tool_version": "gcov (Rev3, Built by MSYS2 project) 16.2.0",
+                "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/core/cgset-166069d3b8aa568b-13451301925500-0/test-coverage/t2/coverage",
+                "scope_signature": "gcov-project-lines-v1:047d3d76e0ad93c0",
+                "target_line_status": "no_recorded_execution",
+                "lines_total": 11,
+                "lines_hit": 5,
+                "branch_records": 20,
+                "branch_records_taken": 4,
+                "notes_files": 3,
+                "data_files": 3,
+                "scope": "Instrumented project lines only; headers unioned by file/line; branch records counted per object and emission; uninstrumented files excluded from denominator",
+                "files": [
+                  {
+                    "file": "main.cpp",
+                    "branch_records": 16,
+                    "branch_records_taken": 4,
+                    "lines": [
+                      {
+                        "line": 3,
+                        "recorded": true
+                      },
+                      {
+                        "line": 4,
+                        "recorded": true
+                      },
+                      {
+                        "line": 5,
+                        "recorded": true
+                      },
+                      {
+                        "line": 6,
+                        "recorded": true
+                      },
+                      {
+                        "line": 7,
+                        "recorded": true
+                      }
+                    ]
+                  },
+                  {
+                    "file": "one.cpp",
+                    "branch_records": 2,
+                    "branch_records_taken": 0,
+                    "lines": [
+                      {
+                        "line": 1,
+                        "recorded": false
+                      },
+                      {
+                        "line": 2,
+                        "recorded": false
+                      },
+                      {
+                        "line": 3,
+                        "recorded": false
+                      }
+                    ]
+                  },
+                  {
+                    "file": "zero.cpp",
+                    "branch_records": 2,
+                    "branch_records_taken": 0,
+                    "lines": [
+                      {
+                        "line": 1,
+                        "recorded": false
+                      },
+                      {
+                        "line": 2,
+                        "recorded": false
+                      },
+                      {
+                        "line": 3,
+                        "recorded": false
+                      }
+                    ]
+                  }
+                ],
+                "unmeasured_files": []
+              },
+              "targets": [
+                {
+                  "file": "one.cpp",
+                  "line": 2,
+                  "status": "no_recorded_execution"
+                },
+                {
+                  "file": "zero.cpp",
+                  "line": 2,
+                  "status": "no_recorded_execution"
+                }
+              ]
+            },
+            {
+              "name": "ready",
+              "status": "collected",
+              "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/core/cgset-166069d3b8aa568b-13451301925500-0/test-coverage/t3",
+              "error": "",
+              "tests_total": 1,
+              "tests_failed": 0,
+              "tests_skipped": 0,
+              "tests_disabled": 0,
+              "tests_not_run": 0,
+              "selected_tests": [
+                "ready"
+              ],
+              "coverage": {
+                "status": "collected",
+                "error": "",
+                "tool": "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\p0-windows\\toolchain-4\\mingw64\\bin\\gcov.exe",
+                "tool_version": "gcov (Rev3, Built by MSYS2 project) 16.2.0",
+                "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/core/cgset-166069d3b8aa568b-13451301925500-0/test-coverage/t3/coverage",
+                "scope_signature": "gcov-project-lines-v1:047d3d76e0ad93c0",
+                "target_line_status": "no_recorded_execution",
+                "lines_total": 11,
+                "lines_hit": 0,
+                "branch_records": 20,
+                "branch_records_taken": 0,
+                "notes_files": 3,
+                "data_files": 0,
+                "scope": "Instrumented project lines only; headers unioned by file/line; branch records counted per object and emission; uninstrumented files excluded from denominator",
+                "files": [
+                  {
+                    "file": "main.cpp",
+                    "branch_records": 16,
+                    "branch_records_taken": 0,
+                    "lines": [
+                      {
+                        "line": 3,
+                        "recorded": false
+                      },
+                      {
+                        "line": 4,
+                        "recorded": false
+                      },
+                      {
+                        "line": 5,
+                        "recorded": false
+                      },
+                      {
+                        "line": 6,
+                        "recorded": false
+                      },
+                      {
+                        "line": 7,
+                        "recorded": false
+                      }
+                    ]
+                  },
+                  {
+                    "file": "one.cpp",
+                    "branch_records": 2,
+                    "branch_records_taken": 0,
+                    "lines": [
+                      {
+                        "line": 1,
+                        "recorded": false
+                      },
+                      {
+                        "line": 2,
+                        "recorded": false
+                      },
+                      {
+                        "line": 3,
+                        "recorded": false
+                      }
+                    ]
+                  },
+                  {
+                    "file": "zero.cpp",
+                    "branch_records": 2,
+                    "branch_records_taken": 0,
+                    "lines": [
+                      {
+                        "line": 1,
+                        "recorded": false
+                      },
+                      {
+                        "line": 2,
+                        "recorded": false
+                      },
+                      {
+                        "line": 3,
+                        "recorded": false
+                      }
+                    ]
+                  }
+                ],
+                "unmeasured_files": []
+              },
+              "targets": [
+                {
+                  "file": "one.cpp",
+                  "line": 2,
+                  "status": "no_recorded_execution"
+                },
+                {
+                  "file": "zero.cpp",
+                  "line": 2,
+                  "status": "no_recorded_execution"
+                }
+              ]
+            },
+            {
+              "name": "cleanup",
+              "status": "collected",
+              "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/core/cgset-166069d3b8aa568b-13451301925500-0/test-coverage/t4",
+              "error": "",
+              "tests_total": 3,
+              "tests_failed": 0,
+              "tests_skipped": 0,
+              "tests_disabled": 0,
+              "tests_not_run": 0,
+              "selected_tests": [
+                "one.sample",
+                "ready",
+                "cleanup"
+              ],
+              "coverage": {
+                "status": "collected",
+                "error": "",
+                "tool": "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\p0-windows\\toolchain-4\\mingw64\\bin\\gcov.exe",
+                "tool_version": "gcov (Rev3, Built by MSYS2 project) 16.2.0",
+                "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/core/cgset-166069d3b8aa568b-13451301925500-0/test-coverage/t4/coverage",
+                "scope_signature": "gcov-project-lines-v1:047d3d76e0ad93c0",
+                "target_line_status": "recorded",
+                "lines_total": 11,
+                "lines_hit": 7,
+                "branch_records": 20,
+                "branch_records_taken": 7,
+                "notes_files": 3,
+                "data_files": 3,
+                "scope": "Instrumented project lines only; headers unioned by file/line; branch records counted per object and emission; uninstrumented files excluded from denominator",
+                "files": [
+                  {
+                    "file": "main.cpp",
+                    "branch_records": 16,
+                    "branch_records_taken": 5,
+                    "lines": [
+                      {
+                        "line": 3,
+                        "recorded": true
+                      },
+                      {
+                        "line": 4,
+                        "recorded": true
+                      },
+                      {
+                        "line": 5,
+                        "recorded": true
+                      },
+                      {
+                        "line": 6,
+                        "recorded": true
+                      },
+                      {
+                        "line": 7,
+                        "recorded": false
+                      }
+                    ]
+                  },
+                  {
+                    "file": "one.cpp",
+                    "branch_records": 2,
+                    "branch_records_taken": 2,
+                    "lines": [
+                      {
+                        "line": 1,
+                        "recorded": true
+                      },
+                      {
+                        "line": 2,
+                        "recorded": true
+                      },
+                      {
+                        "line": 3,
+                        "recorded": true
+                      }
+                    ]
+                  },
+                  {
+                    "file": "zero.cpp",
+                    "branch_records": 2,
+                    "branch_records_taken": 0,
+                    "lines": [
+                      {
+                        "line": 1,
+                        "recorded": false
+                      },
+                      {
+                        "line": 2,
+                        "recorded": false
+                      },
+                      {
+                        "line": 3,
+                        "recorded": false
+                      }
+                    ]
+                  }
+                ],
+                "unmeasured_files": []
+              },
+              "targets": [
+                {
+                  "file": "one.cpp",
+                  "line": 2,
+                  "status": "recorded"
+                },
+                {
+                  "file": "zero.cpp",
+                  "line": 2,
+                  "status": "no_recorded_execution"
+                }
+              ]
+            }
+          ]
+        },
+        "targets": [
+          {
+            "candidate_id": "cgfix-63b64336d086a18b",
+            "rule_id": "CG003",
+            "file": "one.cpp",
+            "line": 2,
+            "column": 9,
+            "revised_line": 2,
+            "revised_column": 9,
+            "baseline_reproduced": false,
+            "target_not_detected": false,
+            "coverage_line_status": "recorded"
+          },
+          {
+            "candidate_id": "cgfix-7672023a3ea22ba8",
+            "rule_id": "CG003",
+            "file": "zero.cpp",
+            "line": 2,
+            "column": 9,
+            "revised_line": 2,
+            "revised_column": 9,
+            "baseline_reproduced": false,
+            "target_not_detected": false,
+            "coverage_line_status": "recorded"
+          }
+        ],
+        "correctness": "not_assessed"
+      },
+      "build_runs": [
+        [
+          1,
+          1,
+          "failed"
+        ],
+        [
+          2,
+          1,
+          "failed"
+        ],
+        [
+          3,
+          1,
+          "passed"
+        ],
+        [
+          4,
+          1,
+          "failed"
+        ],
+        [
+          5,
+          1,
+          "passed"
+        ]
+      ],
+      "mixed_recipe_mapping": {
+        "candidate_id": "cgset-d3c1ca2939d35c19",
+        "status": "gates_passed",
+        "workspace": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/cli-delivery-final/mixed-validation/cgset-d3c1ca2939d35c19-13468431372500-0",
+        "error": "",
+        "build_run_id": 1,
+        "build_status": "passed",
+        "test_status": "passed",
+        "tests_total": 1,
+        "tests_failed": 0,
+        "tests_skipped": 0,
+        "source_unchanged": true,
+        "analysis_status": "complete",
+        "baseline_status": "complete",
+        "baseline_target_reproduced": true,
+        "target_not_detected": true,
+        "gates_passed": true,
+        "before_issues": 3,
+        "after_issues": 1,
+        "new_or_unmasked_issues": 0,
+        "coverage": {
+          "status": "not_measured",
+          "error": "",
+          "tool": "",
+          "tool_version": "",
+          "workspace": "",
+          "scope_signature": "",
+          "target_line_status": "unknown",
+          "lines_total": 0,
+          "lines_hit": 0,
+          "branch_records": 0,
+          "branch_records_taken": 0,
+          "notes_files": 0,
+          "data_files": 0,
+          "scope": "Instrumented project lines only; headers unioned by file/line; branch records counted per object and emission; uninstrumented files excluded from denominator",
+          "files": [],
+          "unmeasured_files": []
+        },
+        "coverage_commands_normalized": false,
+        "proposed_copy_verified": true,
+        "test_coverage": {
+          "status": "not_measured",
+          "workspace": "",
+          "error": "",
+          "ctest_version": "",
+          "test_limit": 0,
+          "declared_tests": 0,
+          "line_union_matches_aggregate": false,
+          "semantics": "One requested CTest test with its transitive DEPENDS and automatic fixtures per group; counters reset between groups; repeated in one build workspace, not a clean environment per test",
+          "entries": []
+        },
+        "targets": [
+          {
+            "candidate_id": "cgfix-58fef8cf2a76bd6b",
+            "rule_id": "CG001",
+            "file": "main.cpp",
+            "line": 2,
+            "column": 47,
+            "revised_line": 2,
+            "revised_column": 47,
+            "baseline_reproduced": true,
+            "target_not_detected": true,
+            "coverage_line_status": "unknown"
+          },
+          {
+            "candidate_id": "cgfix-591f9e133599b99f",
+            "rule_id": "CG003",
+            "file": "main.cpp",
+            "line": 2,
+            "column": 84,
+            "revised_line": 2,
+            "revised_column": 96,
+            "baseline_reproduced": true,
+            "target_not_detected": true,
+            "coverage_line_status": "unknown"
+          }
+        ],
+        "correctness": "not_assessed"
+      },
+      "mixed_source_hashes": {
+        "CMakeLists.txt": "490796ae3aaa75dc50f0b79c768cb5d94edd5218cfbb69cf94ce12d62c074b78",
+        "main.cpp": "e7caaaef58ac94a008663d84fb40e4e216c7192b07c912d954fce133be9a8e67"
+      },
+      "per_test_requested": true,
+      "correctness": "not_assessed"
+    },
+    "all_original_files_unchanged": true
+  },
+  "package": {
+    "directory": "artifacts/p3-test-coverage-20261027/CodeGuard-Windows-x64",
+    "qa": {
+      "path": "artifacts/p3-test-coverage-20261027/package-qa-final/result.json",
+      "sha256": "0ae61e7742dda83b4673d05e2304ce564958fb953747ac7987a2ab75d93f8fd8"
+    },
+    "qa_result": {
+      "repair_set_cancel_targets": 2,
+      "repair_batch_cancel_ledger": true,
+      "clean_path": true,
+      "repair_set_preview": true,
+      "gui": true,
+      "repair_set_source_unchanged": true,
+      "packaged_resource_header": "D:/Work/WORKDONE/cpp-defect-guard/artifacts/p3-test-coverage-20261027/CodeGuard-Windows-x64/resources/clang/include/stddef.h",
+      "package": "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p3-test-coverage-20261027\\CodeGuard-Windows-x64",
+      "chinese_font": true,
+      "cli": true,
+      "timestamp": "2026-10-27T05:28:34.6488723+08:00",
+      "repair_preview": true,
+      "graph_path": true,
+      "template_initializer": true,
+      "local_flow": true,
+      "clang": true
+    },
+    "executable_and_sdk_match_current_build": true,
+    "zip": "artifacts/p3-test-coverage-20261027/CodeGuard-Windows-x64-P3-Test-Coverage.zip",
+    "checksum": "Adjacent .zip.sha256 file"
+  },
+  "screenshots": {
+    "files": [
+      {
+        "path": "artifacts/p3-test-coverage-20261027/screenshots/repair-set-test-coverage-compact.png",
+        "sha256": "4cfcd4f1386426ec7fac71fd3bf37ef54d8c965a4b34f1f2974ae69936379119"
+      },
+      {
+        "path": "artifacts/p3-test-coverage-20261027/screenshots/repair-set-test-coverage.png",
+        "sha256": "6a1c9d2de5ab1e04143388b37450ef6ac53a06fb4ce1710b53d382a0c3d5a0fb"
+      },
+      {
+        "path": "artifacts/p3-test-coverage-20261027/screenshots/repair-test-coverage-compact.png",
+        "sha256": "a291f8e0b143a5c30df1f5e22a6a79480d8b21966f4d544e33e9dbb10245d96d"
+      },
+      {
+        "path": "artifacts/p3-test-coverage-20261027/screenshots/repair-test-coverage.png",
+        "sha256": "2929073f4f2fba4c7767c6a50e8493d72061bdb52312ebb054df67717db481cf"
+      }
+    ],
+    "inspected": "Normal and compact scrollable single/batch and set dialogs, controls, group evidence, original source and correctness labels"
+  },
+  "real_projects": {
+    "repeated_in_this_stage": false,
+    "prior_stage": "docs/evidence/repair-set-20261027.json",
+    "boundary": "Prior 59 selected TU and 44 upstream tests belong to the previous build. This stage uses current full product regression and synthetic per-group fixtures; no real repair truth or new real-project accuracy claim."
+  },
+  "sample_initial_scan": {
+    "log": {
+      "path": "artifacts/p3-test-coverage-20261027/cli-dev/scan.log",
+      "sha256": "7585c1ff5e14de959b59da9a984a69986b4c36c9057a8b693de677d87ca2be7f"
+    },
+    "explanation": "CMake C++20 automatic module scanning produced unsupported side-effect module options. The module-free demo now explicitly sets CMAKE_CXX_SCAN_FOR_MODULES=OFF. Analyzer command rejection was retained."
+  },
+  "semantics": {
+    "group": "One requested CTest test with transitive DEPENDS and automatically selected fixtures; selected_tests names checked against actual JUnit",
+    "environment": "Counters isolated between groups; same build workspace and resource state reused",
+    "required": "Every replay group passes and collects comparable lines; successful group line union equals aggregate; existing static/test/source gates retained",
+    "skipped": "Disabled, skipped and not-run are separate JUnit fields; process exit zero is insufficient",
+    "limits": "1..256 declared tests, default limit 64; 8 MiB metadata, 1 GiB accumulated replay evidence checked after each group; inherited per-gcov bounds retained",
+    "correctness": "not_assessed",
+    "operating_system_sandbox": false,
+    "automatic_original_application": false,
+    "remaining": "Original-versus-modified multi-run coverage comparison, true repair correctness labels, deployment of a model, independent CI"
+  }
+}

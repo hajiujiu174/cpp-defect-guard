@@ -1,6 +1,7 @@
 #include "codeguard/application.hpp"
 #include <sqlite3.h>
 #include <memory>
+#include <utility>
 #include <stdexcept>
 #include <chrono>
 
@@ -227,6 +228,36 @@ void SqliteDatabase::save_configuration(const std::string& root,const ProjectCon
     write.bind(1,root);write.bind(2,payload);write.next();
 }
 
+namespace {
+template<class Snapshot> ValidationInputs project_validation_inputs(Snapshot&& value) {
+    ValidationInputs result;result.id=value.id;result.added=value.added;result.changed=value.changed;result.unchanged=value.unchanged;result.removed=value.removed;
+    result.root=std::forward<Snapshot>(value).root;result.scanned_at=std::forward<Snapshot>(value).scanned_at;
+    result.inventory_policy=std::forward<Snapshot>(value).inventory_policy;
+    result.files=std::forward<Snapshot>(value).files;result.diagnostics=std::forward<Snapshot>(value).diagnostics;
+    auto& output=result.analysis;
+    output.status=std::forward<Snapshot>(value).analysis.status;
+    output.compile_commands=std::forward<Snapshot>(value).analysis.compile_commands;
+    output.configuration=std::forward<Snapshot>(value).analysis.configuration;
+    output.analyzer_revision=std::forward<Snapshot>(value).analysis.analyzer_revision;
+    output.units=std::forward<Snapshot>(value).analysis.units;
+    output.covered_files=std::forward<Snapshot>(value).analysis.covered_files;
+    output.issues=std::forward<Snapshot>(value).analysis.issues;
+    output.suppressed_issues=std::forward<Snapshot>(value).analysis.suppressed_issues;
+    output.rule_diagnostics=std::forward<Snapshot>(value).analysis.rule_diagnostics;
+    output.workers=value.analysis.workers;output.elapsed_ms=value.analysis.elapsed_ms;return result;
+}
+}
+ValidationInputs validation_inputs_of(const ScanResult& snapshot){return project_validation_inputs(snapshot);}
+ValidationInputs SqliteDatabase::validation_inputs(const std::string& root) {
+    auto snapshot=load_snapshot(root,0,false,SnapshotScope::validation);
+    if(impl_->control)impl_->control->check();
+    auto result=project_validation_inputs(std::move(snapshot));
+    if(impl_->control)impl_->control->check();return result;
+}
+std::int64_t SqliteDatabase::latest_scan_id(const std::string& root) {
+    Statement query(impl_->db,impl_->control,"SELECT COALESCE(MAX(s.id),0) FROM scan s JOIN project p ON p.id=s.project_id WHERE p.root=?");
+    query.bind(1,root);return query.next()?query.number(0):0;
+}
 ScanResult SqliteDatabase::latest(const std::string& root) {
     return load_snapshot(root,0,false);
 }
@@ -249,7 +280,8 @@ std::vector<ScanSummary> SqliteDatabase::scans(const std::string& root,std::int6
     while(query.next())result.push_back({query.number(0),query.text(1),query.text(2),query.number(3),query.number(4),query.number(5)});
     return result;
 }
-ScanResult SqliteDatabase::load_snapshot(const std::string& root,std::int64_t scan_id,bool include_build_logs) {
+ScanResult SqliteDatabase::load_snapshot(const std::string& root,std::int64_t scan_id,bool include_build_logs,SnapshotScope scope) {
+    const bool full=scope==SnapshotScope::full;
     ScanResult result;
     result.root = root;
     Statement scan(impl_->db,impl_->control, "SELECT s.id,s.scanned_at,s.added,s.changed,s.unchanged,s.removed FROM scan s JOIN project p ON p.id=s.project_id WHERE p.root=? AND (?=0 OR s.id=?) ORDER BY s.id DESC LIMIT 1");
@@ -302,6 +334,7 @@ ScanResult SqliteDatabase::load_snapshot(const std::string& root,std::int64_t sc
                 while(covered.next())unit.covered_files.push_back(covered.text(0));
             }
         }
+        if(full) {
         Statement symbols(impl_->db,impl_->control, "SELECT usr,kind,name,file,line,col,is_definition,external FROM symbol WHERE scan_id=? ORDER BY usr");
         symbols.bind(1, result.id);
         while (symbols.next()) output.symbols.push_back({symbols.text(0), symbols.text(1), symbols.text(2), symbols.text(3),
@@ -322,6 +355,7 @@ ScanResult SqliteDatabase::load_snapshot(const std::string& root,std::int64_t sc
         edges.bind(1, result.id);
         while (edges.next()) output.edges.push_back({edges.text(0), edges.text(1), edges.text(2), edges.text(3),
             static_cast<int>(edges.number(4)), static_cast<int>(edges.number(5))});
+        }
         Statement coverage(impl_->db,impl_->control, "SELECT file FROM coverage WHERE scan_id=? ORDER BY file");
         coverage.bind(1, result.id);
         while (coverage.next()) output.covered_files.push_back(coverage.text(0));
@@ -334,7 +368,7 @@ ScanResult SqliteDatabase::load_snapshot(const std::string& root,std::int64_t sc
                 static_cast<int>(issues.number(4)),issues.text(5),issues.text(6),issues.text(7),issues.text(8),issues.text(9)});
         }
     }
-    if (impl_->version >= 3) {
+    if (full&&impl_->version >= 3) {
         if(scan_id){result.build_runs=load_builds(root,include_build_logs,0,result.id,-1);result.build_logs_loaded=include_build_logs;}
         else for(auto& run:builds(root))if(run.scan_id==result.id)result.build_runs.push_back(std::move(run));
     }

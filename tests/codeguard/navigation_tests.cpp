@@ -136,6 +136,12 @@ void run(const std::string& mode,const std::string& cli){
         auto call=[&](const std::string& target){return cg::run_process({{cli,"references",cg::utf8_path(f.root),"--database",cg::utf8_path(f.db),"--symbol",target},cg::utf8_path(f.dir),std::chrono::seconds(20)});};
         auto good=call(id);check(good.exit_code==0&&good.stdout_text.find("reference_observations=2")!=std::string::npos&&good.stdout_text.find("translation_unit")!=std::string::npos,"CLI references failed: "+good.stdout_text+good.stderr_text);
         check(call("invalid").exit_code!=0,"CLI unknown target succeeded");
+        const auto edge=std::find_if(a.edges.begin(),a.edges.end(),[&](const auto& e){return e.kind=="call"&&e.source==id;});
+        check(edge!=a.edges.end(),"path fixture has no call edge");
+        auto path_call=[&](const std::string& from,const std::string& to){return cg::run_process({{cli,"graph",cg::utf8_path(f.root),"--database",cg::utf8_path(f.db),"--kind","call","--from",from,"--to",to},cg::utf8_path(f.dir),std::chrono::seconds(20)});};
+        const auto path=path_call(id,edge->target);check(path.exit_code==0&&path.stdout_text.find("path_found=1")!=std::string::npos&&path.stdout_text.find("path_edge\t")!=std::string::npos,"CLI shortest path failed");
+        check(path_call("missing",id).exit_code!=0,"CLI unknown path endpoint accepted");
+        check(path_call("","").exit_code!=0,"CLI empty endpoints silently requested a graph summary");
     }else throw std::runtime_error("unknown navigation mode");
 }
 int main(int argc,char** argv){try{check(argc==3,"mode and CLI required");run(argv[1],argv[2]);std::cout<<"NAVIGATION_OK "<<argv[1]<<'\n';return 0;}catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}}

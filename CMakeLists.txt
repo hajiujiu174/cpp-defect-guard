@@ -19,6 +19,15 @@ add_library(codeguard-core STATIC
     core/project/scanner.cpp
     core/project/configuration.cpp
     core/graph/graph.cpp
+    core/graph/explorer.cpp
+    core/repair/repair.cpp
+    core/repair/batch.cpp
+    core/repair/coverage.cpp
+    core/repair/coverage_delta.cpp
+    core/repair/comparison.cpp
+    core/repair/test_coverage.cpp
+    core/repair/set.cpp
+    core/repair/validation.cpp
     core/query/query.cpp
     core/report/comparison.cpp
     core/report/export.cpp
@@ -39,7 +48,7 @@ if(MSVC)
 else()
     target_compile_options(codeguard-core PRIVATE -Wall -Wextra -Wpedantic)
 endif()
-add_executable(codeguard-cli cli/main.cpp cli/report_commands.cpp)
+add_executable(codeguard-cli cli/main.cpp cli/report_commands.cpp cli/repair_commands.cpp)
 target_link_libraries(codeguard-cli PRIVATE codeguard-core)
 if(MINGW)
     target_link_options(codeguard-cli PRIVATE -municode)

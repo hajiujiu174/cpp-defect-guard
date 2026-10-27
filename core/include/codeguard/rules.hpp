@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <cstdint>
 namespace codeguard {
 struct RuleInfo { std::string id, severity, title, scope; };
 struct Issue {
@@ -14,6 +15,14 @@ struct RuleSuppression {
     std::string rule_id, file;
     int line=0, column=0;
     std::string source_hash, reason;
+};
+// Fresh, opt-in AST evidence for candidate generation. Not persisted as part
+// of historical issues and never reconstructed from the displayed snippet.
+struct RepairHint {
+    std::string rule_id,file,recipe,title,risk;
+    int line=0,column=0;
+    std::uint64_t offset=0;
+    std::string before,after;
 };
 const std::vector<RuleInfo>& rule_catalog();
 const RuleInfo& rule_info(const std::string& id);

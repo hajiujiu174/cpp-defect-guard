@@ -24,6 +24,7 @@ struct UnitOutput {
     std::vector<GraphEdge> edges;
     std::vector<SymbolReference> references;
     std::vector<Issue> issues;
+    std::vector<RepairHint> repair_hints; // bypass cached results when collecting these
     bool cached=false;
     bool cache_checked=false,cache_error=false;
     std::int64_t validation_ms=0;

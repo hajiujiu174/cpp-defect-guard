@@ -2,6 +2,7 @@
 #include "codeguard/thread_pool.hpp"
 #include "../analyzer/clang_rules/rule.hpp"
 #include "analysis_cache.hpp"
+#include "repair_hints.hpp"
 #include <clang/Lex/Lexer.h>
 #include <chrono>
 #include <mutex>
@@ -59,6 +60,7 @@ struct Collector {
     std::string translation_unit;
     clang_rules::Engine rules;
     tu_cache::Probe* cache_trace=nullptr;
+    bool collect_repairs=false;
     Collector(const std::map<std::string, std::string>& files, const std::string& directory,const std::vector<std::string>& disabled,const std::string& unit)
         : inventory(files), working_directory(from_utf8(directory)),translation_unit(unit),rules(disabled) {}
     const std::string& normalized(llvm::StringRef filename) const {
@@ -204,7 +206,7 @@ public:
         output.metrics[id] = metric;
         Calls calls(output, *match.Context, id);
         calls.TraverseStmt(const_cast<Stmt*>(function->getBody()));
-        output.rules.inspect(function->getBody(),*match.Context,[&](const Stmt* statement,const std::string& rule,const std::string& message,const std::string& suggestion){
+        output.rules.inspect_function(function->getBody(),*match.Context,[&](const Stmt* statement,const std::string& rule,const std::string& message,const std::string& suggestion){
             add_issue(statement,*match.Context,id,rule,message,suggestion);
         });
     }
@@ -255,6 +257,7 @@ private:
         output.result.issues.push_back({info.id, info.severity, output.path(sources.getFilename(location)),
             static_cast<int>(sources.getExpansionLineNumber(location)), static_cast<int>(sources.getExpansionColumnNumber(location)),
             message, evidence, suggestion, id});
+        if(output.collect_repairs){auto hints=ast_repair_hints(statement,context,output.result.issues.back());output.result.repair_hints.insert(output.result.repair_hints.end(),hints.begin(),hints.end());}
     }
 };
 class Includes final : public PPCallbacks {
@@ -360,7 +363,7 @@ std::vector<CompileCommandInfo> inspect_compile_commands(const std::string& data
     for(const auto& command:read_commands(database))result.push_back({key(from_utf8(command.Filename)),command_id(command),format_arguments(command.CommandLine)});
     return result;
 }
-std::string relocate_compile_commands(const std::string& input,const std::string& copied_source,const std::string& original_source,const std::string& output) {
+std::string relocate_compile_commands(const std::string& input,const std::string& copied_source,const std::string& original_source,const std::string& output,bool strip_gcov_codegen) {
     const auto from=utf8_path(fs::canonical(from_utf8(copied_source))),to=utf8_path(fs::canonical(from_utf8(original_source)));
     auto replace=[&](std::string value) {
         auto windows_from=from;std::replace(windows_from.begin(),windows_from.end(),'/','\\');
@@ -372,7 +375,7 @@ std::string relocate_compile_commands(const std::string& input,const std::string
     };
     llvm::json::Array result;
     for(const auto& command:read_commands(input)) {
-        llvm::json::Array args;for(const auto& arg:command.CommandLine)args.push_back(replace(arg));
+        llvm::json::Array args;for(const auto& arg:command.CommandLine){if(strip_gcov_codegen&&(arg=="--coverage"||arg=="-fprofile-abs-path"||arg=="-fprofile-update=atomic"))continue;args.push_back(replace(arg));}
         result.push_back(llvm::json::Object{{"directory",command.Directory},{"file",replace(command.Filename)},{"arguments",std::move(args)},{"output",command.Output}});
     }
     const auto path=from_utf8(output);if(fs::exists(path))throw std::invalid_argument("generated compilation database must use a new file");
@@ -380,9 +383,9 @@ std::string relocate_compile_commands(const std::string& input,const std::string
     stream<<llvm::formatv("{0:2}",llvm::json::Value(std::move(result))).str();
     if(!stream)throw std::runtime_error("cannot write prepared compilation database");return utf8_path(fs::absolute(path));
 }
-AnalysisResult analyze_project(const ScanResult& inventory, const std::string& database, const ScanContext& context, unsigned threads, const std::map<std::string,std::string>& choices,const std::vector<std::string>& disabled_rules,const std::string& cache_directory) {
+AnalysisResult analyze_project(const ScanResult& inventory, const std::string& database, const ScanContext& context, unsigned threads, const std::map<std::string,std::string>& choices,const std::vector<std::string>& disabled_rules,const std::string& cache_directory,bool collect_repair_hints) {
     fs::path cache_path;
-    if(!cache_directory.empty()) {
+    if(!cache_directory.empty()&&!collect_repair_hints) {
         cache_path=fs::weakly_canonical(fs::absolute(from_utf8(cache_directory)));
         if(project_path_inside(cache_path,from_utf8(inventory.root)))throw std::invalid_argument("AST cache must be outside the source tree");
     }
@@ -490,6 +493,7 @@ AnalysisResult analyze_project(const ScanResult& inventory, const std::string& d
             }
             if(!part.cached) {
             Collector output{files, selected->Directory,disabled_rules,file.path}; Factory factory(output); Diagnostics diagnostic;
+            output.collect_repairs=collect_repair_hints;
             tu_cache::Probe ast_trace;if(!cache_key.empty())output.cache_trace=&ast_trace;
             OneCommand command(*selected);
             // A private VFS working directory avoids mutating the GUI process CWD.
@@ -509,6 +513,7 @@ AnalysisResult analyze_project(const ScanResult& inventory, const std::string& d
                 part.symbols = std::move(output.symbols); part.metrics = std::move(output.metrics);
                 part.edges = std::move(output.result.edges); part.issues = std::move(output.result.issues);
                 part.references = std::move(output.result.references);
+                part.repair_hints = std::move(output.result.repair_hints);
                 for (auto& reference : part.references) reference.translation_unit = file.path;
                 if(!cache_key.empty()) {
                     if(!ast_trace.reusable||ast_trace.dependencies!=probed_dependencies)throw std::runtime_error("source or dependency changed during AST analysis; snapshot not saved");
@@ -547,6 +552,7 @@ AnalysisResult analyze_project(const ScanResult& inventory, const std::string& d
         }
         result.edges.insert(result.edges.end(), part.edges.begin(), part.edges.end());
         result.references.insert(result.references.end(), part.references.begin(), part.references.end());
+        result.repair_hints.insert(result.repair_hints.end(),part.repair_hints.begin(),part.repair_hints.end());
         for (auto& issue : part.issues) {
             auto identity=issue.symbol_id;const auto suffix="@tu="+unit.file;
             if(identity.ends_with(suffix))identity.resize(identity.size()-suffix.size());
@@ -555,6 +561,9 @@ AnalysisResult analyze_project(const ScanResult& inventory, const std::string& d
         }
     }
     result.status = good == 0 ? "failed" : (bad ? "partial" : "complete");
+    auto hint_key=[](const RepairHint& h){return std::tie(h.file,h.rule_id,h.line,h.column,h.recipe,h.offset,h.before,h.after);};
+    std::sort(result.repair_hints.begin(),result.repair_hints.end(),[&](const auto& a,const auto& b){return hint_key(a)<hint_key(b);});
+    result.repair_hints.erase(std::unique(result.repair_hints.begin(),result.repair_hints.end(),[&](const auto& a,const auto& b){return hint_key(a)==hint_key(b);}),result.repair_hints.end());
     if (good) result.reference_index = "resolved_ast_v1";
     for (const auto& [id, symbol] : symbols) result.symbols.push_back(symbol);
     for (const auto& [id, metric] : metrics) result.metrics.push_back(metric);

@@ -32,4 +32,9 @@ void Engine::inspect(const Stmt* statement,ASTContext& ast,const Emit& emit,bool
     if(const auto* unary=dyn_cast<UnaryOperator>(statement))child_address=unary->getOpcode()==UO_AddrOf;
     for(const auto* child:statement->children())inspect(child,ast,emit,child_address);
 }
+void Engine::inspect_function(const Stmt* statement,ASTContext& ast,const Emit& emit) const {
+    inspect(statement,ast,emit);
+    auto enabled=[&](const std::string& id){return std::any_of(rules_.begin(),rules_.end(),[&](const Rule* r){return r->id==id;});};
+    if(enabled("CG002")||enabled("CG005"))inspect_local_flow(statement,ast,emit,enabled("CG002"),enabled("CG005"));
+}
 }

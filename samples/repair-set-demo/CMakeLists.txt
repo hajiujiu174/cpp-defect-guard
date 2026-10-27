@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.24)
+project(CodeGuardRepairSetDemo LANGUAGES CXX)
+enable_testing()
+add_executable(repair-set-demo main.cpp zero.cpp one.cpp)
+target_compile_features(repair-set-demo PRIVATE cxx_std_20)
+add_test(NAME both_classifications COMMAND repair-set-demo)

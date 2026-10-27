@@ -1,0 +1,30 @@
+{
+  "repository": "libgit2/libgit2",
+  "sha": "dca35e94a61b79e77e381ea59b0d9142163e87a5",
+  "parent": "f28579db11737eaa2ced18498e229967a12f1c3f",
+  "url": "https://github.com/libgit2/libgit2/commit/dca35e94a61b79e77e381ea59b0d9142163e87a5",
+  "message": "fix: correct operator precedence in error handling checks\n\nParentheses were missing around assignment expressions, causing the comparison result (0/1) to be assigned to 'error' instead of the actual function return code. This affects diff_generate.c and merge.c.",
+  "files": [
+    {
+      "file": "src/libgit2/diff_generate.c",
+      "blob": "dec0fd6ed87ff112b8dbe7864097f3de15f8d568",
+      "patch": "@@ -1530,7 +1530,7 @@ int git_diff_tree_to_workdir(\n \t*out = NULL;\n \n \tif ((error = diff_prepare_iterator_opts(&prefix, &a_opts, 0,\n-\t\t\t\t\t\t&b_opts, GIT_ITERATOR_DONT_AUTOEXPAND, opts) < 0) ||\n+\t\t\t\t\t\t&b_opts, GIT_ITERATOR_DONT_AUTOEXPAND, opts)) < 0 ||\n \t    (error = git_repository_index__weakptr(&index, repo)) < 0 ||\n \t    (error = git_iterator_for_tree(&a, old_tree, &a_opts)) < 0 ||\n \t    (error = git_iterator_for_workdir(&b, repo, index, old_tree, &b_opts)) < 0 ||\n@@ -1602,7 +1602,7 @@ int git_diff_index_to_index(\n \t*out = NULL;\n \n \tif ((error = diff_prepare_iterator_opts(&prefix, &a_opts, GIT_ITERATOR_DONT_IGNORE_CASE,\n-\t\t\t\t\t\t&b_opts, GIT_ITERATOR_DONT_IGNORE_CASE, opts) < 0) ||\n+\t\t\t\t\t\t&b_opts, GIT_ITERATOR_DONT_IGNORE_CASE, opts)) < 0 ||\n \t    (error = git_iterator_for_index(&a, repo, old_index, &a_opts)) < 0 ||\n \t    (error = git_iterator_for_index(&b, repo, new_index, &b_opts)) < 0 ||\n \t    (error = git_diff__from_iterators(&diff, repo, a, b, opts)) < 0)"
+    },
+    {
+      "file": "src/libgit2/merge.c",
+      "blob": "37a95e080c21074d073160433cbf6066254c4fca",
+      "patch": "@@ -3523,8 +3523,8 @@ int git_merge(\n \t\t&checkout_strategy)) < 0)\n \t\tgoto done;\n \n-\tif ((error = git_repository_index(&repo_index, repo) < 0) ||\n-\t    (error = git_index_read(repo_index, 0) < 0))\n+\tif ((error = git_repository_index(&repo_index, repo)) < 0 ||\n+\t    (error = git_index_read(repo_index, 0)) < 0)\n \t\tgoto done;\n \n \t/* Write the merge setup files to the repository. */"
+    }
+  ],
+  "pull_requests": [
+    {
+      "number": 7426,
+      "state": "closed",
+      "merged_at": "2026-10-16T14:02:20Z",
+      "url": "https://github.com/libgit2/libgit2/pull/7426",
+      "title": "fix: correct operator precedence in error handling checks"
+    }
+  ],
+  "retrieved_at": "2026-10-27",
+  "source": "GitHub connected repository API"
+}

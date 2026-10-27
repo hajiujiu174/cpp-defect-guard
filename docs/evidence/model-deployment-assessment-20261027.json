@@ -1,0 +1,87 @@
+{
+  "status": "offline_replay_passed_research_only",
+  "timestamp": "2026-10-27T13:29:30.599825+00:00",
+  "training": false,
+  "cpp_product_integration": false,
+  "independent_deployment_verified": false,
+  "same_original_test_metrics": true,
+  "metrics": {
+    "sample_count": 10,
+    "threshold": 0.5,
+    "confusion_matrix": {
+      "tp": 3,
+      "tn": 3,
+      "fp": 2,
+      "fn": 2
+    },
+    "precision": 0.6,
+    "recall": 0.6,
+    "f1": 0.6,
+    "accuracy": 0.6,
+    "localization": {
+      "supported": true,
+      "eligible_positive_samples": 5,
+      "denominator": "all positively labeled samples with known defect lines, independent of classification",
+      "top_k": {
+        "1": 0.6,
+        "3": 0.8,
+        "5": 1.0
+      },
+      "end_to_end_top_k": {
+        "1": 0.6,
+        "3": 0.6,
+        "5": 0.6
+      }
+    }
+  },
+  "wall_seconds": 59.665295362472534,
+  "runtime": {
+    "executable": "D:\\Work\\WORKDONE\\cpp-defect-guard\\.venv-ml\\Scripts\\python.exe",
+    "python": "3.12.14 (main, Aug 14 2026, 15:40:22) [MSC v.1944 64 bit (AMD64)]",
+    "packages": {
+      "torch": "2.14.0+cpu",
+      "torch-geometric": "2.8.0.post1",
+      "transformers": "5.16.1",
+      "safetensors": "0.8.0",
+      "numpy": "2.5.2",
+      "huggingface-hub": "1.30.0",
+      "tokenizers": "0.23.2"
+    }
+  },
+  "inputs_unchanged": {
+    "artifacts/layer2/demo-20260906/fusion/metadata.json": "55666eb087bdd2bf5a3b35fed8a7f589b1d52974b75c70fb4e36f87e459895f0",
+    "artifacts/layer2/demo-20260906/fusion/model.safetensors": "9d22e110b86ff3ec9bff412e08aac1a3f39c22ba0d7fbd5e0634f89e180a9cab",
+    "artifacts/layer2/demo-20260906/dataset/splits.json": "3c0074102cd2999df7d595e6b1c89e14065b75f9c9fc24cd87fd8c3ddb670801"
+  },
+  "records": [
+    {
+      "path": "artifacts/p3-validation-inputs-20261027/model-runtime-readonly.json",
+      "sha256": "0379568e9bf0117effbc4b6b505ecc2cbb8362bc48cd338926df8a1b52920082"
+    },
+    {
+      "path": "artifacts/p3-validation-inputs-20261027/model-preflight-readonly.json",
+      "sha256": "ab40cdeb95c46c27192d170a9faa84f6a4aadd2c172283ce511b64372b7eca43"
+    },
+    {
+      "path": "artifacts/p3-validation-inputs-20261027/model-reevaluation-process.json",
+      "sha256": "77468d1b13f976b5d13b852ba30842452c1476d44e9827c30d41bb680d270591"
+    },
+    {
+      "path": "artifacts/p3-validation-inputs-20261027/model-re-evaluation/metrics.json",
+      "sha256": "1f3501f05af3f6ef283a76532189c4b7d5894dc8f797a81f8abb8b77f9b0b226"
+    },
+    {
+      "path": "artifacts/p3-validation-inputs-20261027/model-re-evaluation/predictions.json",
+      "sha256": "4fa991ae55acc158e9d599836dbfbfc165c924ebb29ac4a69a4acebce373c6e7"
+    },
+    {
+      "path": "artifacts/p3-validation-inputs-20261027/model-reevaluation.err",
+      "sha256": "9b33892e7c957d3392bade4ce32e5db3174b78de387db39f7a062fa209046a85"
+    }
+  ],
+  "limitations": [
+    "Existing fixed 10-function test split, not new independent real-world labels.",
+    "One concurrent local replay; wall time is not standalone inference throughput.",
+    "ML001 is an experimental binary warning with uncalibrated confidence; no automatic repair application."
+  ]
+}

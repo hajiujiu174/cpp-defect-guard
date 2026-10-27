@@ -1,0 +1,336 @@
+{
+  "phase": "P3 sixth phase: repeated original/patched coverage comparison",
+  "status": "passed_local",
+  "timestamp": "2026-10-27T01:02:43.632391+00:00",
+  "git_head": "68a3490508deece1bfa6c2bc29a375d69ddbb00e",
+  "committed": false,
+  "pushed": false,
+  "remote_ci": false,
+  "other_machine_validation": false,
+  "core_full": {
+    "path": "artifacts/p3-comparison-20261027/core-confirmed.xml",
+    "sha256": "de4a8fbfad70651c20758d2e7b08ae2a0a4dbab7d0e4fade52f203e7107d438d",
+    "total": 78,
+    "passed": 77,
+    "failed": [],
+    "skipped": [
+      "codeguard.symlink"
+    ],
+    "names": [
+      "codeguard.coverage_catalog_normalization",
+      "codeguard.coverage_delta_mapping",
+      "codeguard.coverage_delta_stable",
+      "codeguard.coverage_delta_variation",
+      "codeguard.coverage_delta_tests",
+      "codeguard.coverage_delta_missing",
+      "codeguard.coverage_delta_catalog",
+      "codeguard.coverage_delta_tools",
+      "codeguard.coverage_delta_instrumentation",
+      "codeguard.coverage_delta_materials",
+      "codeguard.coverage_delta_modified",
+      "codeguard.coverage_delta_invalid",
+      "codeguard.repair_set_codec",
+      "codeguard.repair_coverage_ranking",
+      "codeguard.repair_coverage_reset",
+      "codeguard.repair_batch_ranking",
+      "codeguard.repair_copy",
+      "codeguard.graph_explorer_index",
+      "codeguard.graph_explorer_path",
+      "codeguard.graph_explorer_slice",
+      "codeguard.graph_explorer_validation",
+      "codeguard.graph_explorer_deep",
+      "codeguard.report_history",
+      "codeguard.report_legacy",
+      "codeguard.report_comparison",
+      "codeguard.report_export",
+      "codeguard.report_cli",
+      "codeguard.rule_policy",
+      "codeguard.rule_migration",
+      "codeguard.profiles",
+      "codeguard.invalid_profile",
+      "codeguard.discovery",
+      "codeguard.config_migration",
+      "codeguard.google_contracts",
+      "codeguard.pool",
+      "codeguard.git",
+      "codeguard.build_pass",
+      "codeguard.build_failure",
+      "codeguard.build_testfail",
+      "codeguard.build_notests",
+      "codeguard.build_timeout",
+      "codeguard.build_cancel",
+      "codeguard.build_stale",
+      "codeguard.build_configuration",
+      "codeguard.process_args",
+      "codeguard.process_flood",
+      "codeguard.process_failure",
+      "codeguard.process_timeout",
+      "codeguard.process_cancel",
+      "codeguard.scan",
+      "codeguard.empty",
+      "codeguard.ignore",
+      "codeguard.missing",
+      "codeguard.persistence",
+      "codeguard.changes",
+      "codeguard.rollback",
+      "codeguard.readonly",
+      "codeguard.foreign_db",
+      "codeguard.source_protection",
+      "codeguard.unicode",
+      "codeguard.symlink",
+      "codeguard.cli_help",
+      "codeguard.query_pipeline",
+      "codeguard.query_precedence",
+      "codeguard.query_ordering",
+      "codeguard.query_errors",
+      "codeguard.query_bounds",
+      "codeguard.query_coverage",
+      "codeguard.query_cancel",
+      "codeguard.cli_reject",
+      "codeguard.cancel_new",
+      "codeguard.cancel_scan",
+      "codeguard.cancel_transaction",
+      "codeguard.cancel_new_transaction",
+      "codeguard.cancel_fence",
+      "codeguard.cancel_after_commit",
+      "codeguard.graphs",
+      "codeguard.migration"
+    ]
+  },
+  "clang_qt_focused": {
+    "path": "artifacts/p3-comparison-20261027/analysis-confirmed.xml",
+    "sha256": "a1aa4130968d9a1d68ca981bcaf29563b1dc865d9dd34dc3a430d30c7703d603",
+    "total": 96,
+    "passed": 96,
+    "failed": [],
+    "skipped": [],
+    "names": [
+      "codeguard.coverage_catalog_normalization",
+      "codeguard.coverage_delta_mapping",
+      "codeguard.coverage_delta_stable",
+      "codeguard.coverage_delta_variation",
+      "codeguard.coverage_delta_tests",
+      "codeguard.coverage_delta_missing",
+      "codeguard.coverage_delta_catalog",
+      "codeguard.coverage_delta_tools",
+      "codeguard.coverage_delta_instrumentation",
+      "codeguard.coverage_delta_materials",
+      "codeguard.coverage_delta_modified",
+      "codeguard.coverage_delta_invalid",
+      "codeguard.repair_set_codec",
+      "codeguard.repair_comparison_stable",
+      "codeguard.repair_comparison_set",
+      "codeguard.repair_comparison_cancel",
+      "codeguard.repair_comparison_materials",
+      "codeguard.repair_comparison_original_inputs",
+      "codeguard.repair_comparison_catalog",
+      "codeguard.repair_comparison_variation",
+      "codeguard.repair_comparison_invalid",
+      "codeguard.repair_comparison_abnormal",
+      "codeguard.repair_comparison_cli",
+      "codeguard.repair_test_coverage_isolation",
+      "codeguard.repair_test_coverage_fixtures",
+      "codeguard.repair_test_coverage_failures",
+      "codeguard.repair_test_coverage_skip",
+      "codeguard.repair_test_coverage_mutation",
+      "codeguard.repair_test_coverage_metadata",
+      "codeguard.repair_test_coverage_mismatch",
+      "codeguard.repair_test_coverage_longname",
+      "codeguard.repair_test_coverage_limit",
+      "codeguard.repair_test_coverage_cancel",
+      "codeguard.repair_test_coverage_cli",
+      "codeguard.repair_set_samefile",
+      "codeguard.repair_set_multifile",
+      "codeguard.repair_set_conflicts",
+      "codeguard.repair_set_mapping",
+      "codeguard.repair_set_rewrite",
+      "codeguard.repair_set_baseline",
+      "codeguard.repair_set_policy",
+      "codeguard.repair_set_cancel",
+      "codeguard.repair_set_cli",
+      "codeguard.repair_set_coverage",
+      "codeguard.repair_coverage_ranking",
+      "codeguard.repair_coverage_reset",
+      "codeguard.repair_coverage_validate",
+      "codeguard.repair_coverage_target",
+      "codeguard.repair_coverage_failures",
+      "codeguard.repair_coverage_safety",
+      "codeguard.repair_coverage_cli",
+      "codeguard.repair_batch_ranking",
+      "codeguard.repair_batch_workflow",
+      "codeguard.repair_batch_cancel",
+      "codeguard.repair_batch_source_changed",
+      "codeguard.repair_batch_cli",
+      "codeguard.repair_copy",
+      "codeguard.repair_propose",
+      "codeguard.repair_roundtrip",
+      "codeguard.repair_validate",
+      "codeguard.repair_failures",
+      "codeguard.repair_printf",
+      "codeguard.repair_policy",
+      "codeguard.repair_cancel",
+      "codeguard.repair_c",
+      "codeguard.repair_baseline",
+      "codeguard.repair_cli",
+      "codeguard.build_pass",
+      "codeguard.build_failure",
+      "codeguard.build_testfail",
+      "codeguard.build_notests",
+      "codeguard.build_timeout",
+      "codeguard.build_cancel",
+      "codeguard.build_stale",
+      "codeguard.build_configuration",
+      "codeguard.process_args",
+      "codeguard.process_flood",
+      "codeguard.process_failure",
+      "codeguard.process_timeout",
+      "codeguard.process_cancel",
+      "codeguard.level3_configure",
+      "codeguard.repair_gui",
+      "codeguard.repair_set_configure",
+      "codeguard.repair_set_gui",
+      "codeguard.qt_repair_set_workflow",
+      "codeguard.qt_repair_set_cancel",
+      "codeguard.qt_repair_set_compare",
+      "codeguard.qt_repair_set_pertest",
+      "codeguard.qt_repair_set_coverage",
+      "codeguard.qt_repair_compare",
+      "codeguard.qt_repair_pertest",
+      "codeguard.qt_repair_coverage",
+      "codeguard.qt_repair_workflow",
+      "codeguard.qt_repair_cancel",
+      "codeguard.qt_repair_batch",
+      "codeguard.qt_repair_batch_cancel"
+    ]
+  },
+  "new_comparison_cases": [
+    "codeguard.repair_comparison_stable",
+    "codeguard.repair_comparison_set",
+    "codeguard.repair_comparison_cancel",
+    "codeguard.repair_comparison_materials",
+    "codeguard.repair_comparison_original_inputs",
+    "codeguard.repair_comparison_catalog",
+    "codeguard.repair_comparison_variation",
+    "codeguard.repair_comparison_invalid",
+    "codeguard.repair_comparison_abnormal",
+    "codeguard.repair_comparison_cli",
+    "codeguard.qt_repair_set_compare",
+    "codeguard.qt_repair_compare"
+  ],
+  "initial_failures_preserved": [
+    {
+      "result": {
+        "path": "artifacts/p3-comparison-20261027/process-first.xml",
+        "sha256": "75c6ceea58b04771c8c30153b45376a098dc521b76373003eda011e44926447a",
+        "total": 1,
+        "passed": 0,
+        "failed": [
+          "codeguard.repair_comparison_stable"
+        ],
+        "skipped": [],
+        "names": [
+          "codeguard.repair_comparison_stable"
+        ]
+      },
+      "cause": "JUnit status fail was counted as not-run; corrected without marking failed tests as passed"
+    },
+    {
+      "result": {
+        "path": "artifacts/p3-comparison-20261027/comparison-final.xml",
+        "sha256": "cb172e06b72ffe3fa48e172f586c19f1cb4613f4fdedea8cb98c1e49fdc5938e",
+        "total": 12,
+        "passed": 11,
+        "failed": [
+          "codeguard.repair_comparison_abnormal"
+        ],
+        "skipped": [],
+        "names": [
+          "codeguard.repair_comparison_stable",
+          "codeguard.repair_comparison_set",
+          "codeguard.repair_comparison_cancel",
+          "codeguard.repair_comparison_materials",
+          "codeguard.repair_comparison_original_inputs",
+          "codeguard.repair_comparison_catalog",
+          "codeguard.repair_comparison_variation",
+          "codeguard.repair_comparison_invalid",
+          "codeguard.repair_comparison_abnormal",
+          "codeguard.repair_comparison_cli",
+          "codeguard.qt_repair_set_compare",
+          "codeguard.qt_repair_compare"
+        ]
+      },
+      "cause": "Windows abort reported ordinary Failed but emitted no gcda; incomplete failed-group profiles now reject full comparison"
+    }
+  ],
+  "source_inventory": {
+    "path": "artifacts/p3-comparison-20261027/verified-source-sha256.json",
+    "sha256": "64557f243986b4ecad6e52f9f29d7438022c130e41fc246ce3390aa962140c5b"
+  },
+  "binaries": {
+    "cli": {
+      "build": {
+        "path": "build/p2-2-flow-20261026-analysis/codeguard-cli.exe",
+        "sha256": "57ca0747aa55a6b4836a3324020731debd019989b68dd2c4dbcf9968ff8688ad"
+      },
+      "shipped": {
+        "path": "artifacts/p3-comparison-20261027/CodeGuard-Windows-x64-final/codeguard-cli.exe",
+        "sha256": "57ca0747aa55a6b4836a3324020731debd019989b68dd2c4dbcf9968ff8688ad"
+      }
+    },
+    "gui": {
+      "build": {
+        "path": "build/p2-2-flow-20261026-analysis/gui/qt/codeguard-gui.exe",
+        "sha256": "c255f9a532bc60290d981c22199fed1a2ac7bf46e96576e13b4799c059120dee"
+      },
+      "shipped": {
+        "path": "artifacts/p3-comparison-20261027/CodeGuard-Windows-x64-final/codeguard-gui.exe",
+        "sha256": "c255f9a532bc60290d981c22199fed1a2ac7bf46e96576e13b4799c059120dee"
+      }
+    },
+    "sdk": {
+      "build": {
+        "path": "build/p2-2-flow-20261026-analysis/libcodeguard-core.a",
+        "sha256": "7a12badec764629ae35ffd7e56653dc5bc9ffdb5977e01dd2469e30cfb76c07f"
+      },
+      "shipped": {
+        "path": "artifacts/p3-comparison-20261027/CodeGuard-Windows-x64-final/sdk/libcodeguard-core.a",
+        "sha256": "7a12badec764629ae35ffd7e56653dc5bc9ffdb5977e01dd2469e30cfb76c07f"
+      }
+    }
+  },
+  "screenshots": [
+    {
+      "path": "artifacts/p3-comparison-20261027/repair-comparison.png",
+      "sha256": "c5dd41ce0520837af583c728dfba70c12a8eccdde289b11bf5932a891079fce4"
+    },
+    {
+      "path": "artifacts/p3-comparison-20261027/repair-set-comparison.png",
+      "sha256": "f31d3c592d4ddfa54bec4ff8ca5338d4d37e44da17a6fae33cf2a420519ef2d9"
+    }
+  ],
+  "delivered_cli": {
+    "path": "artifacts/p3-comparison-20261027/cli-final/acceptance.json",
+    "sha256": "950c76a02e06342c41822ef873957d923c47085036a1c1710911f514957d06af"
+  },
+  "isolated_package_qa": {
+    "path": "artifacts/p3-comparison-20261027/package-qa-final/result.json",
+    "sha256": "2bc9c9f0efc7073c444a6b335145f7071d726eeb20fae4b5fc47a53bb4978726"
+  },
+  "sample": {
+    "declared_tests": 5,
+    "groups_including_suite": 6,
+    "rounds_per_version": 2,
+    "all_inputs_unchanged": true,
+    "helpers_line_changes_recorded": true,
+    "core_without_clang_comparison_complete": true,
+    "core_without_clang_ready_for_review": false
+  },
+  "limitations": [
+    "No full Clang/Qt suite rerun in this phase; 96 related cases only. Core full suite has 78 cases.",
+    "No rerun of cJSON/TinyXML-2/fmt in this phase; earlier 59 TU / 44 CTest results are historical.",
+    "correctness remains not_assessed; synthetic demonstrations are not real repair ground truth.",
+    "Counters complete by file count do not prove every child flushed; fixtures can mask early exits.",
+    "External dependencies, environment and unknown newly added resources are not locked; same-permission build tools are not OS-isolated.",
+    "Failed groups require all project note files to have data files, conservatively rejecting some multi-executable test groups."
+  ]
+}

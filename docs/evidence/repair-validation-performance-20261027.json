@@ -1,0 +1,459 @@
+{
+  "phase": "P3 eighth phase: repeated path resolution and real repair validation cost",
+  "status": "passed_local",
+  "timestamp": "2026-10-27T09:57:43.831761+00:00",
+  "committed": false,
+  "pushed": false,
+  "remote_ci": false,
+  "other_machine_validation": false,
+  "correctness": "not_assessed",
+  "core_full": {
+    "path": "artifacts/p3-snapshot-20261027/core-full.xml",
+    "sha256": "5dcb5bc4405b6a5d5010f8929d262524bbb77e6f3055590df6330cbd0b941e7a",
+    "bytes": 21354,
+    "total": 83,
+    "passed": 82,
+    "failed": [],
+    "skipped": [
+      "codeguard.symlink"
+    ]
+  },
+  "clang_qt_full": {
+    "path": "artifacts/p3-snapshot-20261027/analysis-full.xml",
+    "sha256": "54c53c73c7168e7036766d8c589562e8c4f4180c29c57c79b0141c48a3b3e6e1",
+    "bytes": 72904,
+    "total": 213,
+    "passed": 212,
+    "failed": [],
+    "skipped": [
+      "codeguard.symlink"
+    ]
+  },
+  "measurements": {
+    "status": "passed",
+    "files": 599,
+    "physical_lines": 271818,
+    "file_path_hash_size_lines_equal": true,
+    "measurements": {
+      "baseline-inventory-v2": {
+        "driver_pid": 10948,
+        "status": "completed",
+        "command": [
+          "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p3-snapshot-20261027\\baseline-input-probe-v2.exe",
+          "inventory",
+          "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\r7\\s",
+          "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\r7\\a2\\scan.db"
+        ],
+        "started": 1793091551.7727082,
+        "pid": 29572,
+        "exit_code": 0,
+        "elapsed_seconds": 281.7382096000001,
+        "peak_working_set": 8548352,
+        "peak_private_bytes": 1630208,
+        "finished": 1793091833.5118067
+      },
+      "final-inventory-1": {
+        "driver_pid": 3216,
+        "status": "completed",
+        "command": [
+          "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\p2-2-flow-20261026-core\\tests\\codeguard\\codeguard-input-probe.exe",
+          "inventory",
+          "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\r7\\s",
+          "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\r7\\a2\\scan.db"
+        ],
+        "started": 1793092017.8724933,
+        "pid": 14644,
+        "exit_code": 0,
+        "elapsed_seconds": 1.9482310999956098,
+        "peak_working_set": 8155136,
+        "peak_private_bytes": 1695744,
+        "finished": 1793092019.8216403
+      },
+      "baseline-inventory-warm": {
+        "driver_pid": 38660,
+        "status": "completed",
+        "command": [
+          "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p3-snapshot-20261027\\baseline-input-probe-v2.exe",
+          "inventory",
+          "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\r7\\s",
+          "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\r7\\a2\\scan.db"
+        ],
+        "started": 1793092019.932714,
+        "pid": 38512,
+        "exit_code": 0,
+        "elapsed_seconds": 295.8977589999995,
+        "peak_working_set": 8146944,
+        "peak_private_bytes": 1581056,
+        "finished": 1793092315.8316586
+      },
+      "final-inventory-2": {
+        "driver_pid": 26320,
+        "status": "completed",
+        "command": [
+          "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\p2-2-flow-20261026-core\\tests\\codeguard\\codeguard-input-probe.exe",
+          "inventory",
+          "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\r7\\s",
+          "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\r7\\a2\\scan.db"
+        ],
+        "started": 1793092315.942782,
+        "pid": 8984,
+        "exit_code": 0,
+        "elapsed_seconds": 1.9461078000022098,
+        "peak_working_set": 8159232,
+        "peak_private_bytes": 1708032,
+        "finished": 1793092317.8898406
+      },
+      "final-snapshot": {
+        "driver_pid": 34664,
+        "status": "completed",
+        "command": [
+          "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\p2-2-flow-20261026-core\\tests\\codeguard\\codeguard-input-probe.exe",
+          "snapshot",
+          "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\r7\\s",
+          "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\r7\\a2\\scan.db"
+        ],
+        "started": 1793092318.0068402,
+        "pid": 44376,
+        "exit_code": 0,
+        "elapsed_seconds": 1.9420313000009628,
+        "peak_working_set": 354283520,
+        "peak_private_bytes": 421519360,
+        "finished": 1793092319.949714
+      }
+    },
+    "executable_sha256": {
+      "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p3-snapshot-20261027\\baseline-input-probe-v2.exe": "41c2599285aba10ee1a0118baf1c44b708113d16633d41dfc39e6f7b0c90acc5",
+      "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\p2-2-flow-20261026-core\\tests\\codeguard\\codeguard-input-probe.exe": "9400eaa76de2b3e229a5ba38164bc43529d3ae817aa4dce5f3d73963caa0d55d"
+    },
+    "note": "Serial warm comparison; initial baseline overlapped compilation. Inventory only, not full analysis or end-to-end repair."
+  },
+  "workflow": {
+    "path": "artifacts/p3-snapshot-20261027/validation-process.json",
+    "sha256": "9a3e0e0f6afa52d8b20466cfd64b79e23ffd243687beac4717d0b73ee738d640",
+    "bytes": 3998
+  },
+  "known_git_provenance_issue": {
+    "parent_repository_discovered": true,
+    "host_head": "68a3490508deece1bfa6c2bc29a375d69ddbb00e",
+    "benchmark_authority": "Pinned archive SHA-256, ZIP commit comment and prepared per-file hashes; not the build Git revision.",
+    "fixed_in_this_phase": false
+  },
+  "environment": {
+    "platform": "Windows-11-10.0.26300-SP0",
+    "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+    "logical_processors": 24,
+    "python": "3.13.4 (tags/v3.13.4:8a526ec, Jun  3 2025, 17:46:04) [MSC v.1943 64 bit (AMD64)]",
+    "tools": {
+      "clang": "clang version 22.1.8 (https://github.com/msys2/MINGW-packages 6e4e79c2f86eeb534e324e583f2057dc9fd5ecab)",
+      "gcc": "gcc.exe (Rev3, Built by MSYS2 project) 16.2.0",
+      "cmake": "cmake version 4.4.2",
+      "ctest": "ctest version 4.4.2"
+    }
+  },
+  "real_repair": {
+    "report": {
+      "path": "build/r7/a3/acceptance.json",
+      "sha256": "43d4f9058d6089ca8354c287ab1b808364320b95c389492517a9f955161e1a95",
+      "bytes": 76700
+    },
+    "native_tests": {
+      "buggy": {
+        "path": "artifacts/p3-snapshot-20261027/buggy-tests.xml",
+        "sha256": "6c3ea222b2c689a0c7d0fa7f51b62d5bd4ce74071ca0fb684098ca5a786c583a",
+        "bytes": 1519,
+        "total": 4,
+        "passed": 1,
+        "failed": [
+          "codeguard-real.tree-invalid-options",
+          "codeguard-real.index-invalid-options",
+          "codeguard-real.merge-corrupt-index"
+        ],
+        "skipped": []
+      },
+      "fixed": {
+        "path": "artifacts/p3-snapshot-20261027/fixed-tests.xml",
+        "sha256": "9b11e0e5060c44824c390b5171edbf18f54662959e79dcb127dd1978653f510c",
+        "bytes": 1191,
+        "total": 4,
+        "passed": 4,
+        "failed": [],
+        "skipped": []
+      },
+      "fix": {
+        "path": "build/r7/a3/v/cgset-e515a9b777f96916-56624910658100-0/build-runs/run-56626800661300-0/tests.xml",
+        "sha256": "e24db0a1e3a07d7a5502f7939d586532e32f408fc7959ffdd5fb9288aa71f308",
+        "bytes": 1188,
+        "total": 4,
+        "passed": 4,
+        "failed": [],
+        "skipped": []
+      },
+      "intent": {
+        "path": "build/r7/a3/v/cgset-48eab726400eabc3-57491193386700-0/build-runs/run-57492782502300-0/tests.xml",
+        "sha256": "6e9d532b53c64f7f48b05ccc610ba770db2b709290851756b5ce3d85a03e0245",
+        "bytes": 1516,
+        "total": 4,
+        "passed": 1,
+        "failed": [
+          "codeguard-real.tree-invalid-options",
+          "codeguard-real.index-invalid-options",
+          "codeguard-real.merge-corrupt-index"
+        ],
+        "skipped": []
+      }
+    },
+    "cpp_units_per_analysis": 244,
+    "analysis_databases": [
+      {
+        "variant": "fix",
+        "stage": "baseline.sqlite3",
+        "record": {
+          "path": "build/r7/a3/v/cgset-e515a9b777f96916-56624910658100-0/baseline.sqlite3",
+          "sha256": "a842869fe652a75f8d9a1e06f74aad777bf9179dbc730cb7c5abe5da998d5a3a",
+          "bytes": 346054656
+        },
+        "success_units": 244,
+        "status": "complete",
+        "analysis_ms": 276678
+      },
+      {
+        "variant": "fix",
+        "stage": "after.sqlite3",
+        "record": {
+          "path": "build/r7/a3/v/cgset-e515a9b777f96916-56624910658100-0/after.sqlite3",
+          "sha256": "3eaad5eadd3b2e91d2edfb542450a8e47cdb0ac358a5ce568f74713faccad2f6",
+          "bytes": 346050560
+        },
+        "success_units": 244,
+        "status": "complete",
+        "analysis_ms": 280397
+      },
+      {
+        "variant": "intent",
+        "stage": "baseline.sqlite3",
+        "record": {
+          "path": "build/r7/a3/v/cgset-48eab726400eabc3-57491193386700-0/baseline.sqlite3",
+          "sha256": "35c2f87275962513e2336cd288ec47423ecf2d54d9db562f2006b359fec93359",
+          "bytes": 346054656
+        },
+        "success_units": 244,
+        "status": "complete",
+        "analysis_ms": 275474
+      },
+      {
+        "variant": "intent",
+        "stage": "after.sqlite3",
+        "record": {
+          "path": "build/r7/a3/v/cgset-48eab726400eabc3-57491193386700-0/after.sqlite3",
+          "sha256": "095f961f9d849cac12b8133342ac7867ecb565f87af1dd1780cacd50b59aff97",
+          "bytes": 346050560
+        },
+        "success_units": 244,
+        "status": "complete",
+        "analysis_ms": 279246
+      }
+    ],
+    "files": 599,
+    "physical_lines": 271818,
+    "excluded_cpp_files": 42,
+    "typed_ast_digests": {
+      "buggy": [
+        "a1adcfc3dcef7cb0ab1c244c357526f260b8c38bc44e572a56125d9c3a073b2b",
+        "3c643006ef7d13ab8f28ea9fee5a73ad84ec05691778354137d7e4138653f22d",
+        "d8080eda5e786624433cc79bf2a1dea8c95e3ab2b84b5a4dd650d7fd55ebc498"
+      ],
+      "fixed": [
+        "eef465673cafb6d24947c6928bdebfa44fe6328b8805be17cb3344182b99bbc0",
+        "cfd386738a8a7233d5ccffd9038f9567147e2a5a746483a93c1d063f2bb0277f",
+        "755057d212983060ccb47b19931c9bfc739ebbe51d4dbe0f3560703cabc78792"
+      ],
+      "fix": [
+        "eef465673cafb6d24947c6928bdebfa44fe6328b8805be17cb3344182b99bbc0",
+        "cfd386738a8a7233d5ccffd9038f9567147e2a5a746483a93c1d063f2bb0277f",
+        "755057d212983060ccb47b19931c9bfc739ebbe51d4dbe0f3560703cabc78792"
+      ],
+      "intent": [
+        "a1adcfc3dcef7cb0ab1c244c357526f260b8c38bc44e572a56125d9c3a073b2b",
+        "3c643006ef7d13ab8f28ea9fee5a73ad84ec05691778354137d7e4138653f22d",
+        "d8080eda5e786624433cc79bf2a1dea8c95e3ab2b84b5a4dd650d7fd55ebc498"
+      ]
+    },
+    "validations": {
+      "fix": {
+        "status": "gates_passed",
+        "gates_passed": true,
+        "baseline_status": "complete",
+        "analysis_status": "complete",
+        "before_issues": 23,
+        "after_issues": 19,
+        "new_or_unmasked_issues": 0,
+        "tests_total": 4,
+        "tests_failed": 0,
+        "source_unchanged": true,
+        "proposed_copy_verified": true
+      },
+      "intent": {
+        "status": "tests_failed",
+        "gates_passed": false,
+        "baseline_status": "complete",
+        "analysis_status": "complete",
+        "before_issues": 23,
+        "after_issues": 19,
+        "new_or_unmasked_issues": 0,
+        "tests_total": 4,
+        "tests_failed": 3,
+        "source_unchanged": true,
+        "proposed_copy_verified": true
+      }
+    },
+    "proposal_generation_repeated": false,
+    "reused_scan": {
+      "path": "build/r7/a3/reused-scan.json",
+      "sha256": "f22577b9c7e8a3dd1593d2883572f190cca650d03f57865bf26fb9df1f71333a",
+      "bytes": 269
+    },
+    "reused_proposals": {
+      "path": "build/r7/a3/reused-proposals.json",
+      "sha256": "34fd93f467059d8467ec94674c9727fb253de4189ee11e1daaae6d85ccd4bb19",
+      "bytes": 397
+    }
+  },
+  "replay_elapsed_seconds": {
+    "previous_phase": 2882.4553632736206,
+    "current_phase": 1744.9481457999937,
+    "previous_record": {
+      "path": "artifacts/p3-real-repairs-20261027/benchmark-short-process.json",
+      "sha256": "904def07b66301af3ecb6373cf14decab9f00fb627d4cd305de24d50a239ac62",
+      "bytes": 847
+    },
+    "previous_analysis_timings": [
+      {
+        "variant": "fix",
+        "stage": "baseline.sqlite3",
+        "path": "build/r7/a2/v/cgset-e515a9b777f96916-29984843660300-0/baseline.sqlite3",
+        "status": "complete",
+        "workers": 4,
+        "analysis_ms": 123297
+      },
+      {
+        "variant": "fix",
+        "stage": "after.sqlite3",
+        "path": "build/r7/a2/v/cgset-e515a9b777f96916-29984843660300-0/after.sqlite3",
+        "status": "complete",
+        "workers": 4,
+        "analysis_ms": 123873
+      },
+      {
+        "variant": "intent",
+        "stage": "baseline.sqlite3",
+        "path": "build/r7/a2/v/cgset-48eab726400eabc3-31443517698400-0/baseline.sqlite3",
+        "status": "complete",
+        "workers": 4,
+        "analysis_ms": 121299
+      },
+      {
+        "variant": "intent",
+        "stage": "after.sqlite3",
+        "path": "build/r7/a2/v/cgset-48eab726400eabc3-31443517698400-0/after.sqlite3",
+        "status": "complete",
+        "workers": 4,
+        "analysis_ms": 124069
+      }
+    ],
+    "note": "One local sequential replay per version; same prepared roots, saved scan/proposals and selected configuration. AST runtimes differ between observations. Not a universal speedup or controlled CPU benchmark."
+  },
+  "package_qa": {
+    "path": "artifacts/p3-snapshot-20261027/package-qa/result.json",
+    "sha256": "473dcba92021d2073c0d573033dba70893a1a5a23e43eaed77bfb5e159757ec1",
+    "bytes": 784
+  },
+  "probe_runtime_qa": {
+    "path": "artifacts/p3-snapshot-20261027/probe-runtime-qa/result.json",
+    "sha256": "794656ab03047e438394b2f5a967b3eea5f9831323bc298cda38dc598e0c1f4f",
+    "bytes": 122
+  },
+  "binaries": {
+    "cli": {
+      "build": {
+        "path": "build/p2-2-flow-20261026-analysis/codeguard-cli.exe",
+        "sha256": "91bf97567f04f9b2e870df8b7ff5f2843d8df846f19d5148e2eed06adf196870",
+        "bytes": 74159175
+      },
+      "shipped": {
+        "path": "artifacts/p3-snapshot-20261027/CodeGuard-Windows-x64/codeguard-cli.exe",
+        "sha256": "91bf97567f04f9b2e870df8b7ff5f2843d8df846f19d5148e2eed06adf196870",
+        "bytes": 74159175
+      }
+    },
+    "gui": {
+      "build": {
+        "path": "build/p2-2-flow-20261026-analysis/gui/qt/codeguard-gui.exe",
+        "sha256": "efe66f19f237dfa783f91f15741fd60d1deb734210753bd8db68ca98bc1bf57f",
+        "bytes": 75369257
+      },
+      "shipped": {
+        "path": "artifacts/p3-snapshot-20261027/CodeGuard-Windows-x64/codeguard-gui.exe",
+        "sha256": "efe66f19f237dfa783f91f15741fd60d1deb734210753bd8db68ca98bc1bf57f",
+        "bytes": 75369257
+      }
+    },
+    "sdk": {
+      "build": {
+        "path": "build/p2-2-flow-20261026-analysis/libcodeguard-core.a",
+        "sha256": "d7b351e1469c77d9e9af6dc2703dcdc8b0ee571c5c8c9fc4bebc8d5d06730347",
+        "bytes": 6188462
+      },
+      "shipped": {
+        "path": "artifacts/p3-snapshot-20261027/CodeGuard-Windows-x64/sdk/libcodeguard-core.a",
+        "sha256": "d7b351e1469c77d9e9af6dc2703dcdc8b0ee571c5c8c9fc4bebc8d5d06730347",
+        "bytes": 6188462
+      }
+    },
+    "helper": {
+      "build": {
+        "path": "build/p2-2-flow-20261026-analysis/tests/codeguard/codeguard-real-proposal-helper.exe",
+        "sha256": "698d7221ca18a9f693b48aa3797e3595edb71284cdebffb5382494ee21bf9928",
+        "bytes": 73166333
+      },
+      "shipped": {
+        "path": "artifacts/p3-snapshot-20261027/CodeGuard-Windows-x64/codeguard-real-proposal-helper.exe",
+        "sha256": "698d7221ca18a9f693b48aa3797e3595edb71284cdebffb5382494ee21bf9928",
+        "bytes": 73166333
+      }
+    }
+  },
+  "source_inventory": {
+    "path": "artifacts/p3-snapshot-20261027/verified-source-sha256.json",
+    "sha256": "7f0ddbca1d42fcd6a6f86c77d8aa91c64ca2a138959633a1259367d6c090b8e8",
+    "bytes": 12867
+  },
+  "screenshot": {
+    "path": "artifacts/p3-snapshot-20261027/repair-precedence.png",
+    "sha256": "2b21dc07aee52d92b17a226370e32c471f5db5c4a81517ebc9172fd7fdf44493",
+    "bytes": 103118
+  },
+  "development_trials": {
+    "initial_probe": {
+      "path": "artifacts/p3-snapshot-20261027/baseline-inventory.json",
+      "sha256": "30ef0fa8a5d3a7a88278b6b78c5ce6716ddd9c472439eac5fdae64845410db65",
+      "bytes": 537
+    },
+    "initial_junction_assertion": {
+      "path": "artifacts/p3-snapshot-20261027/path-exclusions-final.xml",
+      "sha256": "73687d18b170158ecd6835733ab37c05e419a908c9bea5133dc36b469437dbb7",
+      "bytes": 1376
+    },
+    "corrected_path_checks": {
+      "path": "artifacts/p3-snapshot-20261027/path-exclusions-identity.xml",
+      "sha256": "34febab2fe8cf7d6615ac1e64d098e8fa70df36eb6e85f679753ab75f15dadd1",
+      "bytes": 1363
+    }
+  },
+  "limitations": [
+    "Inventory timings do not measure AST or complete repair; initial baseline overlapped compilation, serial warm comparison is separately retained.",
+    "No reduced scan scope, TU scope, build/test gate or baseline/patched static check. Complete graph snapshot memory remains substantial and is not optimized here.",
+    "Existing MinGW junction containment semantics are preserved. Windows target/ancestor file identities detect boundary replacement; this is not an atomic snapshot or a complete Windows alias safety redesign.",
+    "One pinned upstream repair in one configuration, three independently reproduced failures across four reference edit sites; correctness remains not_assessed.",
+    "No new model deployment/training, other real-library runs, commit/push or independent CI."
+  ]
+}

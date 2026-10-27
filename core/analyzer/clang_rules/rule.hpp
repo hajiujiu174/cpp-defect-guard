@@ -23,11 +23,15 @@ const Rule& array_bounds();
 const Rule& assignment_condition();
 const Rule& local_lifetime();
 const Rule& null_dereference();
+// Structured intraprocedural propagation. Unsupported paths and aliases are
+// widened to unknown; no Clang types leave this adapter.
+void inspect_local_flow(const clang::Stmt*,clang::ASTContext&,const Emit&,bool arrays,bool nulls);
 // One dispatcher per TU; disabled checks are never invoked.
 class Engine {
 public:
     explicit Engine(const std::vector<std::string>& disabled);
     void inspect(const clang::Stmt* statement,clang::ASTContext& ast,const Emit& emit,bool address_only=false) const;
+    void inspect_function(const clang::Stmt* statement,clang::ASTContext& ast,const Emit& emit) const;
 private:
     std::vector<const Rule*> rules_;
 };

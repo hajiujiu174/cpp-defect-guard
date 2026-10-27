@@ -1,5 +1,6 @@
 #include "codeguard/application.hpp"
 #include "codeguard/configuration.hpp"
+#include "path_filter.hpp"
 #include <algorithm>
 #include <charconv>
 #include <iomanip>
@@ -25,18 +26,7 @@ ScanOptions configured_scan_options(const fs::path& root,const ProjectConfig& co
     options.configuration=encode_config(effective);return options;
 }
 bool project_path_inside(const fs::path& path, const fs::path& root) {
-    const auto p=fs::weakly_canonical(path), r=fs::weakly_canonical(root);
-    auto a=p.begin();
-    for(auto b=r.begin();b!=r.end();++b,++a) {
-        if(a==p.end())return false;
-#ifdef _WIN32
-        auto x=a->wstring(),y=b->wstring();for(auto& c:x)c=std::towlower(c);for(auto& c:y)c=std::towlower(c);
-        if(x!=y)return false;
-#else
-        if(*a!=*b)return false;
-#endif
-    }
-    return true;
+    return detail::resolved_path_inside(fs::weakly_canonical(path),fs::weakly_canonical(root));
 }
 void validate_relative_directory(const std::string& value) {
     const auto p=from_utf8(value);

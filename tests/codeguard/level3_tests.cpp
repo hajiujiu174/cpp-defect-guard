@@ -6,13 +6,14 @@
 #include <set>
 #include <atomic>
 #include <barrier>
+#include <exception>
 
 namespace cg=codeguard;
 void require(bool condition,const std::string& message){if(!condition)throw std::runtime_error(message);}
 struct Fixture {
     cg::fs::path dir,root,db;
     Fixture(){dir=cg::fs::current_path()/("level3-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));cg::fs::create_directory(dir);root=dir/cg::from_utf8("中文 source");cg::fs::create_directory(root);db=dir/"scan.sqlite3";}
-    ~Fixture(){std::error_code e;cg::fs::remove_all(dir,e);}
+    ~Fixture(){if(std::uncaught_exceptions()){std::cerr<<"FIXTURE_RETAINED="<<cg::utf8_path(dir)<<'\n';return;}std::error_code e;cg::fs::remove_all(dir,e);}
     void write(const std::string& file,const std::string& value){std::ofstream(root/cg::from_utf8(file))<<value;}
     void commands(unsigned count){std::ofstream out(dir/"compile_commands.json");out<<'[';for(unsigned i=0;i<count;++i){if(i)out<<',';const auto file="f"+std::to_string(i)+".cpp";out<<"{\"directory\":\""<<cg::utf8_path(root)<<"\",\"file\":\""<<file<<"\",\"arguments\":[\"clang++\",\"-std=c++20\",\"-c\",\""<<file<<"\"]}";}out<<']';}
 };
@@ -111,7 +112,7 @@ void end_address(){int a[2];int* e=&a[2];(void)e;}
         if(mode=="build_cancel"){options.control=std::make_shared<cg::ScanControl>();options.progress=[&](const auto& stage){if(stage=="configure")options.control->request_cancel();};}
         if(mode=="build_stale")f.write("main.cpp","int main(){return 1;}\n");
         const auto run=cg::build_and_test(f.root,f.db,options);
-        if(mode=="build_pass"||mode=="build_configuration")require(run.status=="passed"&&run.steps.back().tests_total==1&&run.steps.back().tests_failed==0,"build/test pass: "+run.steps.back().result.stderr_text);
+        if(mode=="build_pass"||mode=="build_configuration"){std::string detail="build/test pass: status="+run.status+"; workspace="+run.workspace;for(const auto& step:run.steps)detail+='\n'+step.name+": "+step.result.status+'\n'+step.command+'\n'+step.result.stdout_text+'\n'+step.result.stderr_text;require(run.status=="passed"&&run.steps.back().tests_total==1&&run.steps.back().tests_failed==0,detail);}
         else if(mode=="build_cancel")require(run.status=="cancelled","build cancelled logs");
         else if(mode=="build_timeout")require(run.status=="timed_out","configure timeout");
         else require(run.status!="passed","failure cannot pass");
