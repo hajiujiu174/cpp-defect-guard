@@ -15,6 +15,7 @@
 #include <QTableView>
 #include <QTest>
 #include <iostream>
+#include <cmath>
 
 namespace cg=codeguard;
 void check(bool value,const char* message){if(!value)throw std::runtime_error(message);}
@@ -61,6 +62,32 @@ int main(int argc,char** argv){QApplication app(argc,argv);try{
         child<QComboBox>(panel,"graphKind")->setCurrentIndex(1);until([&]{return !panel.busy();});
         child<QLineEdit>(panel,"graphFrom")->setText("main.cpp");child<QLineEdit>(panel,"graphTo")->setText("api.h");child<QPushButton>(panel,"graphFindPath")->click();until([&]{return !panel.busy();});
         check(steps->model()->rowCount()==1,"include directed path failed");
+    } else if(mode=="fit_resize") {
+        panel.setSnapshot(fixture(2));until([&]{return !panel.busy();});
+        int ticks=0;QTimer pulse;pulse.setInterval(5);
+        QObject::connect(&pulse,&QTimer::timeout,[&]{++ticks;});pulse.start();
+        auto visible_nodes=[&]{
+            for(auto* item:canvas->scene()->items())if(item->data(0)=="node")
+                check(canvas->viewport()->rect().adjusted(-2,-2,2,2).contains(canvas->mapFromScene(item->sceneBoundingRect()).boundingRect()),"auto fit clipped a node");
+        };
+        for(int width:{700,740,810,650,900,680}){
+            canvas->setFixedSize(width,360);QTest::qWait(30);visible_nodes();
+        }
+        check(ticks>0,"auto fit resize starved GUI timers");
+        QPushButton *zoom=nullptr,*fit=nullptr;
+        for(auto* button:panel.findChildren<QPushButton*>()){
+            if(button->text()==QStringLiteral("放大"))zoom=button;
+            if(button->text()==QStringLiteral("适应"))fit=button;
+        }
+        check(zoom&&fit,"graph zoom controls missing");zoom->click();
+        const auto manual_scale=canvas->transform().m11();canvas->setFixedSize(500,360);QTest::qWait(30);
+        check(std::abs(canvas->transform().m11()-manual_scale)<0.000001,"resize reset manual zoom");
+        auto* bar=canvas->horizontalScrollBar();check(bar->maximum()>bar->minimum(),"zoom removed panning range");
+        bar->setValue(bar->minimum());const auto before=canvas->mapToScene(canvas->viewport()->rect().center());
+        bar->setValue(bar->maximum());check(canvas->mapToScene(canvas->viewport()->rect().center()).x()!=before.x(),"manual pan did not move viewport");
+        fit->click();QTest::qWait(30);visible_nodes();
+        canvas->setFixedSize(720,360);QTest::qWait(30);visible_nodes();
+        std::cout<<"GRAPH_GUI_RESIZE_OK ticks="<<ticks<<'\n';
     } else if(mode=="scale") {
         panel.setSnapshot(fixture(30001));QElapsedTimer clock;clock.start();qint64 last=0,max_gap=0;int ticks=0;QTimer pulse;pulse.setInterval(5);
         QObject::connect(&pulse,&QTimer::timeout,[&]{const auto now=clock.elapsed();max_gap=std::max(max_gap,now-last);last=now;++ticks;});pulse.start();

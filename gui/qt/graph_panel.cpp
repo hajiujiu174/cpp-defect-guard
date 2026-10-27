@@ -130,8 +130,25 @@ public:
         }
         scene()->setSceneRect(scene()->itemsBoundingRect().adjusted(-65,-65,65,65));fit();
     }
-    void fit(){auto_fit_=true;resetTransform();if(!scene()->items().isEmpty()){scene()->setSceneRect(scene()->itemsBoundingRect().adjusted(-65,-65,65,65));fitInView(scene()->itemsBoundingRect().adjusted(-40,-40,40,40),Qt::KeepAspectRatio);if(transform().m11()>1.3)scale(1.3/transform().m11(),1.3/transform().m11());}}
-    void zoom(double factor){auto_fit_=false;const auto next=transform().m11()*factor;if(next>=0.03&&next<=4.0)scale(factor,factor);}
+    void fit(){
+        // Scrollbar changes can resize the viewport while fitInView is running.
+        // Keep its geometry stable in automatic mode; manual zoom keeps panning.
+        auto_fit_=false;
+        setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        auto_fit_=true;resetTransform();
+        if(!scene()->items().isEmpty()){
+            scene()->setSceneRect(scene()->itemsBoundingRect().adjusted(-65,-65,65,65));
+            fitInView(scene()->itemsBoundingRect().adjusted(-40,-40,40,40),Qt::KeepAspectRatio);
+            if(transform().m11()>1.3)scale(1.3/transform().m11(),1.3/transform().m11());
+        }
+    }
+    void zoom(double factor){
+        auto_fit_=false;
+        setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        const auto next=transform().m11()*factor;if(next>=0.03&&next<=4.0)scale(factor,factor);
+    }
 protected:
     void resizeEvent(QResizeEvent* event) override {QGraphicsView::resizeEvent(event);if(auto_fit_)fit();}
     void wheelEvent(QWheelEvent* event) override {zoom(event->angleDelta().y()>0?1.18:1/1.18);event->accept();}
