@@ -12,6 +12,7 @@ import zipfile
 import xml.etree.ElementTree as ET
 from real_repair_reference import reference_function
 from real_repair_process import run_logged
+from real_repair_evidence import source_record, capture_evidence
 
 REPO = Path(__file__).resolve().parents[1]
 CASE = REPO / 'benchmarks/libgit2-error-return'
@@ -174,8 +175,11 @@ def main():
         for index, (rule, file, line, column) in enumerate(selected):
             rows += run(prefix + 'propose-' + str(index), [cli, 'repair', 'propose', root, '--database', db, '--output', attempt / 'p',
                         '--rule', rule, '--file', file, '--line', line, '--column', column], timeout=900).splitlines()
+    evidence_sources = []
     for row in rows:
         fields = row.split('\t')
+        if len(fields) == 3 and fields[0].startswith('cgfix-'):
+            evidence_sources.append(source_record('proposals', fields[0]+':'+fields[1], Path(fields[2])))
         if len(fields) == 3 and fields[1] in manifests:
             manifests[fields[1]].append(Path(fields[2]))
     assert all(len(items) == 4 for items in manifests.values())
@@ -187,6 +191,7 @@ def main():
             args_compose.extend(['--candidate', item])
         composed = run(prefix + name + '-compose', args_compose)
         manifest = Path(dict(row.split('=', 1) for row in composed.splitlines() if '=' in row)['manifest'])
+        evidence_sources.append(source_record('sets', name, manifest))
         build_args = [item for d in defs for item in ('--cmake-define', d)]
         value = json.loads(run(prefix + name + '-validate', [cli, 'repair', 'validate-set', root, '--database', db,
                               '--output', attempt / 'v', '--set', manifest, *build_args], (0,) if name == 'fix' else (2,), timeout=1800))
@@ -216,7 +221,8 @@ def main():
     assert digest('intent') == digest('buggy') and digest('intent') != digest('fixed'), 'intent is not a valid negative control'
     for version, data in records.items():
         assert hashes(Path(data['root'])) == data['prepared_sha256'], version + ' original inputs changed'
-    result = dict(status='passed', case=case, scope=json.loads((attempt / 'scope.json').read_text(encoding='utf-8')),
+    captured = capture_evidence(attempt / 'evidence', evidence_sources)
+    result = dict(status='passed', case=case, evidence=dict(directory=attempt.name+'/evidence', **captured), scope=json.loads((attempt / 'scope.json').read_text(encoding='utf-8')),
                   native_baseline_tests=baseline, native_reference_tests=fixed_tests, validations=validations, typed_ast=ast,
                   reference_functions_matched=3, independently_reproduced_failure_sites=3, reference_edit_sites=4,
                   correctness='not_assessed', original_inputs_unchanged=True, commands=commands)

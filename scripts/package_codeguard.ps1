@@ -51,7 +51,7 @@ Copy-Item -LiteralPath (Join-Path $repo 'samples/repair-comparison-demo') -Desti
 $benchmarks=Join-Path $out 'benchmarks';[IO.Directory]::CreateDirectory($benchmarks)|Out-Null
 Copy-Item -LiteralPath (Join-Path $repo 'benchmarks/libgit2-error-return') -Destination $benchmarks -Recurse
 $benchmarkScripts=Join-Path $out 'scripts';[IO.Directory]::CreateDirectory($benchmarkScripts)|Out-Null
-foreach($name in @('accept_real_repair.py','real_repair_reference.py')){Copy-Item -LiteralPath (Join-Path $repo "scripts/$name") -Destination $benchmarkScripts}
+foreach($name in @('accept_real_repair.py','real_repair_reference.py','real_repair_process.py','real_repair_evidence.py')){Copy-Item -LiteralPath (Join-Path $repo "scripts/$name") -Destination $benchmarkScripts}
 $proposalHelper=Join-Path $build 'tests/codeguard/codeguard-real-proposal-helper.exe'
 if(Test-Path -LiteralPath $proposalHelper){Copy-Item -LiteralPath $proposalHelper -Destination (Join-Path $out 'codeguard-real-proposal-helper.exe')}
 Copy-Item -LiteralPath (Join-Path $repo 'docs/level3-acceptance.md') -Destination (Join-Path $out 'Level3说明.md')

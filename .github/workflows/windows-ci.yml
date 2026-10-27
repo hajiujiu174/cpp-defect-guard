@@ -181,11 +181,55 @@ jobs:
             ${{ runner.temp }}/cgr/a*/**/*.json
             ${{ runner.temp }}/cgr/a*/**/*.log
             ${{ runner.temp }}/cgr/a*/**/*.xml
+            ${{ runner.temp }}/cgr/a*/**/*.cgfix
+            ${{ runner.temp }}/cgr/a*/**/*.cgset
+            ${{ runner.temp }}/cgr/a*/**/*.diff
+            ${{ runner.temp }}/cgr/a*/evidence/**
             ${{ runner.temp }}/cgr/a*/scan.db
             ${{ runner.temp }}/cgr/b/compile_commands.json
             ${{ runner.temp }}/cgr/fb/compile_commands.json
             ${{ runner.temp }}/cgr/s/COPYING
             ${{ runner.temp }}/cgr/s/AUTHORS
+
+  verify-repair-evidence:
+    name: Verify restored repair proposal evidence
+    needs: real-repair
+    if: (github.event_name == 'workflow_dispatch' && inputs.real_repairs) || github.ref == 'refs/heads/codex/p2-p3-independent-ci-20261027'
+    runs-on: windows-2022
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: windows-real-repair
+          path: artifacts/restored-repair-evidence
+      - name: Verify restored candidate and diff bytes
+        run: |
+          $ErrorActionPreference='Stop'
+          $root='artifacts/restored-repair-evidence/cgr'
+          $latest=Get-Content "$root/latest-acceptance.json" -Raw | ConvertFrom-Json
+          if($latest.attempt -notmatch '^a[0-9]+$'){throw 'Invalid attempt name'}
+          $attempt=Join-Path $root $latest.attempt
+          $result=Get-Content "$attempt/acceptance.json" -Raw | ConvertFrom-Json
+          if($result.status -ne 'passed'){throw 'Replay did not pass'}
+          $verified=& python scripts/real_repair_evidence.py --verify "$attempt/evidence"
+          if($LASTEXITCODE -ne 0){throw 'Restored proposal evidence verification failed'}
+          $receipt=$verified | ConvertFrom-Json
+          if($receipt.manifest_sha256 -ne $result.evidence.manifest_sha256 -or $receipt.proposals -ne $result.evidence.proposals -or $receipt.sets -ne $result.evidence.sets -or $receipt.files -ne $result.evidence.files){throw 'Evidence does not match the completed replay'}
+          $receipt | ConvertTo-Json | Set-Content artifacts/restored-repair-evidence/result.json -Encoding utf8
+      - name: Preserve restored evidence verification
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: windows-real-repair-evidence-qa
+          retention-days: 14
+          if-no-files-found: warn
+          path: artifacts/restored-repair-evidence/result.json
 
   clean-runtime:
     name: Fresh Windows runner package smoke test

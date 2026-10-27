@@ -4,6 +4,14 @@ $ErrorActionPreference='Stop'
 $packageRoot=(Resolve-Path -LiteralPath $Package).Path
 if(Test-Path -LiteralPath $Output){throw 'Use a new QA directory'}
 $qa=[IO.Path]::GetFullPath($Output);[IO.Directory]::CreateDirectory($qa)|Out-Null
+# Python is a QA-host tool for the optional benchmark, not a native runtime dependency.
+foreach($name in @('accept_real_repair.py','real_repair_reference.py','real_repair_process.py','real_repair_evidence.py')){
+    if(-not(Test-Path -LiteralPath (Join-Path $packageRoot "scripts/$name"))){throw "Missing benchmark script: $name"}
+}
+foreach($name in @('accept_real_repair.py','real_repair_evidence.py')){
+    & python -E -s (Join-Path $packageRoot "scripts/$name") --help > (Join-Path $qa "$name-help.log") 2>&1
+    if($LASTEXITCODE -ne 0){throw "Packaged benchmark script could not start: $name"}
+}
 function Invoke-Packaged([string]$Name,[string[]]$Arguments,[string]$Label){
     $info=[Diagnostics.ProcessStartInfo]::new();$info.FileName=Join-Path $packageRoot $Name;$info.WorkingDirectory=$qa
     $info.UseShellExecute=$false;$info.CreateNoWindow=$true;$info.RedirectStandardOutput=$true;$info.RedirectStandardError=$true
@@ -90,5 +98,6 @@ if(Test-Path -LiteralPath (Join-Path $packageRoot 'codeguard-real-proposal-helpe
 $result=@{package=$packageRoot;clean_path=$true;cli=$true;clang=$true;local_flow=$true;template_initializer=$true;graph_path=$true;repair_preview=$true;repair_batch_cancel_ledger=$true;repair_set_preview=$true;repair_set_cancel_targets=2;repair_set_source_unchanged=$true;packaged_resource_header=$resourcePath;gui=$true;chinese_font=$true;timestamp=(Get-Date -Format o)}
 $result['precedence_candidate']=$true;$result['precedence_source_unchanged']=$true
 $result['public_core_proposal_helper']=$helperVerified
+$result['real_repair_script_imports']=$true
 $result|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $qa 'result.json') -Encoding utf8
 Write-Output 'PACKAGE_QA_OK: clean PATH, CLI, Clang, local flow, template initializer, packaged headers and Qt GUI'
