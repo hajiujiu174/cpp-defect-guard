@@ -86,5 +86,189 @@
     "output": "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\r11\\cgr"
   },
   "remote_ci": "not_run",
-  "commit_or_push": "not_run"
+  "commit_or_push": "not_run",
+  "independent_windows_acceptance": {
+    "date": "2026-10-28",
+    "status": "passed",
+    "product_commit": "0cbd74989c718cbe52ffac2f0f8e13eaddca7dd7",
+    "workflow_run": 40558131811,
+    "url": "https://github.com/hajiujiu174/cpp-defect-guard/actions/runs/40558131811",
+    "core": {
+      "total": 105,
+      "passed": 104,
+      "skipped": [
+        "codeguard.symlink"
+      ]
+    },
+    "clang_qt": {
+      "total": 237,
+      "passed": 236,
+      "skipped": [
+        "codeguard.symlink"
+      ]
+    },
+    "python_reference_and_process_tests": 10,
+    "real_projects": [
+      {
+        "project": "cjson",
+        "translation_units": 27,
+        "ctest": {
+          "name": "(empty)",
+          "tests": "22",
+          "failures": "0",
+          "disabled": "0",
+          "skipped": "0",
+          "hostname": "",
+          "time": "0",
+          "timestamp": "2026-10-27T18:27:40"
+        }
+      },
+      {
+        "project": "tinyxml2",
+        "translation_units": 2,
+        "ctest": {
+          "name": "Win32-ninja",
+          "tests": "1",
+          "failures": "0",
+          "disabled": "0",
+          "skipped": "0",
+          "hostname": "runnervma5ucf",
+          "time": "0",
+          "timestamp": "2026-10-27T18:27:51"
+        }
+      },
+      {
+        "project": "fmt",
+        "translation_units": 30,
+        "ctest": {
+          "name": "(empty)",
+          "tests": "21",
+          "failures": "0",
+          "disabled": "0",
+          "skipped": "0",
+          "hostname": "",
+          "time": "0",
+          "timestamp": "2026-10-27T18:34:07"
+        }
+      }
+    ],
+    "clean_windows_runtime": "passed",
+    "runtime": {
+      "path": "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p3-independent-ci-20261028\\CodeGuard-Windows-x64-0cbd749-Independent-CI.zip",
+      "bytes": 154157341,
+      "sha256": "adb5b0d0d6de5a00afd83b4f49d67c1dbf3e02b24913491d9a10ce8939a091b2",
+      "manifest_files_verified": 545,
+      "archive_crc_verified": true,
+      "product_commit": "0cbd74989c718cbe52ffac2f0f8e13eaddca7dd7"
+    },
+    "real_repair": {
+      "workflow_run": 40558131811,
+      "product_commit": "0cbd74989c718cbe52ffac2f0f8e13eaddca7dd7",
+      "acceptance_sha256": "a4fde6c8b06a954b70b0426ea4f145c6c51e5229cc8a967d52b7e0ba64ac06ae",
+      "initial_translation_units": {
+        "success": 244
+      },
+      "fresh_scan_and_proposals": true,
+      "scope": {
+        "compile_commands": 245,
+        "uncompiled_cpp_excluded": [
+          "deps/clar/clar.c",
+          "deps/clar/clar_libgit2.c",
+          "deps/clar/clar_libgit2_alloc.c",
+          "deps/clar/clar_libgit2_timer.c",
+          "deps/clar/clar_libgit2_trace.c",
+          "deps/clar/main.c",
+          "deps/ntlmclient/crypt_builtin_md4.c",
+          "deps/ntlmclient/crypt_commoncrypto.c",
+          "deps/ntlmclient/crypt_mbedtls.c",
+          "deps/ntlmclient/crypt_openssl.c",
+          "deps/ntlmclient/ntlm.c",
+          "deps/ntlmclient/unicode_builtin.c",
+          "deps/ntlmclient/unicode_iconv.c",
+          "deps/ntlmclient/util.c",
+          "deps/pcre2/pcre2_fuzzsupport.c",
+          "script/user_model.c",
+          "src/cli/cmd.c",
+          "src/cli/cmd_blame.c",
+          "src/cli/cmd_cat_file.c",
+          "src/cli/cmd_clone.c",
+          "src/cli/cmd_commit.c",
+          "src/cli/cmd_config.c",
+          "src/cli/cmd_hash_object.c",
+          "src/cli/cmd_help.c",
+          "src/cli/cmd_index_pack.c",
+          "src/cli/cmd_init.c",
+          "src/cli/cmd_version.c",
+          "src/cli/common.c",
+          "src/cli/main.c",
+          "src/cli/opt.c",
+          "src/cli/opt_usage.c",
+          "src/cli/progress.c",
+          "src/cli/unix/sighandler.c",
+          "src/cli/win32/precompiled.c",
+          "src/cli/win32/sighandler.c",
+          "src/util/hash/common_crypto.c",
+          "src/util/hash/mbedtls.c",
+          "src/util/hash/openssl.c",
+          "src/util/hash/win32.c",
+          "src/util/unix/map.c",
+          "src/util/unix/process.c",
+          "src/util/unix/realpath.c"
+        ],
+        "note": "Selected Windows library configuration plus CodeGuard public-API tests; not full repository coverage"
+      },
+      "validations": {
+        "fix": {
+          "baseline_cpp_commands": 244,
+          "after_cpp_commands": 244,
+          "gates_passed": true,
+          "tests_total": 4,
+          "tests_failed": 0,
+          "before_issues": 23,
+          "after_issues": 19,
+          "new_or_unmasked_issues": 0,
+          "source_unchanged": true,
+          "proposed_copy_verified": true,
+          "coverage_status": "not_measured"
+        },
+        "intent": {
+          "baseline_cpp_commands": 244,
+          "after_cpp_commands": 244,
+          "gates_passed": false,
+          "tests_total": 4,
+          "tests_failed": 3,
+          "before_issues": 23,
+          "after_issues": 19,
+          "new_or_unmasked_issues": 0,
+          "source_unchanged": true,
+          "proposed_copy_verified": true,
+          "coverage_status": "not_measured"
+        }
+      },
+      "reference_functions_matched": 3,
+      "independent_failure_sites": 3,
+      "reference_edit_sites": 4,
+      "original_inputs_unchanged": true,
+      "correctness": "not_assessed",
+      "artifact": {
+        "id": 12761303522,
+        "name": "windows-real-repair",
+        "bytes": 33307847,
+        "sha256": "1a2b199e9639b1001561409a39acd79d4bc5063b5bddcf8b88f9ac3a53ea2306",
+        "head": "0cbd74989c718cbe52ffac2f0f8e13eaddca7dd7",
+        "archive": "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p3-independent-ci-20261028\\run-40558131811\\artifact-12761303522.zip",
+        "extracted": "D:\\Work\\WORKDONE\\cpp-defect-guard\\artifacts\\p3-independent-ci-20261028\\run-40558131811\\12761303522-unpacked-1793127134390139000",
+        "crc_verified": true
+      }
+    },
+    "original_failed_run": 40551264918,
+    "main_merge": "not_performed",
+    "boundaries": [
+      "Windows only",
+      "Single pinned libgit2 commit pair and selected configuration",
+      "Three public-API failure sites reproduced for four reference edit sites",
+      "GCOV not measured in this run",
+      "Repair correctness remains not_assessed"
+    ]
+  }
 }

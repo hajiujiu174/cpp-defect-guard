@@ -1,5 +1,7 @@
 # CodeGuard 四级开发路线图
 
+2026-10-28 独立 Windows 验收已完成：产品提交 `0cbd749` 的 [运行 40558131811](https://github.com/hajiujiu174/cpp-defect-guard/actions/runs/40558131811) 三个作业均成功。Core 104 通过/1 权限跳过，Clang/Qt 236 通过/1 同类跳过，10 项 Python 检查通过；三个真实库 59 个有效 TU、44 个上游测试通过，独立运行包及中文截图已核对。libgit2 从新扫描/提案开始，244 TU 全解析，修复组合 4 项通过，意图负对照 3 项失败并被拒绝；源码/副本完整性和三个参考函数 AST 门槛通过。P2-2 与现有确定性修复的独立 CI 缺口关闭；单提交、选定配置的证据不外推为普遍修复正确性，`correctness=not_assessed` 保持，模型研究/独立数据/校准仍待推进。详见 [独立验收记录](ci-readiness.md#完整独立验收结果)。main 未合并，首轮失败记录保留。
+
 当前依据新方案书 V1.0，目标为 16 周内完成 Level 3。旧“第一/二/三层”编号不再用于新版本验收。详细迁移关系见 [codeguard-migration.md](codeguard-migration.md)。
 
 2026-09-10 用户调整：交付仅面向 Windows，跨平台工作暂缓。当前优先级以根目录 AGENTS.md 为准；Windows CI 与可复现构建见 [专项说明](windows-ci.md)。
