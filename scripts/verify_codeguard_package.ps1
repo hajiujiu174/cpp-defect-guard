@@ -9,7 +9,7 @@ foreach($name in @('accept_real_repair.py','real_repair_reference.py','real_repa
     if(-not(Test-Path -LiteralPath (Join-Path $packageRoot "scripts/$name"))){throw "Missing benchmark script: $name"}
 }
 foreach($name in @('accept_real_repair.py','real_repair_evidence.py')){
-    & python -E -s (Join-Path $packageRoot "scripts/$name") --help > (Join-Path $qa "$name-help.log") 2>&1
+    & python -B -E -s (Join-Path $packageRoot "scripts/$name") --help > (Join-Path $qa "$name-help.log") 2>&1
     if($LASTEXITCODE -ne 0){throw "Packaged benchmark script could not start: $name"}
 }
 function Invoke-Packaged([string]$Name,[string[]]$Arguments,[string]$Label){
@@ -99,5 +99,14 @@ $result=@{package=$packageRoot;clean_path=$true;cli=$true;clang=$true;local_flow
 $result['precedence_candidate']=$true;$result['precedence_source_unchanged']=$true
 $result['public_core_proposal_helper']=$helperVerified
 $result['real_repair_script_imports']=$true
+$manifest=Get-Content -LiteralPath (Join-Path $packageRoot 'manifest.json') -Raw | ConvertFrom-Json
+$expected=@('manifest.json')+@($manifest | ForEach-Object {$_.path.Replace('\','/')})
+$actual=@(Get-ChildItem -LiteralPath $packageRoot -Recurse -File | ForEach-Object {[IO.Path]::GetRelativePath($packageRoot,$_.FullName).Replace('\','/')})
+if(Compare-Object $expected $actual){throw 'Package inventory changed or does not match its manifest'}
+foreach($entry in $manifest){
+    $file=Join-Path $packageRoot $entry.path
+    if((Get-Item -LiteralPath $file).Length -ne $entry.bytes -or (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash -ne $entry.sha256){throw "Package file changed or checksum differs: $($entry.path)"}
+}
+$result['package_manifest_verified']=$true
 $result|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $qa 'result.json') -Encoding utf8
 Write-Output 'PACKAGE_QA_OK: clean PATH, CLI, Clang, local flow, template initializer, packaged headers and Qt GUI'
