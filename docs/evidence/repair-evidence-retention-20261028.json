@@ -1,0 +1,154 @@
+{
+  "status": "passed",
+  "date": "2026-10-28",
+  "workflow_run": 40575251332,
+  "workflow_url": "https://github.com/hajiujiu174/cpp-defect-guard/actions/runs/40575251332",
+  "product_commit": "fa99ec91e01f2cae47cde7b2a23351772a7df22e",
+  "product_tree": "2bd3a58a0969c752dc428275f0a0879d877a55ed",
+  "branch": "codex/p2-p3-independent-ci-20261027",
+  "main_unchanged": "68a3490508deece1bfa6c2bc29a375d69ddbb00e",
+  "jobs": [
+    {
+      "id": 122440444844,
+      "name": "Windows x64 build, test and package",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 122452027558,
+      "name": "Fresh Windows runner package smoke test",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 122452027591,
+      "name": "Pinned libgit2 repair and negative control",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 122456998978,
+      "name": "Verify restored repair proposal evidence",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "product_tests": {
+    "core": {
+      "total": 105,
+      "passed": 104,
+      "skipped": [
+        "codeguard.symlink"
+      ]
+    },
+    "analysis": {
+      "total": 237,
+      "passed": 236,
+      "skipped": [
+        "codeguard.symlink"
+      ]
+    }
+  },
+  "python_tests_passed": 17,
+  "real_projects": [
+    {
+      "project": "cjson",
+      "translation_units": 27,
+      "tests_passed": 22,
+      "thread_and_cache_consistent": true,
+      "source_unchanged": true,
+      "reviewed_issue_locations_match": true
+    },
+    {
+      "project": "tinyxml2",
+      "translation_units": 2,
+      "tests_passed": 1,
+      "thread_and_cache_consistent": true,
+      "source_unchanged": true,
+      "reviewed_issue_locations_match": true
+    },
+    {
+      "project": "fmt",
+      "translation_units": 30,
+      "tests_passed": 21,
+      "thread_and_cache_consistent": true,
+      "source_unchanged": true,
+      "reviewed_issue_locations_match": true
+    }
+  ],
+  "runtime": {
+    "files_verified": 547,
+    "sha256": "f61c5775a8afa01e1f4ebbdc16992d3b088c3034b864bae35ad8d136a4839f67",
+    "bytes": 154162314,
+    "package_manifest_verified": true,
+    "script_imports_verified": true,
+    "screenshots_observed": [
+      "gui-smoke.png",
+      "gui-graph-compact.png"
+    ],
+    "visual_scope": "Recorded runner only; Chinese readable and compact graph scrollable; no general DPI/device claim"
+  },
+  "native_repair": {
+    "initial_translation_units": {
+      "success": 244
+    },
+    "fresh_scan_and_proposals": true,
+    "validations": {
+      "fix": {
+        "baseline_cpp_commands": 244,
+        "after_cpp_commands": 244,
+        "gates_passed": true,
+        "tests_total": 4,
+        "tests_failed": 0,
+        "before_issues": 23,
+        "after_issues": 19,
+        "new_or_unmasked_issues": 0,
+        "source_unchanged": true,
+        "proposed_copy_verified": true,
+        "coverage_status": "not_measured"
+      },
+      "intent": {
+        "baseline_cpp_commands": 244,
+        "after_cpp_commands": 244,
+        "gates_passed": false,
+        "tests_total": 4,
+        "tests_failed": 3,
+        "before_issues": 23,
+        "after_issues": 19,
+        "new_or_unmasked_issues": 0,
+        "source_unchanged": true,
+        "proposed_copy_verified": true,
+        "coverage_status": "not_measured"
+      }
+    },
+    "reference_functions_matched": 3,
+    "independent_failure_sites": 3,
+    "reference_edit_sites": 4,
+    "original_inputs_unchanged": true
+  },
+  "candidate_restore": {
+    "workflow_run": 40575251332,
+    "product_commit": "fa99ec91e01f2cae47cde7b2a23351772a7df22e",
+    "restored_receipt": {
+      "proposals": 12,
+      "sets": 2,
+      "files": 28,
+      "manifest_sha256": "7687a528d714cad4438e37455c99f102bf076df5e42a4aa87e72dd443dd5c792"
+    },
+    "raw_upload_matches_capture": true,
+    "independent_runner_receipt_matches": true,
+    "scope": "Raw candidate and diff bytes only; not semantic correctness or arbitrary-path reapplication"
+  },
+  "previous_attempt": {
+    "commit": "cc7fae1bbc17916a7f7f7924fca05d60ce32c435",
+    "run": 40571011930,
+    "package_inventory_rejected": true,
+    "extra_python_cache_files": 3,
+    "remaining_jobs_cancelled_by_workflow_concurrency": true,
+    "materials_preserved": true
+  },
+  "correctness": "not_assessed",
+  "gcov": "not_measured",
+  "source_auto_applied": false,
+  "main_merged": false
+}

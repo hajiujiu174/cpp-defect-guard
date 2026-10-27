@@ -1,5 +1,7 @@
 # CodeGuard 项目协作指令与改进优先级
 
+2026-10-28 候选留档与运行包补强已完成独立验收：产品提交 `fa99ec9` 的 [运行 40575251332](https://github.com/hajiujiu174/cpp-defect-guard/actions/runs/40575251332) 四作业成功。Core 104 通过/1 权限跳过、Clang/Qt 236 通过/1 同类跳过、17 项 Python 检查通过；三个真实库 59 TU/44 测试通过，547 个运行包清单文件无额外项。真实修复从新扫描/提案开始，既有正负对照及完整性/AST 门槛通过；12 单候选、2 组合及差异共 28 项原件与独立下载回执一致。首轮包的三个清单外缓存文件已被拒绝并修正，旧轮取消材料保留。正确性仍为 not_assessed、gcov 未测，main 保持。详见 docs/ci-readiness.md 和 docs/evidence/repair-evidence-retention-20261028.json。
+
 更新日期：2026-10-28。适用范围：本文件所在项目及其子目录。
 
 2026-10-28 独立 Windows 验收已完成：产品提交 `0cbd749` 的 [运行 40558131811](https://github.com/hajiujiu174/cpp-defect-guard/actions/runs/40558131811) 三个作业均成功。Core 104 通过/1 权限跳过，Clang/Qt 236 通过/1 同类跳过，10 项 Python 检查通过；三个真实库 59 个有效 TU、44 个上游测试通过，独立运行包及中文截图已核对。libgit2 从新扫描/提案开始，244 TU 全解析，修复组合 4 项通过，意图负对照 3 项失败并被拒绝；源码/副本完整性和三个参考函数 AST 门槛通过。P2-2 与现有确定性修复的独立 CI 缺口关闭；单提交、选定配置的证据不外推为普遍修复正确性，`correctness=not_assessed` 保持，模型研究/独立数据/校准仍待推进。详见 `docs/ci-readiness.md`。main 未合并，首轮失败记录保留。
