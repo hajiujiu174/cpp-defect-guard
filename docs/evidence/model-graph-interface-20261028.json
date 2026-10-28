@@ -1,5 +1,5 @@
 {
-  "status": "local_acceptance_passed",
+  "status": "local_and_independent_windows_ci_passed",
   "date": "2026-10-28",
   "base_commit": "fad058639a44bc6846254fb4f81f8383e13cce9c",
   "interface": "CodeGuardGraphInference 1",
@@ -53,17 +53,17 @@
   },
   "input_files_unchanged": true,
   "source_files": {
-    "src/defectguard/experiments/inference.py": "a9ef44d926f2ed4c2d8bbdd6235a007c96848b8908ac26aef8c2ac3e53b15ee0",
+    "src/defectguard/experiments/inference.py": "8f133d7c96c62b55c5bb3603922b775a9c977fd30fc4d147c12bfcaed75d9095",
     "src/defectguard/experiments/cli.py": "827db5aae4ffe32b9fdcdc0ab26f25e64f2c1f88efeeaf1e910829f35d07db84",
-    "tests/test_graph_inference.py": "5286dabd9f39256bc686071fef7b2dba2520745cad64eb76714c7af22b15e4be",
-    ".github/workflows/windows-ci.yml": "8e2453b4818bbac13185a449ff5f4a2ccedff52f46ec3522f95c0c42e5bbd7e0"
+    "tests/test_graph_inference.py": "ad07e441f058d8ea1be0fd13723430a54a7b5457982a58cc2d0c98e5f34f1029",
+    ".github/workflows/windows-ci.yml": "bcd16658c2cc340a276be7a745009962b5393d8fff612c47d7e853932023c0fb"
   },
   "checkpoint_weights_sha256": "9d22e110b86ff3ec9bff412e08aac1a3f39c22ba0d7fbd5e0634f89e180a9cab",
   "checkpoint_metadata_sha256": "55666eb087bdd2bf5a3b35fed8a7f589b1d52974b75c70fb4e36f87e459895f0",
   "encoder_sha256": "82c5d193724c731a0de8bb4e1ea90358548ac61193fcc2d6539aa707be3beab4",
   "training": false,
   "cpp_product_integration": false,
-  "independent_ci_verified": false,
+  "independent_ci_verified": true,
   "independent_deployment_verified": false,
   "calibration": "uncalibrated",
   "correctness": "not_assessed",
@@ -146,5 +146,207 @@
       "path": "artifacts/p3-model-graph-interface-20261028/tampered-input.stderr.log",
       "sha256": "2c06abe93e8d7676cfaa774573fc52abfe6aaae1f25d4231f1286e0536857c99"
     }
-  ]
+  ],
+  "independent_ci": {
+    "status": "windows_ci_and_local_portability_verified",
+    "date": "2026-10-28",
+    "source_commit": "9a1a159089728a82f17cfd2e5ddec322d591d907",
+    "source_tree": "f25e7007502f47792f171d287e3fe78eacc28bc0",
+    "branch": "codex/p3-model-graph-interface-20261028",
+    "workflow_run": 40693842580,
+    "workflow_url": "https://github.com/hajiujiu174/cpp-defect-guard/actions/runs/40693842580",
+    "jobs": [
+      {
+        "id": 122835258135,
+        "name": "Windows x64 build, test and package",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 122841349355,
+        "name": "Fresh Windows runner package smoke test",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 122841352491,
+        "name": "Pinned repair and negative control (${{ matrix.case }})",
+        "status": "completed",
+        "conclusion": "skipped"
+      },
+      {
+        "id": 122841352958,
+        "name": "Verify restored repair evidence (${{ matrix.case }})",
+        "status": "completed",
+        "conclusion": "skipped"
+      }
+    ],
+    "product_tests": {
+      "core": {
+        "total": 105,
+        "passed": 104,
+        "skipped": [
+          "codeguard.symlink"
+        ]
+      },
+      "analysis": {
+        "total": 237,
+        "passed": 236,
+        "skipped": [
+          "codeguard.symlink"
+        ]
+      }
+    },
+    "python_ci_checks": 40,
+    "new_graph_interface_checks": 14,
+    "registered_graph_test_names_verified": true,
+    "product_runtime": {
+      "bytes": 154182784,
+      "sha256": "a2257dc0c5a24d872b749a24695d078ffa6b68c456c5697f1df0bb587336ee87",
+      "manifest_files": 557,
+      "all_hashes_and_exact_inventory_verified": true,
+      "fresh_runner_checks": {
+        "chinese_font": true,
+        "graph_path": true,
+        "public_core_proposal_helper": true,
+        "repair_set_source_unchanged": true,
+        "clean_path": true,
+        "repair_set_preview": true,
+        "template_initializer": true,
+        "real_repair_script_imports": true,
+        "clang": true,
+        "package_manifest_verified": true,
+        "local_flow": true,
+        "precedence_source_unchanged": true,
+        "precedence_candidate": true,
+        "gui": true,
+        "repair_preview": true,
+        "repair_batch_cancel_ledger": true,
+        "cli": true
+      },
+      "screenshots_observed": [
+        "gui-smoke.png",
+        "gui-graph-compact.png"
+      ]
+    },
+    "regular_ci_scope": {
+      "real_projects_rerun": false,
+      "real_repairs_rerun": false,
+      "cloud_model_training": false,
+      "cloud_model_download": false,
+      "cloud_model_inference": false
+    },
+    "local_model_portability": {
+      "acceptance": {
+        "status": "same_machine_isolated_runtime_passed",
+        "package": "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\mp0",
+        "manifest_files": 23292,
+        "inventory_and_all_hashes_before_after_verified": true,
+        "cases": [
+          {
+            "case": "demo",
+            "function_count": 24,
+            "prediction_and_manifest_exact": true,
+            "loaded_module_files": 3071,
+            "loaded_dlls": 103,
+            "external_modules": 0,
+            "external_dlls": 0,
+            "python_network_attempts": 0,
+            "wall_seconds": 27.4397742000001,
+            "sequence_status": "not_truncated"
+          },
+          {
+            "case": "long",
+            "function_count": 1,
+            "prediction_and_manifest_exact": true,
+            "loaded_module_files": 3071,
+            "loaded_dlls": 103,
+            "external_modules": 0,
+            "external_dlls": 0,
+            "python_network_attempts": 0,
+            "wall_seconds": 23.757860500001698,
+            "sequence_status": "truncated"
+          }
+        ],
+        "no_environment_installation": true,
+        "no_global_configuration_changes": true,
+        "no_new_model_training": true,
+        "authorized_source_files_match_review_or_recorded_eof_only_fix": true,
+        "new_candidate_cohort_not_scored": true,
+        "new_machine_or_cloud_verified": false,
+        "correctness": "not_assessed",
+        "calibration": "uncalibrated",
+        "scope": "Existing Windows host only; copied Python/dependencies/assets with clean PATH, isolated Python, dedicated cache/TEMP, module/DLL origin audit and denied Python network calls",
+        "wall_seconds": 91.75335250000353
+      },
+      "archive_roundtrip": {
+        "status": "passed",
+        "archive_sha256": "6f38649769e22d9e0a418abb0183d7d005e3366919844401d8ddba3d37da3cd9",
+        "restored_path": "D:\\Work\\WORKDONE\\cpp-defect-guard\\build\\模型研究包 空格",
+        "unicode_and_space_path": true,
+        "all_restored_payload_hashes_verified": true,
+        "prediction_records": 24,
+        "predictions_exact": true,
+        "external_modules": 0,
+        "external_dlls": 0,
+        "python_network_attempts": 0,
+        "generated_temp_modules": 1,
+        "virtual_module_metadata": [
+          "torch.ops",
+          "torch.classes"
+        ],
+        "new_machine_verified": false,
+        "wall_seconds": 311.84319620000315
+      },
+      "archive": {
+        "bytes": 657526366,
+        "sha256": "6f38649769e22d9e0a418abb0183d7d005e3366919844401d8ddba3d37da3cd9",
+        "files": 23293,
+        "all_file_hashes_and_crc_verified": true
+      },
+      "source_app_git_bytes_verified": true
+    },
+    "protected_refs": {
+      "main": "68a3490508deece1bfa6c2bc29a375d69ddbb00e",
+      "codex/p2-p3-independent-ci-20261027": "d77bb048c382949d1fbb04d0e1551298cacb2def",
+      "codex/p3-worktree-benchmark-20261028": "fad058639a44bc6846254fb4f81f8383e13cce9c"
+    },
+    "source_format_adjustments": [
+      {
+        "path": "docs/model-graph-interface.md",
+        "before_sha256": "84030a82786130a9875b2ff7e2ae8d14e371e8221fd1386fd764fd6907ab4f30",
+        "after_sha256": "aa1c7bbc38317a0ee4ad6c79fc82cc88a23b6cacc0a3de4807e2baa3be31ff42",
+        "only_trailing_blank_line_removed": true,
+        "python_ast_identical": false
+      },
+      {
+        "path": "src/defectguard/experiments/inference.py",
+        "before_sha256": "a9ef44d926f2ed4c2d8bbdd6235a007c96848b8908ac26aef8c2ac3e53b15ee0",
+        "after_sha256": "8f133d7c96c62b55c5bb3603922b775a9c977fd30fc4d147c12bfcaed75d9095",
+        "only_trailing_blank_line_removed": true,
+        "python_ast_identical": true
+      },
+      {
+        "path": "tests/test_graph_inference.py",
+        "before_sha256": "5286dabd9f39256bc686071fef7b2dba2520745cad64eb76714c7af22b15e4be",
+        "after_sha256": "ad07e441f058d8ea1be0fd13723430a54a7b5457982a58cc2d0c98e5f34f1029",
+        "only_trailing_blank_line_removed": true,
+        "python_ast_identical": true
+      }
+    ],
+    "correctness": "not_assessed",
+    "calibration": "uncalibrated",
+    "new_machine_model_deployment_verified": false,
+    "cpp_default_model_integration": false,
+    "training": false
+  },
+  "same_machine_isolated_runtime_verified": true,
+  "local_acceptance_source_files": {
+    "src/defectguard/experiments/inference.py": "a9ef44d926f2ed4c2d8bbdd6235a007c96848b8908ac26aef8c2ac3e53b15ee0",
+    "src/defectguard/experiments/cli.py": "827db5aae4ffe32b9fdcdc0ab26f25e64f2c1f88efeeaf1e910829f35d07db84",
+    "tests/test_graph_inference.py": "5286dabd9f39256bc686071fef7b2dba2520745cad64eb76714c7af22b15e4be",
+    ".github/workflows/windows-ci.yml": "8e2453b4818bbac13185a449ff5f4a2ccedff52f46ec3522f95c0c42e5bbd7e0"
+  },
+  "source_files_basis": "Exact Git blob bytes at tested_source_commit; original local-before-format hashes retained separately",
+  "tested_source_commit": "9a1a159089728a82f17cfd2e5ddec322d591d907"
 }
