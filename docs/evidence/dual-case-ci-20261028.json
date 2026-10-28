@@ -1,0 +1,167 @@
+{
+  "status": "passed",
+  "date": "2026-10-28",
+  "workflow_run": 40626484174,
+  "workflow_url": "https://github.com/hajiujiu174/cpp-defect-guard/actions/runs/40626484174",
+  "product_commit": "92a94e9e52f425540861c0951fcc64431d4c4b57",
+  "product_tree": "24679df35afd6a8daf5ebbfb81c686c1eb5a8122",
+  "branch": "codex/p3-worktree-benchmark-20261028",
+  "main_unchanged": "68a3490508deece1bfa6c2bc29a375d69ddbb00e",
+  "previous_branch_unchanged": "d77bb048c382949d1fbb04d0e1551298cacb2def",
+  "jobs": [
+    {
+      "id": 122612506161,
+      "name": "Windows x64 build, test and package",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 122619487405,
+      "name": "Pinned repair and negative control (libgit2-error-return)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 122619487484,
+      "name": "Pinned repair and negative control (libgit2-worktree-return)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 122619487515,
+      "name": "Fresh Windows runner package smoke test",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 122624973533,
+      "name": "Verify restored repair evidence (libgit2-worktree-return)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 122624973577,
+      "name": "Verify restored repair evidence (libgit2-error-return)",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "product_tests": {
+    "core": {
+      "total": 105,
+      "passed": 104,
+      "skipped": [
+        "codeguard.symlink"
+      ]
+    },
+    "analysis": {
+      "total": 237,
+      "passed": 236,
+      "skipped": [
+        "codeguard.symlink"
+      ]
+    }
+  },
+  "python_tests_passed": 26,
+  "runtime": {
+    "package_bytes": 154175170,
+    "package_sha256": "bd8c917dc5d75458c62ab4a36850949bbe6b1a96e0fcc4b7ef30ca9251cc67ad",
+    "manifest_entries": 555,
+    "package_file_set_exact": true,
+    "crc_verified": true,
+    "fresh_runner_checks": {
+      "repair_set_preview": true,
+      "clean_path": true,
+      "real_repair_script_imports": true,
+      "precedence_source_unchanged": true,
+      "precedence_candidate": true,
+      "template_initializer": true,
+      "chinese_font": true,
+      "local_flow": true,
+      "package_manifest_verified": true,
+      "graph_path": true,
+      "repair_set_source_unchanged": true,
+      "clang": true,
+      "repair_preview": true,
+      "gui": true,
+      "public_core_proposal_helper": true,
+      "cli": true,
+      "repair_batch_cancel_ledger": true
+    }
+  },
+  "real_projects": [
+    {
+      "id": "cjson",
+      "units": 27,
+      "ctests": 22,
+      "repository_analysis_status": "partial"
+    },
+    {
+      "id": "tinyxml2",
+      "units": 2,
+      "ctests": 1,
+      "repository_analysis_status": "partial"
+    },
+    {
+      "id": "fmt",
+      "units": 30,
+      "ctests": 21,
+      "repository_analysis_status": "partial"
+    }
+  ],
+  "real_repairs": [
+    {
+      "case": "libgit2-error-return",
+      "units": 244,
+      "tests": 4,
+      "negative_failures": 3,
+      "independent_sites": 3,
+      "reference_edits": 4,
+      "fresh_scan_and_proposals": true,
+      "candidate_receipt": {
+        "proposals": 12,
+        "sets": 2,
+        "files": 28,
+        "manifest_sha256": "7687a528d714cad4438e37455c99f102bf076df5e42a4aa87e72dd443dd5c792"
+      },
+      "source_unchanged": true,
+      "reference_ast_matches": true,
+      "correctness": "not_assessed",
+      "acceptance_sha256": "d6fef748b2b6d35b3c7867bbd088327626871a3658ff9bbbe53a2317162cf699"
+    },
+    {
+      "case": "libgit2-worktree-return",
+      "units": 219,
+      "tests": 3,
+      "negative_failures": 2,
+      "independent_sites": 2,
+      "reference_edits": 2,
+      "fresh_scan_and_proposals": true,
+      "candidate_receipt": {
+        "proposals": 6,
+        "sets": 2,
+        "files": 16,
+        "manifest_sha256": "84483825c088bf1b2546f1aa9ee9f31b8ce895e6841924e6c43a4056ba55cc43"
+      },
+      "source_unchanged": true,
+      "reference_ast_matches": true,
+      "correctness": "not_assessed",
+      "acceptance_sha256": "12848dfe995bebfa0fa64c1699631eee7fddd2724e7dc889f85141ec480adeb0"
+    }
+  ],
+  "screenshots_observed": [
+    "gui-smoke.png",
+    "gui-graph-compact.png"
+  ],
+  "visual_scope": "Recorded Windows runner only; no general device or DPI claim",
+  "correctness": "not_assessed",
+  "gcov": "not_measured",
+  "source_auto_applied": false,
+  "main_merged": false,
+  "limitations": [
+    "Two fixed commit pairs from libgit2; not independent libraries or a statistical correctness dataset.",
+    "Regression harnesses authored by CodeGuard, not upstream test suites.",
+    "First git_repository_index edit in the older case has no independent failure reproduction.",
+    "Full typed function AST and behavior evidence apply only to the selected Windows configuration."
+  ]
+}
