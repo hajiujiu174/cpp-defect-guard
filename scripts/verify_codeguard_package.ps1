@@ -4,6 +4,11 @@ $ErrorActionPreference='Stop'
 $packageRoot=(Resolve-Path -LiteralPath $Package).Path
 if(Test-Path -LiteralPath $Output){throw 'Use a new QA directory'}
 $qa=[IO.Path]::GetFullPath($Output);[IO.Directory]::CreateDirectory($qa)|Out-Null
+foreach($case in @('libgit2-error-return','libgit2-worktree-return')){
+    foreach($name in @('manifest.json','archive-sha256.json','upstream-reference.json','regression.c','harness.cmake','README.md')){
+        if(-not(Test-Path -LiteralPath (Join-Path $packageRoot "benchmarks/$case/$name"))){throw "Missing real repair case input: $case/$name"}
+    }
+}
 # Python is a QA-host tool for the optional benchmark, not a native runtime dependency.
 foreach($name in @('accept_real_repair.py','real_repair_reference.py','real_repair_process.py','real_repair_evidence.py')){
     if(-not(Test-Path -LiteralPath (Join-Path $packageRoot "scripts/$name"))){throw "Missing benchmark script: $name"}

@@ -1,0 +1,48 @@
+{
+  "format": "CodeGuardRealRepairCase 1",
+  "id": "libgit2-worktree-return-precedence",
+  "repository": "https://github.com/libgit2/libgit2.git",
+  "buggy_commit": "c16683f5fb3100442a370bb15c2965dc75311043",
+  "fixed_commit": "c0a4ef05f4d4a57eb06a15df8bcd4ace26aec1f5",
+  "reference_url": "https://github.com/libgit2/libgit2/commit/c0a4ef05f4d4a57eb06a15df8bcd4ace26aec1f5",
+  "license": "GPL-2.0-only WITH libgit2-linking-exception; preserve upstream COPYING and AUTHORS",
+  "rule": "CG003",
+  "recipe": "condition.assignment_result",
+  "test_expectations": {
+    "codeguard-real.head-lock": "failed",
+    "codeguard-real.control": "passed",
+    "codeguard-real.worktree-read-lock": "failed"
+  },
+  "targets": [
+    {
+      "file": "src/libgit2/repository.c",
+      "line": 3148,
+      "function": "git_repository_foreach_worktree",
+      "regression": "head-lock"
+    },
+    {
+      "file": "src/libgit2/repository.c",
+      "line": 3163,
+      "function": "git_repository_foreach_worktree",
+      "regression": "worktree-read-lock"
+    }
+  ],
+  "limitations": [
+    "CodeGuard-authored public-API tests, not upstream test suite.",
+    "Both edit sites have independent public-API reproductions; the worktree-read-lock case requires Windows file sharing semantics.",
+    "Partial one-TU discovery is not full repair validation. Full validation evidence must be inspected separately.",
+    "No generic semantic correctness or transactional-rename guarantee."
+  ],
+  "test_return_values": {
+    "buggy": {
+      "codeguard-real.head-lock": 1,
+      "codeguard-real.worktree-read-lock": 1,
+      "codeguard-real.control": 0
+    },
+    "fixed": {
+      "codeguard-real.head-lock": -14,
+      "codeguard-real.worktree-read-lock": -1,
+      "codeguard-real.control": 0
+    }
+  }
+}

@@ -4,6 +4,7 @@ import hashlib
 import io
 import json
 import os
+import re
 from pathlib import Path, PurePosixPath
 import shutil
 import sqlite3
@@ -15,7 +16,41 @@ from real_repair_process import run_logged
 from real_repair_evidence import source_record, capture_evidence
 
 REPO = Path(__file__).resolve().parents[1]
-CASE = REPO / 'benchmarks/libgit2-error-return'
+CASE_NAMES = ('libgit2-error-return', 'libgit2-worktree-return')
+
+
+def test_expectations(case):
+    expected = case['test_expectations']
+    if (not isinstance(expected, dict) or not expected or
+            set(expected.values()) != {'passed', 'failed'} or
+            any(not name.startswith('codeguard-real.') for name in expected)):
+        raise ValueError('Case must name exact passing and failing baseline tests')
+    return expected
+
+
+def archive_path(name, layout, prefix=None):
+    path = PurePosixPath(name)
+    if path.is_absolute() or '..' in path.parts or '\\' in name or ':' in name:
+        raise ValueError('unsafe archive path')
+    if layout == 'github-zipball':
+        if not prefix or not path.parts or path.parts[0] != prefix:
+            raise ValueError('archive root does not match pinned GitHub prefix')
+        if len(path.parts) == 1:
+            return None
+        path = PurePosixPath(*path.parts[1:])
+    elif layout != 'git-archive':
+        raise ValueError('unknown source archive layout')
+    return path
+
+
+def verify_test_outputs(path, expected):
+    rows = list(ET.parse(path).getroot().iter('testcase'))
+    if {row.get('name') for row in rows} != set(expected) or len(rows) != len(expected):
+        raise ValueError('Unexpected behavioral test inventory')
+    for row in rows:
+        values = re.findall(r'\breturn=(-?\d+)\b', row.findtext('system-out') or '')
+        if len(values) != 1 or int(values[0]) != expected[row.get('name')]:
+            raise ValueError('Native API return does not match the case oracle: ' + row.get('name'))
 
 
 def save(p, value):
@@ -30,6 +65,7 @@ def hashes(root):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--cli', type=Path, required=True)
+    parser.add_argument('--case', choices=CASE_NAMES, default=CASE_NAMES[0])
     source = parser.add_mutually_exclusive_group(required=True)
     source.add_argument('--repository', type=Path, help='Existing libgit2 Git object store; does not change its checkout')
     source.add_argument('--archives', type=Path, help='Offline folder containing the checksum-pinned buggy.zip and fixed.zip')
@@ -54,7 +90,11 @@ def main():
         out.mkdir(parents=True, exist_ok=False)
     if not str(out).isascii():
         raise ValueError('use a short ASCII benchmark output path')
-    case = json.loads((CASE / 'manifest.json').read_text(encoding='utf-8'))
+    case_dir = REPO / 'benchmarks' / args.case
+    case = json.loads((case_dir / 'manifest.json').read_text(encoding='utf-8'))
+    expected_tests = test_expectations(case)
+    target_count = len(case['targets'])
+    negative_failures = list(expected_tests.values()).count('failed')
     env = dict(os.environ, PATH=str(tool) + os.pathsep + os.environ['PATH'])
     commands = json.loads((out / 'commands.json').read_text(encoding='utf-8')) if args.resume_prepared else []
 
@@ -72,11 +112,13 @@ def main():
             continue
         archive = out / (label + '.zip')
         if archives:
-            expected = json.loads((CASE / 'archive-sha256.json').read_text(encoding='utf-8'))[label]
+            expected = json.loads((case_dir / 'archive-sha256.json').read_text(encoding='utf-8'))[label]
             data = (archives / (label + '.zip')).read_bytes()
             assert len(data) == expected['bytes'] and hashlib.sha256(data).hexdigest() == expected['sha256'] and expected['git_commit'] == ref
             archive.write_bytes(data)
+            layout, archive_prefix = expected.get('layout', 'git-archive'), expected.get('prefix')
         else:
+            layout, archive_prefix = 'git-archive', None
             actual = run(label + '-ref', ['git', '-C', source_repo, 'rev-parse', ref + '^{commit}']).strip()
             assert actual == ref
             with archive.open('wb') as stream:
@@ -87,11 +129,13 @@ def main():
         root.mkdir()
         omitted = []
         with zipfile.ZipFile(archive) as z:
-            assert z.testzip() is None and z.comment.decode('ascii') == ref
+            assert z.testzip() is None
+            if layout == 'git-archive':
+                assert z.comment.decode('ascii') == ref
             for item in z.infolist():
-                path = PurePosixPath(item.filename)
-                if path.is_absolute() or '..' in path.parts or '\\' in item.filename:
-                    raise ValueError('unsafe archive path')
+                path = archive_path(item.filename, layout, archive_prefix)
+                if path is None:
+                    continue
                 if path.parts[0] in ('tests', 'examples', 'fuzzers', 'benchmarks', 'ci', '.github', 'docs'):
                     omitted.append(item.filename)
                     continue
@@ -104,8 +148,8 @@ def main():
                     destination.parent.mkdir(parents=True, exist_ok=True)
                     destination.write_bytes(z.read(item))
         original = hashes(root)
-        shutil.copyfile(CASE / 'regression.c', root / 'codeguard-regression.c')
-        shutil.copyfile(CASE / 'harness.cmake', root / 'codeguard-harness.cmake')
+        shutil.copyfile(case_dir / 'regression.c', root / 'codeguard-regression.c')
+        shutil.copyfile(case_dir / 'harness.cmake', root / 'codeguard-harness.cmake')
         with (root / 'CMakeLists.txt').open('a', encoding='utf-8') as stream:
             stream.write('\ninclude("${CMAKE_CURRENT_SOURCE_DIR}/codeguard-harness.cmake")\n')
         cfg = out / ('b' if label == 'buggy' else 'fb')
@@ -123,11 +167,13 @@ def main():
     def test_results(path):
         cases = list(ET.parse(path).getroot().iter('testcase'))
         return {t.get('name'): 'failed' if t.find('failure') is not None else 'skipped' if t.find('skipped') is not None else 'passed' for t in cases}
-    expected = {'codeguard-real.' + n for n in ('tree-invalid-options', 'index-invalid-options', 'merge-corrupt-index', 'valid-options-control')}
     baseline, fixed_tests = test_results(out / 'buggy-tests.xml'), test_results(out / 'fixed-tests.xml')
-    assert set(baseline) == set(fixed_tests) == expected
-    assert all(v == ('passed' if n.endswith('valid-options-control') else 'failed') for n, v in baseline.items())
+    assert baseline == expected_tests
+    assert set(fixed_tests) == set(expected_tests)
     assert all(v == 'passed' for v in fixed_tests.values())
+    if 'test_return_values' in case:
+        for version in ('buggy', 'fixed'):
+            verify_test_outputs(out / (version + '-tests.xml'), case['test_return_values'][version])
     for n in range(100):
         attempt = out / ('a' + str(n))
         if not attempt.exists():
@@ -182,7 +228,7 @@ def main():
             evidence_sources.append(source_record('proposals', fields[0]+':'+fields[1], Path(fields[2])))
         if len(fields) == 3 and fields[1] in manifests:
             manifests[fields[1]].append(Path(fields[2]))
-    assert all(len(items) == 4 for items in manifests.values())
+    assert all(len(items) == target_count for items in manifests.values())
     validations = {}
     for recipe, items in manifests.items():
         name = 'fix' if recipe == case['recipe'] else 'intent'
@@ -199,9 +245,12 @@ def main():
             value['benchmark_build_workspace'] = connection.execute('SELECT workspace FROM build_run WHERE id=?', (value['build_run_id'],)).fetchone()[0]
         validations[name] = value
         save(attempt / (name + '-validation.json'), value)
+        if 'test_return_values' in case:
+            verify_test_outputs(Path(value['benchmark_build_workspace']) / 'tests.xml',
+                                case['test_return_values']['fixed' if name == 'fix' else 'buggy'])
         assert value['source_unchanged'] and value['proposed_copy_verified'] and value['correctness'] == 'not_assessed'
-        assert value['targets'] and all(t['target_not_detected'] for t in value['targets'])
-        assert value['tests_total'] == 4 and value['tests_failed'] == (0 if name == 'fix' else 3)
+        assert len(value['targets']) == target_count and all(t['target_not_detected'] for t in value['targets'])
+        assert value['tests_total'] == len(expected_tests) and value['tests_failed'] == (0 if name == 'fix' else negative_failures)
         assert value['gates_passed'] == (name == 'fix')
     functions = sorted({(t['file'], t['function']) for t in case['targets']})
     ast_dir = attempt / 'reference-ast'
@@ -224,7 +273,7 @@ def main():
     captured = capture_evidence(attempt / 'evidence', evidence_sources)
     result = dict(status='passed', case=case, evidence=dict(directory=attempt.name+'/evidence', **captured), scope=json.loads((attempt / 'scope.json').read_text(encoding='utf-8')),
                   native_baseline_tests=baseline, native_reference_tests=fixed_tests, validations=validations, typed_ast=ast,
-                  reference_functions_matched=3, independently_reproduced_failure_sites=3, reference_edit_sites=4,
+                  reference_functions_matched=len(functions), independently_reproduced_failure_sites=sum(bool(t['regression']) for t in case['targets']), reference_edit_sites=target_count,
                   correctness='not_assessed', original_inputs_unchanged=True, commands=commands)
     save(attempt / 'acceptance.json', result)
     save(out / 'latest-acceptance.json', dict(attempt=attempt.name, report=str(attempt / 'acceptance.json')))

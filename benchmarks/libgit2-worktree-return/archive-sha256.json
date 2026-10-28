@@ -1,0 +1,18 @@
+{
+  "repository": "https://github.com/libgit2/libgit2.git",
+  "format": "GitHub zipball, pinned raw bytes and exact top-level prefix; not git archive comments",
+  "buggy": {
+    "git_commit": "c16683f5fb3100442a370bb15c2965dc75311043",
+    "bytes": 12600568,
+    "sha256": "60fba8a81a527bbf67d95bb7c70a4b73eb0dc3a28c0737fd4630bd383ba27753",
+    "layout": "github-zipball",
+    "prefix": "libgit2-libgit2-c16683f"
+  },
+  "fixed": {
+    "git_commit": "c0a4ef05f4d4a57eb06a15df8bcd4ace26aec1f5",
+    "bytes": 12600566,
+    "sha256": "baa07c331c64e6b4890b29c04a499a0d3b6bdab7be0a06b5626c5b33d7f6009c",
+    "layout": "github-zipball",
+    "prefix": "libgit2-libgit2-c0a4ef0"
+  }
+}

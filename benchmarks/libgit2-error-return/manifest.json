@@ -8,6 +8,12 @@
   "license": "GPL-2.0-only WITH libgit2-linking-exception; preserve upstream COPYING and AUTHORS",
   "rule": "CG003",
   "recipe": "condition.assignment_result",
+  "test_expectations": {
+    "codeguard-real.tree-invalid-options": "failed",
+    "codeguard-real.index-invalid-options": "failed",
+    "codeguard-real.merge-corrupt-index": "failed",
+    "codeguard-real.valid-options-control": "passed"
+  },
   "targets": [
     {"file": "src/libgit2/diff_generate.c", "line": 1532, "function": "git_diff_tree_to_workdir", "regression": "tree-invalid-options"},
     {"file": "src/libgit2/diff_generate.c", "line": 1604, "function": "git_diff_index_to_index", "regression": "index-invalid-options"},

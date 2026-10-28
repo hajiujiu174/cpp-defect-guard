@@ -1,0 +1,52 @@
+{
+  "status": "passed",
+  "scope": "Fresh local fixed-commit replay; selected Windows configuration including authored regression; not independent CI",
+  "initial_cpp_translation_units": 219,
+  "validation_cpp_translation_units": 219,
+  "observations": {
+    "buggy": {
+      "codeguard-real.head-lock": 1,
+      "codeguard-real.worktree-read-lock": 1,
+      "codeguard-real.control": 0
+    },
+    "fixed": {
+      "codeguard-real.head-lock": -14,
+      "codeguard-real.worktree-read-lock": -1,
+      "codeguard-real.control": 0
+    },
+    "fix": {
+      "codeguard-real.head-lock": -14,
+      "codeguard-real.worktree-read-lock": -1,
+      "codeguard-real.control": 0
+    },
+    "intent": {
+      "codeguard-real.head-lock": 1,
+      "codeguard-real.worktree-read-lock": 1,
+      "codeguard-real.control": 0
+    }
+  },
+  "issue_counts": [
+    21,
+    19
+  ],
+  "new_or_unmasked_issues": 0,
+  "source_unchanged": true,
+  "proposed_copy_verified": true,
+  "reference_functions_matched": 1,
+  "independently_reproduced_sites": 2,
+  "reference_edit_sites": 2,
+  "candidate_evidence": {
+    "proposals": 6,
+    "sets": 2,
+    "files": 16,
+    "manifest_sha256": "001c80b52641fa77dfff6512f8cc421e965285d831e429bec7a9cdebadcacd66"
+  },
+  "correctness": "not_assessed",
+  "gcov": "not_measured",
+  "acceptance_sha256": "b78192ad5a8e2574c68594648acb7f163da1678178f9d11ac80c79bb321bba02",
+  "python_tests_passed": 26,
+  "remote_ci": "authorized; pending new-branch push",
+  "planned_expanded_jobs": 6,
+  "native_binary_base": "fa99ec91e01f2cae47cde7b2a23351772a7df22e",
+  "reference_url": "https://github.com/libgit2/libgit2/commit/c0a4ef05f4d4a57eb06a15df8bcd4ace26aec1f5"
+}

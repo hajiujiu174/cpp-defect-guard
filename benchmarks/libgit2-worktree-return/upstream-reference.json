@@ -1,0 +1,20 @@
+{
+  "repository": "libgit2/libgit2",
+  "sha": "c0a4ef05f4d4a57eb06a15df8bcd4ace26aec1f5",
+  "parent": "c16683f5fb3100442a370bb15c2965dc75311043",
+  "url": "https://github.com/libgit2/libgit2/commit/c0a4ef05f4d4a57eb06a15df8bcd4ace26aec1f5",
+  "message": "repository: fix operators in `foreach_worktree`\n\nFix a simple operator precedence bug in\n`git_repository_foreach_worktree`.",
+  "files": [
+    {
+      "filename": "src/libgit2/repository.c",
+      "patch": "@@ -3145,7 +3145,7 @@ int git_repository_foreach_worktree(git_repository *repo,\n \t\treturn cb(repo, payload);\n \n \tif ((error = git_repository_open(&worktree_repo, repo->commondir)) < 0 ||\n-\t    (error = cb(worktree_repo, payload) != 0))\n+\t    (error = cb(worktree_repo, payload)) != 0)\n \t\tgoto out;\n \n \tgit_repository_free(worktree_repo);\n@@ -3160,7 +3160,7 @@ int git_repository_foreach_worktree(git_repository *repo,\n \t\tgit_worktree_free(worktree);\n \t\tworktree = NULL;\n \n-\t\tif ((error = git_worktree_lookup(&worktree, repo, worktrees.strings[i]) < 0) ||\n+\t\tif ((error = git_worktree_lookup(&worktree, repo, worktrees.strings[i])) < 0 ||\n \t\t    (error = git_repository_open_from_worktree(&worktree_repo, worktree)) < 0) {\n \t\t\tif (error != GIT_ENOTFOUND)\n \t\t\t\tgoto out;"
+    }
+  ],
+  "main_ancestry_observed": {
+    "status": "ahead",
+    "merge_base_commit": "c0a4ef05f4d4a57eb06a15df8bcd4ace26aec1f5",
+    "ahead_by": 346
+  },
+  "retrieved_at": "2026-10-28",
+  "source": "GitHub connected repository API; raw GitHub zipball SHA pinned separately"
+}
