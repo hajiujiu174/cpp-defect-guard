@@ -8,7 +8,11 @@ from .data import prepare_dataset
 
 
 def _run(args):
-    if args.command == "import-juliet":
+    if args.command == "infer-graphs":
+        from .inference import infer_graphs
+        result = infer_graphs(Path(args.graph_bundle), Path(args.checkpoint), Path(args.output),
+                              Path(args.encoder) if args.encoder else None)
+    elif args.command == "import-juliet":
         from .juliet import import_juliet
         result = import_juliet(Path(args.archive), Path(args.output), max_cases=args.max_cases,
                                cwes=tuple(args.cwes), flows=tuple(args.flows), seed=args.seed,
@@ -51,6 +55,11 @@ def _run(args):
 
 
 def register_commands(subcommands):
+    infer = subcommands.add_parser("infer-graphs", help="校验无标签程序图包，用现有检查点输出研究预测与覆盖记录")
+    infer.add_argument("--graph-bundle", required=True, help="包含 graphs.jsonl 与 manifest.json 的 1.0 导出目录")
+    infer.add_argument("--checkpoint", required=True, help="已有检查点目录，不执行训练")
+    infer.add_argument("--encoder", help="本地同指纹编码器；不会下载模型")
+    infer.add_argument("--output", required=True, help="尚不存在的输出目录")
     from .juliet import DEFAULT_CWES, DEFAULT_FLOWS
     juliet = subcommands.add_parser("import-juliet", help="导入固定 NIST Juliet 1.3.1 首批 C 基础变体，保留标签和来源")
     juliet.add_argument("--archive", required=True, help="已下载的官方 ZIP；导入前校验固定 SHA-256")
@@ -95,5 +104,5 @@ def register_commands(subcommands):
     sweep.add_argument("--max-length", type=int, default=256)
     sweep.add_argument("--cache")
     sweep.add_argument("--resume", action="store_true", help="核验并复用同一计划中已经完成的实验；不删除不完整检查点")
-    for command in (juliet, prepare, download, train, evaluate, sweep):
+    for command in (infer, juliet, prepare, download, train, evaluate, sweep):
         command.set_defaults(handler=_run)

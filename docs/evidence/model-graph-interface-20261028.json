@@ -1,0 +1,150 @@
+{
+  "status": "local_acceptance_passed",
+  "date": "2026-10-28",
+  "base_commit": "fad058639a44bc6846254fb4f81f8383e13cce9c",
+  "interface": "CodeGuardGraphInference 1",
+  "input_graph_schema": "1.0",
+  "python_tests": {
+    "status": "passed",
+    "modules": [
+      "test_dataflow",
+      "test_environment",
+      "test_experiments",
+      "test_graph_inference",
+      "test_juliet",
+      "test_native",
+      "test_parser_metrics",
+      "test_pipeline",
+      "test_real_repair_cases",
+      "test_real_repair_evidence",
+      "test_real_repair_process",
+      "test_real_repair_reference",
+      "test_rules",
+      "test_stage2_integration",
+      "test_sweep"
+    ],
+    "tests_run": 141,
+    "failures": 0,
+    "errors": 0,
+    "skipped": [],
+    "wall_seconds": 13.870260099996813,
+    "ml_training_fixture_excluded": true
+  },
+  "demo_prediction_equivalence": {
+    "demo_predictions": 24,
+    "all_existing_predictions_byte_value_equivalent": true,
+    "metrics_claimed": false,
+    "training": false,
+    "checkpoint_metadata_sha256": "55666eb087bdd2bf5a3b35fed8a7f589b1d52974b75c70fb4e36f87e459895f0",
+    "checkpoint_weights_sha256": "9d22e110b86ff3ec9bff412e08aac1a3f39c22ba0d7fbd5e0634f89e180a9cab"
+  },
+  "long_function": {
+    "ast_nodes": 294,
+    "tokens": 786,
+    "retained_tokens": 256,
+    "truncated": true,
+    "original_source_unchanged": true,
+    "scope": "self-authored coverage fixture only, no defect truth label"
+  },
+  "tampered_input": {
+    "exit_code": 2,
+    "output_not_created": true,
+    "hash_mismatch_rejected_before_model_load": true
+  },
+  "input_files_unchanged": true,
+  "source_files": {
+    "src/defectguard/experiments/inference.py": "a9ef44d926f2ed4c2d8bbdd6235a007c96848b8908ac26aef8c2ac3e53b15ee0",
+    "src/defectguard/experiments/cli.py": "827db5aae4ffe32b9fdcdc0ab26f25e64f2c1f88efeeaf1e910829f35d07db84",
+    "tests/test_graph_inference.py": "5286dabd9f39256bc686071fef7b2dba2520745cad64eb76714c7af22b15e4be",
+    ".github/workflows/windows-ci.yml": "8e2453b4818bbac13185a449ff5f4a2ccedff52f46ec3522f95c0c42e5bbd7e0"
+  },
+  "checkpoint_weights_sha256": "9d22e110b86ff3ec9bff412e08aac1a3f39c22ba0d7fbd5e0634f89e180a9cab",
+  "checkpoint_metadata_sha256": "55666eb087bdd2bf5a3b35fed8a7f589b1d52974b75c70fb4e36f87e459895f0",
+  "encoder_sha256": "82c5d193724c731a0de8bb4e1ea90358548ac61193fcc2d6539aa707be3beab4",
+  "training": false,
+  "cpp_product_integration": false,
+  "independent_ci_verified": false,
+  "independent_deployment_verified": false,
+  "calibration": "uncalibrated",
+  "correctness": "not_assessed",
+  "limitations": [
+    "Existing 24-function demo, not an independent labeled dataset.",
+    "No new accuracy or calibration claim.",
+    "Graph/source fingerprint is exporter-declared provenance, not an independent source authenticity proof.",
+    "Before/after hashing is not atomic isolation from concurrent writers."
+  ],
+  "records": [
+    {
+      "path": "artifacts/p3-model-graph-interface-20261028/python-nontraining-tests.log",
+      "sha256": "920d3b5dc9a5e81cb61ba1140af27fec9777d5ab6d526f0e6e4a751f35e88008"
+    },
+    {
+      "path": "artifacts/p3-model-graph-interface-20261028/python-nontraining-tests.json",
+      "sha256": "cf477cde71bd9fed0f23c113d9669421d27b6df4ae95d3861b1d231747d94ebd"
+    },
+    {
+      "path": "artifacts/p3-model-graph-interface-20261028/demo-equivalence.json",
+      "sha256": "3be3ec66d31c2a81204ffc20fe7772a1a830182b8c409ae2bf153541e4f226b1"
+    },
+    {
+      "path": "artifacts/p3-model-graph-interface-20261028/demo-inference/manifest.json",
+      "sha256": "ee15dd0ecb5c11d1e46d41d91e4a0b22d80590bcfc425c1244cef19f1cd8e59b"
+    },
+    {
+      "path": "artifacts/p3-model-graph-interface-20261028/demo-inference/predictions.json",
+      "sha256": "d25618b03e4c0d4eda504181276c64a4d58fcc5686b775d38de43bf6f9d6abbc"
+    },
+    {
+      "path": "artifacts/p3-model-graph-interface-20261028/demo-inference.stdout.log",
+      "sha256": "cf74a2a8e2eda369ac6efa89efd5bb5f8a0e4a32e5f620338b19a849de3eb1de"
+    },
+    {
+      "path": "artifacts/p3-model-graph-interface-20261028/demo-inference.stderr.log",
+      "sha256": "ed4fe245d5ce463b54756fb91cb5e01d0a85b3682ad613e48bba240367df5d16"
+    },
+    {
+      "path": "artifacts/p3-model-graph-interface-20261028/long-native-export.json",
+      "sha256": "3fdb3b013c0fd5b2d4d6c0c9ab0151617ef9a7970efd514ca89225dffae53c53"
+    },
+    {
+      "path": "artifacts/p3-model-graph-interface-20261028/long-graphs/manifest.json",
+      "sha256": "86d86c7bb4eb75becd0d0547b96ab22c58aa004b26db0e857e4a27f0c242b596"
+    },
+    {
+      "path": "artifacts/p3-model-graph-interface-20261028/long-graphs/graphs.jsonl",
+      "sha256": "398a918e7d75bf88c91a0164ed23359a611d1948b93bc08fb0867408525aa80b"
+    },
+    {
+      "path": "artifacts/p3-model-graph-interface-20261028/long-inference/manifest.json",
+      "sha256": "76578af54fbaa3f7c3890eeb0e0b73b9ff2d54e67be1b6ce24f43b042c95ddd6"
+    },
+    {
+      "path": "artifacts/p3-model-graph-interface-20261028/long-inference/predictions.json",
+      "sha256": "a5d76ba6071f6bd9a618778ab4e328a0c3c94c1c7775e453dfebdb7781592bfd"
+    },
+    {
+      "path": "artifacts/p3-model-graph-interface-20261028/long-inference.stdout.log",
+      "sha256": "156ce99e2c234e3e67ddb8941eb458dea34d104c365c74eb48bfc983c576b52d"
+    },
+    {
+      "path": "artifacts/p3-model-graph-interface-20261028/long-inference.stderr.log",
+      "sha256": "c42eea5baf15f0e755531da2fad1e837678730b0409c3b1bb35d6ef7a7817d7d"
+    },
+    {
+      "path": "artifacts/p3-model-graph-interface-20261028/long-inference-process.json",
+      "sha256": "0a66e9d9951a56a1028bbfddf23e6fe0a5d343dcbda1da5f8eb2bf8f0a644095"
+    },
+    {
+      "path": "artifacts/p3-model-graph-interface-20261028/tampered-input.json",
+      "sha256": "a601a23241f1b1bb11a6fbbbfd7f7e3a13bd1384dbcb891200dd9ae897f84239"
+    },
+    {
+      "path": "artifacts/p3-model-graph-interface-20261028/tampered-input.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/p3-model-graph-interface-20261028/tampered-input.stderr.log",
+      "sha256": "2c06abe93e8d7676cfaa774573fc52abfe6aaae1f25d4231f1286e0536857c99"
+    }
+  ]
+}
