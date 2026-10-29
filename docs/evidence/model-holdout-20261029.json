@@ -1,6 +1,6 @@
 {
   "date": "2026-10-29",
-  "scope": "Local prescore whole-component research holdout; no commit/push or new CI",
+  "scope": "Prescore whole-component research holdout and authorized normal Windows CI; original local verification retained as historical phase",
   "verification": {
     "status": "passed",
     "tests_run": 70,
@@ -67,5 +67,30 @@
   "thresholds_unchanged": true,
   "model_training": false,
   "model_scored": false,
-  "calibration_fitted": false
+  "calibration_fitted": false,
+  "ci_acceptance": {
+    "run": 40846003559,
+    "commit": "5673a9dab70fba65118e5ef8193355192f1e3e19",
+    "manifest_files": 558,
+    "extra_files": 0,
+    "all_bytes_and_sha256_match": true,
+    "manifest_windows_separators_normalized": true,
+    "portable_bytes": 154186376,
+    "portable_sha256": "2c719a1ab6771f15b663c63caf20b6ecec80ee178d56ef06b2a0c549b9ea117e",
+    "core": {
+      "passed": 104,
+      "skipped": 1
+    },
+    "clang_qt": {
+      "passed": 236,
+      "skipped": 1
+    },
+    "python_tests": 56,
+    "new_holdout_tests": 16,
+    "normal_jobs_success": 2,
+    "real_repair_jobs_skipped": 2,
+    "model_downloaded": false,
+    "model_scoring_or_training": false,
+    "url": "https://github.com/hajiujiu174/cpp-defect-guard/actions/runs/40846003559"
+  }
 }
