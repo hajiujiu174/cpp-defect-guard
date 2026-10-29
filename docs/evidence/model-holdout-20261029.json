@@ -1,0 +1,71 @@
+{
+  "date": "2026-10-29",
+  "scope": "Local prescore whole-component research holdout; no commit/push or new CI",
+  "verification": {
+    "status": "passed",
+    "tests_run": 70,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "modules": [
+      "test_model_holdout",
+      "test_graph_inference",
+      "test_experiments",
+      "test_juliet"
+    ],
+    "functions": 330,
+    "pairs": 165,
+    "partitions": {
+      "calibration": {
+        "cwe_counts": {
+          "121": 66,
+          "122": 88
+        },
+        "functions": 154,
+        "groups": 2,
+        "label_counts": {
+          "0": 77,
+          "1": 77
+        }
+      },
+      "test": {
+        "cwe_counts": {
+          "121": 154,
+          "122": 22
+        },
+        "functions": 176,
+        "groups": 3,
+        "label_counts": {
+          "0": 88,
+          "1": 88
+        }
+      }
+    },
+    "cross_partition_source_and_fingerprint_overlap": 0,
+    "all_audit_fingerprint_owners_checked": true,
+    "retained_assets_unchanged": 2763,
+    "latest_verified_packages_unchanged": 4,
+    "input_hashes_verified": 335,
+    "partition_sha256": "613a94b4a5b6579f1a519edef1504f49bc11fdb5a62e6e1743465069afa40d5e",
+    "model_scoring": false,
+    "new_training": false,
+    "calibration_fitting": false,
+    "independent_accuracy_assessed": false
+  },
+  "source_files": {
+    "src/defectguard/experiments/holdout.py": "e844cbe9699fd7ad81ef00e167c6664e16f1a10b63eee4fd20bdb60020b78e8a",
+    "tests/test_model_holdout.py": "1b0487a4de95aea43cfd9775d9d828ccff4618babb2670459be04edf2e3782fe",
+    ".github/workflows/windows-ci.yml": "03cd391b8597e8100822fea77b86d7e4a5dd003649f5ed169058785359077d95",
+    "docs/model-holdout.md": "3af0613a2ce8847391a738a7a1cbfd0dbdeb7cd4f7269e9c7e6637396ee5336d",
+    "AGENTS.md": "095ca3ec959e2c50099dd570cb59a59cdd106e475af5f50d020f806664b2362e",
+    "docs/codeguard-status.md": "2897d8350e4679dfb54fb9887921919567290fe5f543da13107e39201cae8643",
+    "docs/model-deployment-assessment.md": "a35ebac06d3e0a56a2f6ef1d82ad129c28596e8c00c7800bc0c4fe3881129533"
+  },
+  "tested_product_commit": "9a1a159089728a82f17cfd2e5ddec322d591d907",
+  "existing_results_commit": "1305f4e9f28fc2366bf638889df676fafa8d51b6",
+  "ci_prepared_not_run": true,
+  "thresholds_unchanged": true,
+  "model_training": false,
+  "model_scored": false,
+  "calibration_fitted": false
+}

@@ -58,7 +58,12 @@ jobs:
           $env:PYTHONPATH = Join-Path $PWD 'src'
           python -B -m unittest discover -s tests -p 'test_graph_inference.py' -v
           if ($LASTEXITCODE -ne 0) { throw 'Graph inference interface tests failed' }
-      - name: Core debug build and tests
+        - name: Verify prescore whole-component holdout without model dependencies
+          run: |
+            $env:PYTHONPATH = Join-Path $PWD 'src'
+            python -B -m unittest discover -s tests -p 'test_model_holdout.py' -v
+            if ($LASTEXITCODE -ne 0) { throw 'Model holdout tests failed' }
+        - name: Core debug build and tests
         run: ./scripts/ci_windows.ps1 -ToolchainRoot "$env:RUNNER_TEMP/codeguard-toolchain" -Mode Core
       - name: Clang and Qt release build, tests and package
         run: ./scripts/ci_windows.ps1 -ToolchainRoot "$env:RUNNER_TEMP/codeguard-toolchain" -Mode Analysis -Package
